@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict
 
 
 class Trainer(ABC):
@@ -10,15 +10,14 @@ class Trainer(ABC):
     def __init__(self,
                  model_name: str,
                  config: Dict[str, any],                    # let's enforce everything to be passed in config
-                 processed_data_files: List[str],
+                 processed_data_path: str,
                  model_path: str):
         self.model_name = model_name
         self.config = config
-        self.processed_data_files = processed_data_files,
+        self.processed_data_path = processed_data_path,
         self.model_path = model_path
 
-        for fn in processed_data_files:
-            assert os.path.exists(fn), f"{fn} does not exist!"
+        assert os.path.exists(processed_data_path), f"{processed_data_path} does not exist!"
 
         os.makedirs(model_path, exist_ok=True)
         self.model = self.build_train_model()

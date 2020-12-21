@@ -11,11 +11,11 @@ class Processor(ABC):
                  model_name: str,
                  config: Dict[str, any],                    # let's enforce everything to be passed in config
                  raw_data_files: List[str],
-                 processed_data_files: List[str]):
+                 processed_data_path: str):
         self.model_name = model_name
         self.config = config
         self.raw_data_files = raw_data_files
-        self.processed_data_files = processed_data_files
+        self.processed_data_path = processed_data_path
 
     @abstractmethod
     def check_data_format(self) -> None:
@@ -26,3 +26,4 @@ class Processor(ABC):
     @abstractmethod
     def preprocess(self) -> None:
         """Actual file-based preprocessing"""
+        pass
