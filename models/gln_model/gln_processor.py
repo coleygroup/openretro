@@ -8,7 +8,10 @@ from base.processor_base import Processor
 from collections import Counter, defaultdict
 from gln.common.mol_utils import cano_smarts, cano_smiles, smarts_has_useless_parentheses
 from gln.data_process.build_raw_template import get_tpl
+from gln.data_process.build_all_reactions import find_tpls
+from gln.data_process.data_info import DataInfo, load_train_reactions
 from gln.data_process.find_centers import find_edges
+from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
 from rdkit import Chem
 from tqdm import tqdm
 from typing import Dict, List
@@ -19,19 +22,32 @@ class GLNProcessor(Processor):
 
     def __init__(self,
                  model_name: str,
-                 config: Dict[str, any],
+                 model_args,
+                 model_config: Dict[str, any],
+                 data_name: str,
                  raw_data_files: List[str],
                  processed_data_path: str,
                  num_cores: int = None):
         super().__init__(model_name=model_name,
-                         config=config,
+                         model_args=model_args,
+                         model_config=model_config,
+                         data_name=data_name,
                          raw_data_files=raw_data_files,
                          processed_data_path=processed_data_path)
         self.check_count = 100
         self.train_file, self.val_file, self.test_file = raw_data_files
         self.num_cores = num_cores
 
-        self.tpl_folder = None
+        # Override paths and args (temporarily) to be consistent with hardcoding in gln backend
+        self.dropbox = processed_data_path
+        self.cooked_folder = os.path.join(processed_data_path, f"cooked_{data_name}")
+        self.tpl_folder = os.path.join(self.cooked_folder, "tpl-default")
+        os.makedirs(self.cooked_folder, exist_ok=True)
+        os.makedirs(self.tpl_folder, exist_ok=True)
+
+        self.model_args.dropbox = self.dropbox
+        self.model_args.data_name = data_name
+        self.model_args.tpl_name = "default"
 
     def check_data_format(self) -> None:
         """Check that all files exists and the data format is correct for all"""
@@ -70,6 +86,7 @@ class GLNProcessor(Processor):
         self.get_canonical_smarts()                 # step 2
         self.find_centers()                         # step 3
         self.build_all_reactions()                  # step 4
+        self.dump_graphs()                          # step 5
 
     def get_canonical_smiles(self):
         """Core of step0.0_run_get_cano_smiles.sh, adapted from get_canonical_smiles.py"""
@@ -109,12 +126,12 @@ class GLNProcessor(Processor):
             set_mols.add(smiles_cano_map[s])
         logging.info(f"# unique smiles: {len(set_mols)}")
 
-        with open(os.path.join(self.processed_data_path, "cano_smiles.pkl"), "wb") as f:
+        with open(os.path.join(self.cooked_folder, "cano_smiles.pkl"), "wb") as f:
             cp.dump(smiles_cano_map, f, cp.HIGHEST_PROTOCOL)
         logging.info(f"# unique atoms: {len(all_symbols)}")
 
         all_symbols = sorted(list(all_symbols))
-        with open(os.path.join(self.processed_data_path, "atom_list.txt"), "w") as f:
+        with open(os.path.join(self.cooked_folder, "atom_list.txt"), "w") as f:
             for a in all_symbols:
                 f.write("%d\n" % a[0])
 
@@ -140,8 +157,8 @@ class GLNProcessor(Processor):
             row_idx, _, rxn_smiles = row
             tasks.append((idx, row_idx, rxn_smiles))
 
-        fn = os.path.join(self.processed_data_path, "proc_train_singleprod.csv")
-        fn_failed = os.path.join(self.processed_data_path, "failed_template.csv")
+        fn = os.path.join(self.cooked_folder, "proc_train_singleprod.csv")
+        fn_failed = os.path.join(self.cooked_folder, "failed_template.csv")
         fout, writer = self.get_writer(fn, ["id", "class", "rxn_smiles", "retro_templates"])
         fout_failed, failed_writer = self.get_writer(fn_failed, ["id", "class", "rxn_smiles", "err_msg"])
 
@@ -165,7 +182,7 @@ class GLNProcessor(Processor):
     def filter_template(self):
         """Core of step1_filter_template.sh, adapted from filter_template.py"""
         logging.info(f"Step 1: filtering templates")
-        proc_file = os.path.join(self.processed_data_path, "proc_train_singleprod.csv")
+        proc_file = os.path.join(self.cooked_folder, "proc_train_singleprod.csv")
 
         unique_tpls = Counter()
         tpl_types = defaultdict(set)
@@ -183,12 +200,9 @@ class GLNProcessor(Processor):
 
         used_tpls = []
         for x in unique_tpls:
-            if unique_tpls[x] >= self.config["tpl_min_cnt"]:
+            if unique_tpls[x] >= self.model_args.tpl_min_cnt:
                 used_tpls.append(x)
         logging.info(f"num templates after filtering: {len(used_tpls)}")
-
-        self.tpl_folder = os.path.join(self.processed_data_path, "tpl-default")
-        os.makedirs(self.tpl_folder, exist_ok=True)
 
         out_file = os.path.join(self.tpl_folder, "templates.csv")
         with open(out_file, "w") as f:
@@ -246,7 +260,7 @@ class GLNProcessor(Processor):
     def find_centers(self):
         """Core of step3_run_find_centers.sh, adapted from find_centers.py"""
         logging.info(f"Step 3: finding reaction centers")
-        with open(os.path.join(self.processed_data_path, "cano_smiles.pkl"), "rb") as f:
+        with open(os.path.join(self.cooked_folder, "cano_smiles.pkl"), "rb") as f:
             smiles_cano_map = cp.load(f)
         with open(os.path.join(self.tpl_folder, "cano_smarts.pkl"), "rb") as f:
             smarts_cano_map = cp.load(f)
@@ -260,7 +274,7 @@ class GLNProcessor(Processor):
         logging.info(f"num of prod centers: {len(prod_center_mols)}")
         logging.info(f"num of smiles: {len(smiles_cano_map)}")
 
-        csv_file = os.path.join(self.processed_data_path, "templates.csv")
+        csv_file = os.path.join(self.tpl_folder, "templates.csv")
 
         smarts_type_set = defaultdict(set)
         with open(csv_file, "r") as f:
@@ -277,10 +291,10 @@ class GLNProcessor(Processor):
                 sm_prod = smarts_cano_map[sm_prod]
                 smarts_type_set[sm_prod].add(rxn_type)
 
-        if self.config["num_parts"] <= 0:
+        if self.model_args.num_parts <= 0:
             num_parts = self.num_cores
         else:
-            num_parts = self.config["num_parts"]
+            num_parts = self.model_args.num_parts
 
         pool = multiprocessing.Pool(self.num_cores)
 
@@ -332,39 +346,44 @@ class GLNProcessor(Processor):
     def build_all_reactions(self):
         """Core of step4_run_find_all_reactions.sh, adapted from build_all_reactions.py"""
         logging.info(f"Step 4: building all reactions")
-        random.seed(self.config["seed"])
+        random.seed(self.model_args.seed)
 
-        DataInfo.init(cmd_args.dropbox, cmd_args)
+        DataInfo.init(self.dropbox, self.model_args)
 
-        fn_pos = lambda idx: get_writer('pos_tpls-part-%d.csv' % idx,
-                                        ['tpl_idx', 'pos_tpl_idx', 'num_tpl_compete', 'num_react_compete'])
-        fn_neg = lambda idx: get_writer('neg_reacts-part-%d.csv' % idx, ['sample_idx', 'neg_reactants'])
-
-        if cmd_args.num_parts <= 0:
-            num_parts = cmd_args.num_cores
-            DataInfo.load_cooked_part('train', load_graphs=False)
+        if self.model_args.num_parts <= 0:
+            num_parts = self.num_cores
+            DataInfo.load_cooked_part("train", load_graphs=False)
         else:
-            num_parts = cmd_args.num_parts
+            num_parts = self.model_args.num_parts
 
-        train_reactions = load_train_reactions(cmd_args)
+        train_reactions = load_train_reactions(self.model_args)
         n_train = len(train_reactions)
         part_size = n_train // num_parts + 1
 
-        if cmd_args.part_num > 0:
-            prange = range(cmd_args.part_id, cmd_args.part_id + cmd_args.part_num)
+        if self.model_args.part_num > 0:
+            prange = range(self.model_args.part_id, self.model_args.part_id + self.model_args.part_num)
         else:
             prange = range(num_parts)
         for pid in prange:
-            f_pos, writer_pos = fn_pos(pid)
-            f_neg, writer_neg = fn_neg(pid)
-            if cmd_args.num_parts > 0:
-                DataInfo.load_cooked_part('train', part=pid, load_graphs=False)
+            fname_pos = os.path.join(self.tpl_folder,
+                                     f"np-{self.model_args.num_parts}",
+                                     f"pos_tpls-part-{pid}.csv")
+            fname_neg = os.path.join(self.tpl_folder,
+                                     f"np-{self.model_args.num_parts}",
+                                     f"neg_reacts-part-{pid}.csv")
+            f_pos, writer_pos = self.get_writer(
+                fname_pos, ["tpl_idx", "pos_tpl_idx", "num_tpl_compete", "num_react_compete"])
+            f_neg, writer_neg = self.get_writer(
+                fname_neg, ["sample_idx", "neg_reactants"])
+
+            if self.model_args.num_parts > 0:
+                DataInfo.load_cooked_part("train", part=pid, load_graphs=False)
             part_tasks = []
             idx_range = list(range(pid * part_size, min((pid + 1) * part_size, n_train)))
             for i in idx_range:
                 part_tasks.append((i, train_reactions[i]))
 
-            pool = multiprocessing.Pool(cmd_args.num_cores)
+            pool = multiprocessing.Pool(self.num_cores)
             for result in tqdm(pool.imap_unordered(find_tpls, part_tasks), total=len(idx_range)):
                 if result is None:
                     continue
@@ -372,10 +391,10 @@ class GLNProcessor(Processor):
                 idx = str(idx)
                 neg_keys = neg_reactions
 
-                if cmd_args.max_neg_reacts > 0:
+                if self.model_args.max_neg_reacts > 0:
                     neg_keys = list(neg_keys)
                     random.shuffle(neg_keys)
-                    neg_keys = neg_keys[:cmd_args.max_neg_reacts]
+                    neg_keys = neg_keys[:self.model_args.max_neg_reacts]
                 for pred in neg_keys:
                     writer_neg.writerow([idx, pred])
                 for key in pos_tpl_idx:
@@ -383,7 +402,54 @@ class GLNProcessor(Processor):
                     writer_pos.writerow([idx, key, nt, np])
                 f_pos.flush()
                 f_neg.flush()
+
             f_pos.close()
             f_neg.close()
             pool.close()
             pool.join()
+
+    def dump_graphs(self):
+        """Core of step5_run_dump_graphs.sh, adapted from dump_graphs.py"""
+        logging.info(f"Step 5: dumping all graphs")
+        # Note: the original scripts were run twice with args.retro_during_train = {False,True}.
+        # This has been reworked and simplified
+
+        # if not args.retro_during_train
+        if self.model_args.fp_degree > 0:
+            SmilesMols.set_fp_degree(self.model_args.fp_degree)
+            SmartsMols.set_fp_degree(self.model_args.fp_degree)
+
+        with open(os.path.join(self.cooked_folder, "cano_smiles.pkl"), "rb") as f:
+            smiles_cano_map = cp.load(f)
+
+        with open(os.path.join(self.tpl_folder, "prod_cano_smarts.txt"), "r") as f:
+            prod_cano_smarts = [row.strip() for row in f.readlines()]
+
+        with open(os.path.join(self.tpl_folder, "react_cano_smarts.txt"), "r") as f:
+            react_cano_smarts = [row.strip() for row in f.readlines()]
+
+        for mol in tqdm(smiles_cano_map):
+            SmilesMols.get_mol_graph(smiles_cano_map[mol])
+        SmilesMols.save_dump(os.path.join(self.cooked_folder, "graph_smiles"))
+
+        for smarts in tqdm(prod_cano_smarts + react_cano_smarts):
+            SmartsMols.get_mol_graph(smarts)
+        SmartsMols.save_dump(os.path.join(self.tpl_folder, "graph_smarts"))
+
+        # if args.retro_during_train
+        part_folder = os.path.join(self.tpl_folder, f"np-{self.model_args.num_parts}")
+        if self.model_args.part_num > 0:
+            prange = range(self.model_args.part_id, self.model_args.part_id + self.model_args.part_num)
+        else:
+            prange = range(self.model_args.num_parts)
+        for pid in prange:
+            with open(os.path.join(part_folder, f"neg_reacts-part-{pid}.csv"), "r") as f:
+                reader = csv.reader(f)
+                header = next(reader)
+                for row in tqdm(reader):
+                    reacts = row[-1]
+                    for t in reacts.split("."):
+                        SmilesMols.get_mol_graph(t)
+                    SmilesMols.get_mol_graph(reacts)
+            SmilesMols.save_dump(os.path.join(part_folder, f"neg_graphs-part-{pid}"))
+            SmilesMols.clear()

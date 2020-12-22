@@ -10,11 +10,15 @@ class Processor(ABC):
     @abstractmethod
     def __init__(self,
                  model_name: str,
-                 config: Dict[str, any],                    # let's enforce everything to be passed in config
+                 model_args,                                        # let's enforce everything to be passed in args
+                 model_config: Dict[str, any],                      # or config
+                 data_name: str,
                  raw_data_files: List[str],
                  processed_data_path: str):
         self.model_name = model_name
-        self.config = config
+        self.model_args = model_args
+        self.model_config = model_config
+        self.data_name = data_name
         self.raw_data_files = raw_data_files
         self.processed_data_path = processed_data_path
 
