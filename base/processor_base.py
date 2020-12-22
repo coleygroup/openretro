@@ -1,3 +1,4 @@
+import logging
 import os
 from abc import ABC, abstractmethod
 from typing import Dict, List
@@ -20,7 +21,11 @@ class Processor(ABC):
     @abstractmethod
     def check_data_format(self) -> None:
         """Check that all files exists and the data format is correct for all"""
+        logging.info("Checking data format before preprocessing")
+
         for fn in self.raw_data_files:
+            if not fn:
+                continue
             assert os.path.exists(fn), f"{fn} does not exist!"
 
     @abstractmethod
