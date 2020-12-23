@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
     parser.add_argument("--log_file", help="log file", type=str, default="")
+    parser.add_argument("--train_file", help="train SMILES file", type=str, default="")
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--model_path", help="model output path", type=str, default="")
 
@@ -27,6 +28,7 @@ def train_main(args):
                              model_args=gln_args,
                              model_config={},
                              data_name=args.data_name,
+                             raw_data_files=[args.train_file],
                              processed_data_path=args.processed_data_path,
                              model_path=args.model_path)
 
@@ -34,7 +36,7 @@ def train_main(args):
         raise ValueError(f"Model {args.model_name} not supported!")
 
     logging.info("Building train model")
-    trainer.model = trainer.build_train_model()
+    trainer.build_train_model()
 
     if args.do_train:
         logging.info("Start training")

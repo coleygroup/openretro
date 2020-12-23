@@ -10,7 +10,7 @@ from gln.data_process.data_info import load_bin_feats, DataInfo
 from gln.graph_logic.logic_net import GraphPath
 from gln.training.data_gen import data_gen, worker_softmax
 from tqdm import tqdm
-from typing import Dict
+from typing import Dict, List
 
 
 class GLNTrainer(Trainer):
@@ -21,6 +21,7 @@ class GLNTrainer(Trainer):
                  model_args,
                  model_config: Dict[str, any],
                  data_name: str,
+                 raw_data_files: List[str],
                  processed_data_path: str,
                  model_path: str):
         super().__init__(model_name=model_name,
@@ -40,9 +41,11 @@ class GLNTrainer(Trainer):
         self.dropbox = processed_data_path
         self.cooked_folder = os.path.join(processed_data_path, f"cooked_{data_name}")
         self.tpl_folder = os.path.join(self.cooked_folder, "tpl-default")
+        self.train_file = raw_data_files[0]
 
         logging.info("Overwriting model args, based on original gln training script")
         self.overwrite_model_args()
+        logging.info(f"Updated model args: {self.model_args}")
 
         DataInfo.init(self.dropbox, self.model_args)
         load_bin_feats(self.dropbox, self.model_args)
@@ -53,20 +56,21 @@ class GLNTrainer(Trainer):
         self.model_args.dropbox = self.dropbox
         self.model_args.data_name = self.data_name
         self.model_args.tpl_name = "default"
+        self.model_args.train_file = self.train_file
         self.model_args.f_atoms = os.path.join(self.dropbox, f"cooked_{self.data_name}", "atom_list.txt")
         # ENV variables
         self.model_args.gm = "mean_field"
-        self.model_args.act = "relu"
-        self.model_args.msg_dim = 128
+        self.model_args.act_func = "relu"
+        self.model_args.latent_dim = 128
         self.model_args.embed_dim = 256
-        self.model_args.neg_size = 64
-        self.model_args.lv = 3
+        self.model_args.neg_num = 64
+        self.model_args.max_lv = 3
         self.model_args.tpl_enc = "deepset"
         self.model_args.subg_enc = "mean_field"
-        self.model_args.graph_agg = "max"
-        self.model_args.retro = True
+        self.model_args.readout_agg_type = "max"
+        self.model_args.retro_during_train = True
         self.model_args.bn = True
-        self.model_args.gen = "weighted"
+        self.model_args.gen_method = "weighted"
         self.model_args.gnn_out = "last"
         self.model_args.neg_sample = "all"
         self.model_args.att_type = "bilinear"
@@ -78,6 +82,8 @@ class GLNTrainer(Trainer):
         self.model_args.topk = 50
         self.model_args.beam_size = 50
         self.model_args.num_parts = 1
+        # Suggested by gln README
+        self.model_args.num_epochs = 10
 
     def build_train_model(self):
         self.model = GraphPath(self.model_args).to(self.device)
