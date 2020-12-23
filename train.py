@@ -9,7 +9,7 @@ from rdkit import RDLogger
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("preprocess.py")
+    parser = argparse.ArgumentParser("train.py")
     parser.add_argument("--do_train", help="whether to do training (it's possible to only test)", action="store_true")
     parser.add_argument("--do_test", help="whether to do testing (only if implemented)", action="store_true")
     parser.add_argument("--model_name", help="model name", type=str, default="")
