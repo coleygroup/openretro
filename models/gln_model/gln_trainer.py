@@ -132,4 +132,5 @@ class GLNTrainer(Trainer):
                     cp.dump(self.model_args, f, cp.HIGHEST_PROTOCOL)
 
     def test(self):
+        """GLN has an inference model that is different from the train model. See gln_tester.py"""
         raise NotImplementedError

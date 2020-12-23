@@ -14,6 +14,7 @@ pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-${TORCH_VER
 pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 pip install torch-geometric
 
+# GLN installation, make sure to install on a machine with cuda
 cd ./models/gln_model
 pip install -e .
 cd ../..

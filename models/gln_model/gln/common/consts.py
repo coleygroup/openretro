@@ -14,7 +14,9 @@ np_float = np.float32
 str_float = "float32"
 
 opts = argparse.ArgumentParser(description='gpu option')
-opts.add_argument('-gpu', type=int, default=-1, help='-1: cpu; 0 - ?: specific gpu index')
+# by ztu on 201223, default to use gpu
+# opts.add_argument('-gpu', type=int, default=-1, help='-1: cpu; 0 - ?: specific gpu index')
+opts.add_argument('-gpu', type=int, default=0, help='-1: cpu; 0 - ?: specific gpu index')
 
 args, _ = opts.parse_known_args()
 if torch.cuda.is_available() and args.gpu >= 0:
