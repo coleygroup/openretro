@@ -5,7 +5,6 @@ import numpy as np
 import os
 import pickle as cp
 import random
-import sys
 import time
 from base.processor_base import Processor
 from collections import Counter, defaultdict
@@ -13,7 +12,6 @@ from gln.common.mol_utils import cano_smarts, cano_smiles, smarts_has_useless_pa
 from gln.data_process.build_raw_template import get_tpl
 from gln.data_process.build_all_reactions import find_tpls
 from gln.data_process.data_info import DataInfo
-# from gln.data_process.find_centers import find_edges
 from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
 from rdkit import Chem
 from tqdm import tqdm
@@ -191,7 +189,7 @@ class GLNProcessor(Processor):
         logging.info(f"Step 0.1: building raw templates")
         with open(self.train_file, "r") as f:
             reader = csv.reader(f)
-            header = next(reader)
+            next(reader)                    # skip the header
             rows = [row for row in reader]
 
         pool = multiprocessing.Pool(self.num_cores)
@@ -503,7 +501,7 @@ class GLNProcessor(Processor):
             logging.info(f"Getting mol graphs for SMILES with negatives for pid {pid}")
             with open(os.path.join(part_folder, f"neg_reacts-part-{pid}.csv"), "r") as f:
                 reader = csv.reader(f)
-                header = next(reader)
+                next(reader)                    # skip the header
                 for row in tqdm(reader):
                     reacts = row[-1]
                     for t in reacts.split("."):
@@ -512,5 +510,3 @@ class GLNProcessor(Processor):
             logging.info("Dumping, note: these are huge files (a few GB)")
             SmilesMols.save_dump(os.path.join(part_folder, f"neg_graphs-part-{pid}"))
             SmilesMols.clear()
-
-        sys.exit()          # from original, maybe to force python to exit correctly?

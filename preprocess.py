@@ -41,6 +41,7 @@ def preprocess_main(args):
     processor.check_data_format()
     processor.preprocess()
     logging.info(f"Preprocessing done, total time: {time.time() - start: .2f} s")
+    sys.exit()              # from original, maybe to force python to exit correctly?
 
 
 if __name__ == "__main__":
