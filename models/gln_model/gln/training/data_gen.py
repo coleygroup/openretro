@@ -12,8 +12,9 @@ from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
 from multiprocessing import Process, Queue
 import time
 
-from gln.data_process.data_info import DataInfo, load_train_reactions
+from gln.data_process.data_info import DataInfo     # , load_train_reactions
 from gln.common.reactor import Reactor
+from models.gln_model.gln_processor import load_train_reactions
 
 
 class DataSample(object):
@@ -62,7 +63,8 @@ def worker_softmax(worker_id, seed, args):
     random.seed(seed)
     num_epochs = 0
     part_id = 0
-    train_reactions = load_train_reactions(args)
+    # train_reactions = load_train_reactions(args)              # by ztu on 201222, reimplemented in gln_processor.py
+    train_reactions = load_train_reactions(args.train_file)
     while True:
         if num_epochs % args.epochs_per_part == 0:
             DataInfo.load_cooked_part('train', part_id)
