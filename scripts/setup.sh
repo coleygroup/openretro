@@ -9,4 +9,4 @@ conda install -y rdkit -c rdkit
 
 cd ./models/gln_model
 pip install -e .
-cd ../../..
+cd ../..

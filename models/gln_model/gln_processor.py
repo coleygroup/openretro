@@ -1,20 +1,62 @@
 import csv
 import logging
 import multiprocessing
+import numpy as np
 import os
 import pickle as cp
 import random
+import sys
+import time
 from base.processor_base import Processor
 from collections import Counter, defaultdict
 from gln.common.mol_utils import cano_smarts, cano_smiles, smarts_has_useless_parentheses
 from gln.data_process.build_raw_template import get_tpl
 from gln.data_process.build_all_reactions import find_tpls
-from gln.data_process.data_info import DataInfo, load_train_reactions
-from gln.data_process.find_centers import find_edges
+from gln.data_process.data_info import DataInfo
+# from gln.data_process.find_centers import find_edges
 from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
 from rdkit import Chem
 from tqdm import tqdm
 from typing import Dict, List
+
+G_smiles_cano_map, G_prod_center_mols, G_smarts_type_set = {}, [], {}
+
+
+def find_edges(task):
+    global G_smiles_cano_map, G_prod_center_mols, G_smarts_type_set
+
+    idx, rxn_type, smiles = task
+    smiles = G_smiles_cano_map[smiles]
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return idx, rxn_type, smiles, None
+    list_centers = []
+    for i, (sm_center, center_mol) in enumerate(G_prod_center_mols):
+        if center_mol is None:
+            continue
+        if rxn_type not in G_smarts_type_set[sm_center]:
+            continue
+        if mol.HasSubstructMatch(center_mol):
+            list_centers.append(str(i))
+    if len(list_centers) == 0:
+        return idx, rxn_type, smiles, None
+    centers = ' '.join(list_centers)
+    return idx, rxn_type, smiles, centers
+
+
+def load_train_reactions(train_file: str):
+    train_reactions = []
+    with open(train_file, "r") as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        pos = header.index("reactants>reagents>production") if "reactants>reagents>production" in header else -1
+        c_idx = header.index("class")
+        for row in reader:
+            train_reactions.append((row[c_idx], row[pos]))
+    logging.info(f"# raw train loaded: {len(train_reactions)}")
+
+    return train_reactions
 
 
 class GLNProcessor(Processor):
@@ -48,6 +90,7 @@ class GLNProcessor(Processor):
         self.model_args.dropbox = self.dropbox
         self.model_args.data_name = data_name
         self.model_args.tpl_name = "default"
+        self.model_args.fp_degree = 2
 
     def check_data_format(self) -> None:
         """Check that all files exists and the data format is correct for all"""
@@ -260,6 +303,7 @@ class GLNProcessor(Processor):
     def find_centers(self):
         """Core of step3_run_find_centers.sh, adapted from find_centers.py"""
         logging.info(f"Step 3: finding reaction centers")
+
         with open(os.path.join(self.cooked_folder, "cano_smiles.pkl"), "rb") as f:
             smiles_cano_map = cp.load(f)
         with open(os.path.join(self.tpl_folder, "cano_smarts.pkl"), "rb") as f:
@@ -296,6 +340,12 @@ class GLNProcessor(Processor):
         else:
             num_parts = self.model_args.num_parts
 
+        # ugly solution -- passing dicts for pool using global variables
+        global G_smiles_cano_map, G_prod_center_mols, G_smarts_type_set
+        G_smiles_cano_map = smiles_cano_map
+        G_prod_center_mols = prod_center_mols
+        G_smarts_type_set = smarts_type_set
+
         pool = multiprocessing.Pool(self.num_cores)
 
         for out_phase, csv_file in [("train", self.train_file),
@@ -303,6 +353,7 @@ class GLNProcessor(Processor):
                                     ("test", self.test_file)]:
             if not csv_file:
                 continue
+            start = time.time()
 
             rxn_smiles = []
             with open(csv_file, "r") as f:
@@ -340,6 +391,8 @@ class GLNProcessor(Processor):
                         writer.writerow([smiles, rxn_type, centers])
                 fout.close()
 
+            logging.info(f"Phase {out_phase} processed. Time: {time.time() - start: .2f} s")
+
         pool.close()
         pool.join()
 
@@ -347,6 +400,7 @@ class GLNProcessor(Processor):
         """Core of step4_run_find_all_reactions.sh, adapted from build_all_reactions.py"""
         logging.info(f"Step 4: building all reactions")
         random.seed(self.model_args.seed)
+        np.random.seed(self.model_args.seed)
 
         DataInfo.init(self.dropbox, self.model_args)
 
@@ -356,7 +410,7 @@ class GLNProcessor(Processor):
         else:
             num_parts = self.model_args.num_parts
 
-        train_reactions = load_train_reactions(self.model_args)
+        train_reactions = load_train_reactions(self.train_file)
         n_train = len(train_reactions)
         part_size = n_train // num_parts + 1
 
@@ -398,8 +452,8 @@ class GLNProcessor(Processor):
                 for pred in neg_keys:
                     writer_neg.writerow([idx, pred])
                 for key in pos_tpl_idx:
-                    nt, np = pos_tpl_idx[key]
-                    writer_pos.writerow([idx, key, nt, np])
+                    _nt, _np = pos_tpl_idx[key]
+                    writer_pos.writerow([idx, key, _nt, _np])
                 f_pos.flush()
                 f_neg.flush()
 
@@ -428,10 +482,12 @@ class GLNProcessor(Processor):
         with open(os.path.join(self.tpl_folder, "react_cano_smarts.txt"), "r") as f:
             react_cano_smarts = [row.strip() for row in f.readlines()]
 
+        logging.info("Getting and dumping mol graphs for SMILES")
         for mol in tqdm(smiles_cano_map):
             SmilesMols.get_mol_graph(smiles_cano_map[mol])
         SmilesMols.save_dump(os.path.join(self.cooked_folder, "graph_smiles"))
 
+        logging.info("Getting and dumping mol graphs for SMARTS")
         for smarts in tqdm(prod_cano_smarts + react_cano_smarts):
             SmartsMols.get_mol_graph(smarts)
         SmartsMols.save_dump(os.path.join(self.tpl_folder, "graph_smarts"))
@@ -442,7 +498,9 @@ class GLNProcessor(Processor):
             prange = range(self.model_args.part_id, self.model_args.part_id + self.model_args.part_num)
         else:
             prange = range(self.model_args.num_parts)
+
         for pid in prange:
+            logging.info(f"Getting mol graphs for SMILES with negatives for pid {pid}")
             with open(os.path.join(part_folder, f"neg_reacts-part-{pid}.csv"), "r") as f:
                 reader = csv.reader(f)
                 header = next(reader)
@@ -451,5 +509,8 @@ class GLNProcessor(Processor):
                     for t in reacts.split("."):
                         SmilesMols.get_mol_graph(t)
                     SmilesMols.get_mol_graph(reacts)
+            logging.info("Dumping, note: these are huge files (a few GB)")
             SmilesMols.save_dump(os.path.join(part_folder, f"neg_graphs-part-{pid}"))
             SmilesMols.clear()
+
+        sys.exit()          # from original, maybe to force python to exit correctly?

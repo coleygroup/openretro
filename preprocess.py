@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_processor import GLNProcessor
@@ -23,6 +24,8 @@ def parse_args():
 
 
 def preprocess_main(args):
+    start = time.time()
+
     if args.model_name == "gln":
         processor = GLNProcessor(model_name="gln",
                                  model_args=gln_args,
@@ -37,6 +40,7 @@ def preprocess_main(args):
 
     processor.check_data_format()
     processor.preprocess()
+    logging.info(f"Preprocessing done, total time: {time.time() - start: .2f} s")
 
 
 if __name__ == "__main__":
