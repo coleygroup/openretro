@@ -22,6 +22,8 @@ class Processor(ABC):
         self.raw_data_files = raw_data_files
         self.processed_data_path = processed_data_path
 
+        os.makedirs(self.processed_data_path, exist_ok=True)
+
     @abstractmethod
     def check_data_format(self) -> None:
         """Check that all files exists and the data format is correct for all"""

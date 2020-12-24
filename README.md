@@ -9,7 +9,7 @@ An open source library for retrosynthesis benchmarking.
 ### Using docker (TODO)
 
 # Models
-### GLN
+## GLN
 Adapted from https://github.com/Hanjun-Dai/GLN
 
 Step 1. Prepare the raw atom-mapped .csv files for train, validation and test.
@@ -30,5 +30,5 @@ Step 4 (optional). Testing: modify the args in scripts/gln_test.sh, then
 
 Once trained, a sample usage of the GLN proposer API is 
 
-    python gln_proposer_sample.py
+    python sample_gln_proposer.py
 Refer to gln_proposer_sample.py and modify accordingly for your own use case.
