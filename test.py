@@ -15,6 +15,8 @@ def parse_args():
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
     parser.add_argument("--log_file", help="log file", type=str, default="")
     parser.add_argument("--train_file", help="train SMILES file", type=str, default="")
+    parser.add_argument("--val_file", help="validation SMILES files", type=str, default="")
+    parser.add_argument("--test_file", help="test SMILES files", type=str, default="")
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--model_path", help="model output path", type=str, default="")
     parser.add_argument("--test_output_path", help="test output path", type=str, default="")
@@ -33,7 +35,7 @@ def test_main(args):
                            model_args=gln_args,
                            model_config={},
                            data_name=args.data_name,
-                           raw_data_files=[args.train_file],
+                           raw_data_files=[args.train_file, args.val_file, args.test_file],
                            processed_data_path=args.processed_data_path,
                            model_path=args.model_path,
                            test_output_path=args.test_output_path)
