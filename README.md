@@ -5,25 +5,30 @@ An open source library for retrosynthesis benchmarking.
 ### Using conda
     bash -i scripts/setup.sh
     conda activate openretro
-    pip install -e .
 
 ### Using docker (TODO)
 
-# Preprocessing
-Modify the variables at the top of scripts/preprocess.sh, then
+# Models
+### GLN
+Adapted from https://github.com/Hanjun-Dai/GLN
 
-    sh scripts/preprocess.sh
+Step 1. Prepare the raw atom-mapped .csv files for train, validation and test.
+See https://www.dropbox.com/sh/6ideflxcakrak10/AADN-TNZnuGjvwZYiLk7zvwra/schneider50k?dl=0&subfolder_nav_tracking=1
+for how sample data look like
 
-# Training
-Modify the variables at the top of scripts/train.sh, then
+Step 2. Preprocessing: modify the args in scripts/gln_preprocess.sh, then
+
+    sh scripts/gln_preprocess.sh
+
+Step 3. Training: modify the args in scripts/gln_train.sh, then
     
-    sh scripts/train.sh
+    sh scripts/gln_train.sh
 
-# Testing (partially supported)
-Modify the variables at the top of scripts/test.sh, then
+Step 4 (optional). Testing: modify the args in scripts/gln_test.sh, then
     
-    sh scripts/test.sh
+    sh scripts/gln_test.sh
 
-# Using the prediction API
-With the package installed, only the trained checkpoint is needed
-to instantiate the predictor API. See ./examples for sample usage.
+Once trained, a sample usage of the GLN proposer API is 
+
+    python gln_proposer_sample.py
+Refer to gln_proposer_sample.py and modify accordingly for your own use case.
