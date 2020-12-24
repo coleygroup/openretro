@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import numpy as np
 import os
 import sys
@@ -27,26 +28,30 @@ cmd_opt.add_argument('-model_for_test', default=None, help='model for test')
 local_args, _ = cmd_opt.parse_known_args()
 
 
-def load_raw_reacts(name):
-    print('loading raw', name)
-    args = cmd_args
-    csv_file = os.path.join(args.dropbox, args.data_name, 'raw_%s.csv' % name) 
+def load_raw_reacts(name, fname: str = ""):
+    logging.info("loading raw {name}")
+    if fname:
+        csv_file = fname
+    else:
+        args = cmd_args
+        csv_file = os.path.join(args.dropbox, args.data_name, f"raw_{name}.csv")
+
     reactions = []
-    print('loading templates')
-    with open(csv_file, 'r') as f:
+    logging.info("loading templates")
+    with open(csv_file, "r") as f:
         reader = csv.reader(f)
         header = next(reader)        
         for row in tqdm(reader):
             reactions.append((row[1], row[2]))
-    print('num %s:' % name, len(reactions))
+    logging.info(f"num {name}: {len(reactions)}")
     return reactions
 
 
-def rxn_data_gen(phase, model):
-    list_reactions = load_raw_reacts(phase)
+def rxn_data_gen(phase, fname: str, model):
+    list_reactions = load_raw_reacts(phase, fname)
 
     eval_cnt = 0
-    for pid in range(cmd_args.num_parts):        
+    for pid in range(cmd_args.num_parts):
         fname = os.path.join(cmd_args.dropbox, 'cooked_' + cmd_args.data_name, 'tpl-%s' % cmd_args.tpl_name, 'np-%d' % cmd_args.num_parts, '%s-prod_center_maps-part-%d.csv' % (phase, pid))
         model.prod_center_maps = load_center_maps(fname)
 
@@ -65,8 +70,13 @@ def rxn_data_gen(phase, model):
     assert eval_cnt == len(list_reactions)
 
 
-def eval_model(phase, model, fname_pred):
-    case_gen = rxn_data_gen(phase, model)
+# by ztu on 201223, pass in fname and saved_args for flexibility
+# def eval_model(phase, model, fname_pred):
+def eval_model(phase, fname: str, model, fname_pred):
+    global cmd_args
+    cmd_args = model.args
+
+    case_gen = rxn_data_gen(phase, fname, model)
 
     cnt = 0
     topk_scores = [0.0] * cmd_args.topk
@@ -133,10 +143,10 @@ if __name__ == '__main__':
             print('testing', local_args.model_for_test)
             for phase in ['val', 'test']:
                 fname_pred = os.path.join(cmd_args.save_dir, '%s-%d.pred' % (phase, i))
-                eval_model(phase, model, fname_pred)
+                eval_model(phase, "", model, fname_pred)
             i += 1
     else:
         model = RetroGLN(cmd_args.dropbox, local_args.model_for_test)
         print('testing', local_args.model_for_test)
         fname_pred = os.path.join(cmd_args.save_dir, 'test.pred')
-        eval_model('test', model, fname_pred)
+        eval_model('test', "", model, fname_pred)

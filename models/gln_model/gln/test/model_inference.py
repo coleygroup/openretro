@@ -6,6 +6,7 @@ from __future__ import division
 import rdkit
 from rdkit import Chem
 import os
+import logging
 import numpy as np
 import torch
 import pickle as cp
@@ -30,6 +31,8 @@ class RetroGLN(object):
         with open(arg_file, 'rb') as f:
             self.args = cp.load(f)
             self.args.dropbox = dropbox
+
+        logging.info(f"Loaded actual args used for training: {self.args}")
 
         DataInfo.init(dropbox, self.args)
         load_bin_feats(dropbox, self.args)
