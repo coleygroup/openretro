@@ -5,6 +5,8 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
+from models.transformer_model.transformer_trainer import TransformerTrainer
+from onmt.bin.train import _get_parser
 from rdkit import RDLogger
 
 
@@ -24,13 +26,33 @@ def parse_args():
 
 def train_main(args):
     if args.model_name == "gln":
-        trainer = GLNTrainer(model_name="gln",
-                             model_args=gln_args,
-                             model_config={},
-                             data_name=args.data_name,
-                             raw_data_files=[args.train_file],
-                             processed_data_path=args.processed_data_path,
-                             model_path=args.model_path)
+        trainer = GLNTrainer(
+            model_name="gln",
+            model_args=gln_args,
+            model_config={},
+            data_name=args.data_name,
+            raw_data_files=[args.train_file],
+            processed_data_path=args.processed_data_path,
+            model_path=args.model_path
+        )
+    elif args.model_name == "transformer":
+        # adapted from onmt.bin.train.main()
+        parser = _get_parser()
+        opt, _unknown = parser.parse_known_args()
+
+        # update runtime args
+        opt.config = args.config_file
+        opt.num_threads = args.num_cores
+
+        trainer = TransformerTrainer(
+            model_name="transformer",
+            model_args=opt,
+            model_config={},
+            data_name=args.data_name,
+            raw_data_files=[],
+            processed_data_path=args.processed_data_path,
+            model_path=args.model_path
+        )
 
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
