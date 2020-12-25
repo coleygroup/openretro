@@ -18,7 +18,7 @@ class Trainer(ABC):
         self.model_args = model_args
         self.model_config = model_config
         self.data_name = data_name
-        self.processed_data_path = processed_data_path,
+        self.processed_data_path = processed_data_path
         self.model_path = model_path
 
         assert os.path.exists(processed_data_path), f"{processed_data_path} does not exist!"

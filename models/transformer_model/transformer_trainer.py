@@ -40,12 +40,7 @@ class TransformerTrainer(Trainer):
         """Overwrite model args"""
         # Paths
         self.model_args.log_file = ""           # avoid double logging
-
-        # Runtime args
-
-        # Model params
-
-        # Training params
+        self.model_args.data = os.path.join(self.processed_data_path, "bin")
 
     def build_train_model(self):
         logging.info("For onmt training, models are built implicitly.")

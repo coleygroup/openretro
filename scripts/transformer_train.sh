@@ -1,11 +1,11 @@
 python train.py \
   --do_train \
+  --data="do_not_change_this" \
   --model_name="transformer" \
   --data_name="transformer-karpov" \
   --log_file="transformer_train" \
   --processed_data_path="./data/transformer-karpov/processed/" \
   --model_path="./checkpoints/transformer-karpov" \
-  --num_cores=8 \
   -seed 42 \
   -gpu_ranks 0 \
   -save_checkpoint_steps 20000 \
@@ -37,5 +37,5 @@ python train.py \
   -global_attention general \
   -global_attention_function softmax \
   -self_attn_type scaled-dot \
-  -heads 8 \
+  --heads 8 \
   -transformer_ff 512

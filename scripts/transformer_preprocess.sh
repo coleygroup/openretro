@@ -13,4 +13,4 @@ python preprocess.py \
   --train_src="do_not_change_this" \
   --train_tgt="do_not_change_this" \
   --valid_src="do_not_change_this" \
-  --valid_src="do_not_change_this"
+  --valid_tgt="do_not_change_this"

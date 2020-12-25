@@ -17,11 +17,12 @@ def parse_args():
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
     parser.add_argument("--log_file", help="log file", type=str, default="")
+    parser.add_argument("--config_file", help="model config file (optional)", type=str, default="")
     parser.add_argument("--train_file", help="train SMILES file", type=str, default="")
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--model_path", help="model output path", type=str, default="")
 
-    return parser.parse_args()
+    return parser.parse_known_args()
 
 
 def train_main(args):
@@ -42,7 +43,6 @@ def train_main(args):
 
         # update runtime args
         opt.config = args.config_file
-        opt.num_threads = args.num_cores
 
         trainer = TransformerTrainer(
             model_name="transformer",
@@ -69,7 +69,7 @@ def train_main(args):
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args, unknown = parse_args()
 
     # logger setup
     RDLogger.DisableLog("rdApp.warning")
@@ -87,5 +87,5 @@ if __name__ == "__main__":
     logger.addHandler(fh)
     logger.addHandler(sh)
 
-    # preprocess interface
+    # train interface
     train_main(args)

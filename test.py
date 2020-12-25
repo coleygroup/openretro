@@ -66,5 +66,5 @@ if __name__ == "__main__":
     logger.addHandler(fh)
     logger.addHandler(sh)
 
-    # preprocess interface
+    # test interface
     test_main(args)

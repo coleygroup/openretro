@@ -54,6 +54,7 @@ class TransformerProcessor(Processor):
         # Runtime args
         self.model_args.overwrite = True
         self.model_args.share_vocab = True
+        self.model_args.subword_prefix = "ThisIsAHardCode"          # an arg for BART, leading to weird logging error
 
     def check_data_format(self) -> None:
         """Check that all files exists and the data format is correct for all"""
