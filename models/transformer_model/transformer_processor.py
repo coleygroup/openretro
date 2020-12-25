@@ -45,7 +45,6 @@ class TransformerProcessor(Processor):
     def overwrite_model_args(self):
         """Overwrite model args"""
         # Paths
-        self.model_args.log_file = ""           # avoid double logging
         self.model_args.save_data = os.path.join(self.processed_data_path, "bin")
         self.model_args.train_src = [os.path.join(self.processed_data_path, f"src-train.txt")]
         self.model_args.train_tgt = [os.path.join(self.processed_data_path, f"tgt-train.txt")]

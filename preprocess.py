@@ -46,6 +46,7 @@ def preprocess_main(args):
         # update runtime args
         opt.config = args.config_file
         opt.num_threads = args.num_cores
+        opt.log_file = args.log_file
 
         processor = TransformerProcessor(
             model_name="transformer",
@@ -73,11 +74,12 @@ if __name__ == "__main__":
 
     os.makedirs("./logs/preprocess", exist_ok=True)
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
+    args.log_file = f"./logs/preprocess/{args.log_file}.{dt}"
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    fh = logging.FileHandler(f"./logs/preprocess/{args.log_file}.{dt}")
+    fh = logging.FileHandler(args.log_file)
     fh.setLevel(logging.INFO)
     sh = logging.StreamHandler(sys.stdout)
     sh.setLevel(logging.INFO)
