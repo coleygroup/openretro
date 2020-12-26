@@ -4,9 +4,12 @@ python test.py \
   --log_file="transformer_test" \
   --processed_data_path="./data/transformer-karpov/processed/" \
   --model_path="./checkpoints/transformer-karpov/model_step_500000.pt" \
+  --test_output_path="./results/transformer-karpov" \
   -batch_size 64 \
   -replace_unk \
   -max_length 200 \
-  -beam_size 5 \
-  -n_best 1 \
-  -gpu 0
+  -beam_size 10 \
+  -n_best 20 \
+  -gpu 0 \
+  -model "do_not_change_this" \
+  --src="do_not_change_this"

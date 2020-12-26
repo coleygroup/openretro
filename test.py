@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
     parser.add_argument("--log_file", help="log file", type=str, default="")
+    parser.add_argument("--config_file", help="model config file (optional)", type=str, default="")
     parser.add_argument("--train_file", help="train SMILES file", type=str, default="")
     parser.add_argument("--val_file", help="validation SMILES files", type=str, default="")
     parser.add_argument("--test_file", help="test SMILES files", type=str, default="")
@@ -23,7 +24,7 @@ def parse_args():
     parser.add_argument("--model_path", help="model output path", type=str, default="")
     parser.add_argument("--test_output_path", help="test output path", type=str, default="")
 
-    return parser.parse_args()
+    return parser.parse_known_args()
 
 
 def test_main(args):
