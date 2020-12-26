@@ -46,7 +46,7 @@ class TransformerTrainer(Trainer):
         logging.info("For onmt training, models are built implicitly.")
 
     def train(self):
-        """A wrapper to onmt.bin.train"""
+        """A wrapper to onmt.bin.train()"""
         onmt_train(self.model_args)
 
     def test(self):

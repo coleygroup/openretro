@@ -5,6 +5,8 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_tester import GLNTester
+from models.transformer_model.transformer_tester import TransformerTester
+from onmt.bin.translate import _get_parser
 from rdkit import RDLogger
 
 
@@ -31,14 +33,35 @@ def test_main(args):
     if args.model_name == "gln":
         # Overwrite default gln_args with runtime args
         gln_args.test_all_ckpts = args.test_all_ckpts
-        tester = GLNTester(model_name="gln",
-                           model_args=gln_args,
-                           model_config={},
-                           data_name=args.data_name,
-                           raw_data_files=[args.train_file, args.val_file, args.test_file],
-                           processed_data_path=args.processed_data_path,
-                           model_path=args.model_path,
-                           test_output_path=args.test_output_path)
+        tester = GLNTester(
+            model_name="gln",
+            model_args=gln_args,
+            model_config={},
+            data_name=args.data_name,
+            raw_data_files=[args.train_file, args.val_file, args.test_file],
+            processed_data_path=args.processed_data_path,
+            model_path=args.model_path,
+            test_output_path=args.test_output_path
+        )
+    elif args.model_name == "transformer":
+        # adapted from onmt.bin.translate.main()
+        parser = _get_parser()
+        opt, _unknown = parser.parse_known_args()
+
+        # update runtime args
+        opt.config = args.config_file
+        opt.log_file = args.log_file
+
+        tester = TransformerTester(
+            model_name="transformer",
+            model_args=opt,
+            model_config={},
+            data_name=args.data_name,
+            raw_data_files=[],
+            processed_data_path=args.processed_data_path,
+            model_path=args.model_path,
+            test_output_path=args.test_output_path
+        )
 
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
@@ -48,18 +71,19 @@ def test_main(args):
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args, unknown = parse_args()
 
     # logger setup
     RDLogger.DisableLog("rdApp.warning")
 
     os.makedirs("./logs/test", exist_ok=True)
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
+    args.log_file = f"./logs/test/{args.log_file}.{dt}"
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    fh = logging.FileHandler(f"./logs/test/{args.log_file}.{dt}")
+    fh = logging.FileHandler(args.log_file)
     fh.setLevel(logging.INFO)
     sh = logging.StreamHandler(sys.stdout)
     sh.setLevel(logging.INFO)
