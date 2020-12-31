@@ -3,10 +3,13 @@ An open source library for retrosynthesis benchmarking.
 
 # Environment setup
 ### Using conda
-Assuming conda is installed and initiated (i.e. conda activate is a warning-free command), then
+Assuming conda is installed and initiated (i.e. conda activate is a warning-free command).
+Then run the following command on a machine with CUDA
 
     bash -i scripts/setup.sh
     conda activate openretro
+
+This will ensure GLN uses the CUDA ops (vs. CPU ops) in GPU training.
 
 ### Using docker (TODO)
 
