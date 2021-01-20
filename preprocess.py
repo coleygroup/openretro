@@ -7,7 +7,7 @@ from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_processor import GLNProcessor
 from models.transformer_model.transformer_processor import TransformerProcessor
-from onmt.bin.preprocess import _get_parser
+from onmt.bin.preprocess import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
@@ -40,7 +40,7 @@ def preprocess_main(args):
             num_cores=args.num_cores)
     elif args.model_name == "transformer":
         # adapted from onmt.bin.preprocess.main()
-        parser = _get_parser()
+        parser = transformer_parser()
         opt, _unknown = parser.parse_known_args()
 
         # update runtime args

@@ -6,7 +6,7 @@ from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
 from models.transformer_model.transformer_trainer import TransformerTrainer
-from onmt.bin.train import _get_parser
+from onmt.bin.train import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
@@ -38,7 +38,7 @@ def train_main(args):
         )
     elif args.model_name == "transformer":
         # adapted from onmt.bin.train.main()
-        parser = _get_parser()
+        parser = transformer_parser()
         opt, _unknown = parser.parse_known_args()
 
         # update runtime args

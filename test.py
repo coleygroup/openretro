@@ -6,7 +6,7 @@ from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_tester import GLNTester
 from models.transformer_model.transformer_tester import TransformerTester
-from onmt.bin.translate import _get_parser
+from onmt.bin.translate import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
@@ -46,7 +46,7 @@ def test_main(args):
         )
     elif args.model_name == "transformer":
         # adapted from onmt.bin.translate.main()
-        parser = _get_parser()
+        parser = transformer_parser()
         opt, _unknown = parser.parse_known_args()
 
         # update runtime args
