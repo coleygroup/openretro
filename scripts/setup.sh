@@ -16,7 +16,7 @@ pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${TORCH
 pip install torch-geometric
 
 # install opennmt
-pip install OpenNMT-py==1.2.0
+pip install OpenNMT-py==1.2.0 dgl==0.4.2 networkx==2.5
 
 # GLN installation, make sure to install on a machine with cuda
 cd ./models/gln_model

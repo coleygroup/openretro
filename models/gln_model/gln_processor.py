@@ -145,7 +145,7 @@ class GLNProcessor(Processor):
                 for row in tqdm(reader):
                     rxn_smiles.append(row[rxn_idx])
 
-        # Canonizing SMILES and creating atom lists
+        # Canonicalizing SMILES and creating atom lists
         all_symbols = set()
         smiles_cano_map = {}
         for rxn in tqdm(rxn_smiles):
@@ -267,7 +267,7 @@ class GLNProcessor(Processor):
             for row in tqdm(reader):
                 retro_templates.append(row[header.index("retro_templates")])
 
-        # Canonizing templates
+        # Canonicalizing templates
         prod_cano_smarts = set()
         react_cano_smarts = set()
 
