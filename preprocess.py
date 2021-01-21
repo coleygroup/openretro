@@ -6,12 +6,14 @@ import time
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_processor import GLNProcessor
+from models.retroxpert_model import retroxpert_parser
+from models.retroxpert_model.retroxpert_processor import RetroXpertProcessorS1, RetroXpertProcessorS2
 from models.transformer_model.transformer_processor import TransformerProcessor
 from onmt.bin.preprocess import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
-def parse_args():
+def get_preprocess_parser():
     parser = argparse.ArgumentParser("preprocess.py")
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
@@ -22,22 +24,26 @@ def parse_args():
     parser.add_argument("--test_file", help="test SMILES files", type=str, default="")
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--num_cores", help="number of cpu cores to use", type=int, default=None)
+    parser.add_argument("--stage", help="stage number (needed for RetroXpert)", type=int, default=0)
 
-    return parser.parse_known_args()
+    return parser
 
 
-def preprocess_main(args):
+def preprocess_main(args, preprocess_parser):
     start = time.time()
 
+    model_name = ""
+    model_args = None
+    model_config = {}
+    data_name = args.data_name
+    raw_data_files = [args.train_file, args.val_file, args.test_file]
+    processed_data_path = args.processed_data_path
+    num_cores = args.num_cores
+
     if args.model_name == "gln":
-        processor = GLNProcessor(
-            model_name="gln",
-            model_args=gln_args,
-            model_config={},
-            data_name=args.data_name,
-            raw_data_files=[args.train_file, args.val_file, args.test_file],
-            processed_data_path=args.processed_data_path,
-            num_cores=args.num_cores)
+        model_name = "gln"
+        model_args = gln_args
+        ProcessorClass = GLNProcessor
     elif args.model_name == "transformer":
         # adapted from onmt.bin.preprocess.main()
         parser = transformer_parser()
@@ -48,17 +54,34 @@ def preprocess_main(args):
         opt.num_threads = args.num_cores
         opt.log_file = args.log_file
 
-        processor = TransformerProcessor(
-            model_name="transformer",
-            model_args=opt,
-            model_config={},
-            data_name=args.data_name,
-            raw_data_files=[args.train_file, args.val_file, args.test_file],
-            processed_data_path=args.processed_data_path,
-            num_cores=args.num_cores)
+        model_name = "transformer"
+        model_args = opt
+        ProcessorClass = TransformerProcessor
+    elif args.model_name == "retroxpert":
+        retroxpert_parser.add_model_opts(preprocess_parser)
+        retroxpert_parser.add_preprocess_opts(preprocess_parser)
+        model_args, _unknown = preprocess_parser.parse_known_args()
 
+        if args.stage == 1:
+            model_name = "retroxpert_s1"
+            ProcessorClass = RetroXpertProcessorS1
+        elif args.stage == 2:
+            model_name = "retroxpert_s2"
+            ProcessorClass = RetroXpertProcessorS2
+        else:
+            raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
+
+    processor = ProcessorClass(
+        model_name=model_name,
+        model_args=model_args,
+        model_config=model_config,
+        data_name=data_name,
+        raw_data_files=raw_data_files,
+        processed_data_path=processed_data_path,
+        num_cores=num_cores
+    )
 
     processor.check_data_format()
     processor.preprocess()
@@ -67,7 +90,8 @@ def preprocess_main(args):
 
 
 if __name__ == "__main__":
-    args, unknown = parse_args()
+    preprocess_parser = get_preprocess_parser()
+    args, unknown = preprocess_parser.parse_known_args()
 
     # logger setup
     RDLogger.DisableLog("rdApp.warning")
@@ -87,4 +111,4 @@ if __name__ == "__main__":
     logger.addHandler(sh)
 
     # preprocess interface
-    preprocess_main(args)
+    preprocess_main(args, preprocess_parser)
