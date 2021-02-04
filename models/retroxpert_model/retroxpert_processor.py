@@ -27,11 +27,12 @@ def find_all_patterns(task):
     for idx, pattern in enumerate(G_patterns_filtered):
         pattern_mol = Chem.MolFromSmarts(pattern)
         if pattern_mol is None:
-            print('error: pattern_mol is None')
+            logging.info(f"error: pattern_mol is None, idx: {idx}")
         try:
             matches = product_mol.GetSubstructMatches(pattern_mol,
                                                       useChirality=False)
         except:
+            logging.info(f"Caught some exception at {k}th task. Continue anyway.")
             continue
         else:
             if len(matches) > 0 and len(matches[0]) > 0:
@@ -162,7 +163,7 @@ class RetroXpertProcessorS1(Processor):
                 of_src_aug = open(os.path.join(opennmt_data_path, f"src-train-aug.txt"), "w")
                 of_tgt_aug = open(os.path.join(opennmt_data_path, f"tgt-train-aug.txt"), "w")
 
-            for i, row in df.iterrows():
+            for i, row in tqdm(df.iterrows()):
                 # adapted from __main__()
                 reactant, product = row["rxn_smiles"].split(">>")
                 reaction_class = int(row["class"] - 1) if self.model_args.typed else "UNK"
@@ -212,13 +213,13 @@ class RetroXpertProcessorS1(Processor):
                     if len(reactants) == 1:
                         continue
                     synthons = src_item.strip().split(".")
-                    src_item = " . ".join(synthons.reverse()).strip()
-                    tgt_item = " . ".join(reactants.reverse()).strip()
+                    src_item = " . ".join(synthons[::-1]).strip()           # .reverse() is an in-place op
+                    tgt_item = " . ".join(reactants[::-1]).strip()
 
                     of_src_aug.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
                     of_tgt_aug.write(f"{tgt_item}\n")
 
-            logging.info(f"Data size: {i}")
+            logging.info(f"Data size: {i + 1}")
             of_src.close()
             of_tgt.close()
 
