@@ -5,12 +5,14 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
+from models.retroxpert_model import retroxpert_parser
+from models.retroxpert_model.retroxpert_trainer import RetroXpertTrainerS1
 from models.transformer_model.transformer_trainer import TransformerTrainer
 from onmt.bin.train import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
-def parse_args():
+def get_train_parser():
     parser = argparse.ArgumentParser("train.py")
     parser.add_argument("--do_train", help="whether to do training (it's possible to only test)", action="store_true")
     parser.add_argument("--do_test", help="whether to do testing (only if implemented)", action="store_true")
@@ -22,20 +24,23 @@ def parse_args():
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--model_path", help="model output path", type=str, default="")
 
-    return parser.parse_known_args()
+    return parser
 
 
 def train_main(args):
+    model_name = ""
+    model_args = None
+    model_config = {}
+    data_name = args.data_name
+    raw_data_files = []
+    processed_data_path = args.processed_data_path
+    model_path = args.model_path
+
     if args.model_name == "gln":
-        trainer = GLNTrainer(
-            model_name="gln",
-            model_args=gln_args,
-            model_config={},
-            data_name=args.data_name,
-            raw_data_files=[args.train_file],
-            processed_data_path=args.processed_data_path,
-            model_path=args.model_path
-        )
+        model_name = "gln"
+        model_args = gln_args
+        raw_data_files = [args.train_file]
+        TrainerClass = GLNTrainer
     elif args.model_name == "transformer":
         # adapted from onmt.bin.train.main()
         parser = transformer_parser()
@@ -45,18 +50,34 @@ def train_main(args):
         opt.config = args.config_file
         opt.log_file = args.log_file
 
-        trainer = TransformerTrainer(
-            model_name="transformer",
-            model_args=opt,
-            model_config={},
-            data_name=args.data_name,
-            raw_data_files=[],
-            processed_data_path=args.processed_data_path,
-            model_path=args.model_path
-        )
+        model_name = "transformer"
+        model_args = opt
+        TrainerClass = TransformerTrainer
+    elif args.model_name == "retroxpert":
+        retroxpert_parser.add_model_opts(train_parser)
+        retroxpert_parser.add_train_opts(train_parser)
+        model_args, _unknown = train_parser.parse_known_args()
 
+        if args.stage == 1:
+            model_name = "retroxpert_s1"
+            TrainerClass = RetroXpertTrainerS1
+        elif args.stage == 2:
+            model_name = "retroxpert_s2"
+            TrainerClass = RetroXpertTrainerS2
+        else:
+            raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
+
+    trainer = TrainerClass(
+        model_name=model_name,
+        model_args=model_args,
+        model_config=model_config,
+        data_name=data_name,
+        raw_data_files=raw_data_files,
+        processed_data_path=processed_data_path,
+        model_path=model_path
+    )
 
     logging.info("Building train model")
     trainer.build_train_model()
@@ -70,7 +91,8 @@ def train_main(args):
 
 
 if __name__ == "__main__":
-    args, unknown = parse_args()
+    train_parser = get_train_parser()
+    args, unknown = train_parser.parse_known_args()
 
     # logger setup
     RDLogger.DisableLog("rdApp.warning")
@@ -90,4 +112,4 @@ if __name__ == "__main__":
     logger.addHandler(sh)
 
     # train interface
-    train_main(args)
+    train_main(args, train_parser)
