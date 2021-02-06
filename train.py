@@ -23,11 +23,12 @@ def get_train_parser():
     parser.add_argument("--train_file", help="train SMILES file", type=str, default="")
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--model_path", help="model output path", type=str, default="")
+    parser.add_argument("--stage", help="stage number (needed for RetroXpert)", type=int, default=0)
 
     return parser
 
 
-def train_main(args):
+def train_main(args, train_parser):
     model_name = ""
     model_args = None
     model_config = {}

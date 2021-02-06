@@ -1,4 +1,4 @@
-python preprocess.py \
+python train.py \
   --do_train \
   --model_name="retroxpert" \
   --stage=1 \

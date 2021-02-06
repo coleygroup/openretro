@@ -123,8 +123,8 @@ class RetroXpertTrainerS1(Trainer):
                 x_atom = torch.cat(x_atom, dim=0)
                 disconnection_num = torch.LongTensor(disconnection_num)
 
-                x_atom.to(self.device)
-                disconnection_num.to(self.device)
+                x_atom = x_atom.to(self.device)
+                disconnection_num = disconnection_num.to(self.device)
 
                 x_adj = list(map(lambda x: torch.from_numpy(np.array(x)), x_adj))
                 y_adj = list(map(lambda x: torch.from_numpy(np.array(x)), y_adj))
@@ -132,7 +132,7 @@ class RetroXpertTrainerS1(Trainer):
                 y_adj = [ye.to(self.device) for ye in y_adj]
 
                 mask = list(map(lambda x: x.view(-1, 1).bool(), x_adj))
-                bond_connections = list(map(lambda x, y: torch.masked_select(x.view(-1, 1), y), y_adj, mask))
+                bond_connections = list(map(lambda x, y: torch.masked_select(x.reshape(-1, 1), y), y_adj, mask))
                 bond_labels = torch.cat(bond_connections, dim=0).float()
 
                 self.model.zero_grad()
@@ -174,8 +174,8 @@ class RetroXpertTrainerS1(Trainer):
             scheduler.step(epoch)
             train_acc = correct / total
             train_loss = epoch_loss / total
-            logging.info(f"Train Loss: {train_loss: .5f}")
-            logging.info(f"Train Bond Disconnection Acc: {train_acc: .5f}")
+            logging.info(f"End of epoch {epoch}. Train Loss: {train_loss: .5f}, "
+                         f"Train Bond Disconnection Acc: {train_acc: .5f}")
 
             if epoch % 5 == 0:
                 valid_acc = self.test(valid_dataloader, data_split="val", save_pred=False)
@@ -211,8 +211,8 @@ class RetroXpertTrainerS1(Trainer):
             x_atom = torch.cat(x_atom, dim=0)
             disconnection_num = torch.LongTensor(disconnection_num)
 
-            x_atom.to(self.device)
-            disconnection_num.to(self.device)
+            x_atom = x_atom.to(self.device)
+            disconnection_num = disconnection_num.to(self.device)
 
             x_adj = list(map(lambda x: torch.from_numpy(np.array(x)), x_adj))
             y_adj = list(map(lambda x: torch.from_numpy(np.array(x)), y_adj))
@@ -220,7 +220,7 @@ class RetroXpertTrainerS1(Trainer):
             y_adj = [ye.to(self.device) for ye in y_adj]
 
             mask = list(map(lambda x: x.view(-1, 1).bool(), x_adj))
-            bond_disconnections = list(map(lambda x, y: torch.masked_select(x.view(-1, 1), y), y_adj, mask))
+            bond_disconnections = list(map(lambda x, y: torch.masked_select(x.reshape(-1, 1), y), y_adj, mask))
             bond_labels = torch.cat(bond_disconnections, dim=0).float()
 
             # batch graph

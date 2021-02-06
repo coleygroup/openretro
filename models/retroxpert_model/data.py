@@ -21,7 +21,7 @@ class RetroCenterDatasets(Dataset):
         for i, rxn_data in self.rxn_data_dict.items():
             xa = rxn_data["product_adj"]
             ya = rxn_data["target_adj"]
-            res = xa & (not ya)
+            res = xa & (ya == False)
             res = np.sum(np.sum(res)) // 2
             cnt[res] += 1
             if res >= 2:
@@ -47,7 +47,7 @@ class RetroCenterDatasets(Dataset):
         disconnection_num = self.disconnection_num[index]
         # Construct graph and add edge data
         x_graph = dgl.DGLGraph(nx.from_numpy_matrix(x_adj))
-        x_graph.edata['w'] = x_bond[x_adj]
+        x_graph.edata["w"] = x_bond[x_adj]
         return rxn_class, x_pattern_feat, x_atom, x_adj, x_graph, y_adj, disconnection_num
 
     def __len__(self):
