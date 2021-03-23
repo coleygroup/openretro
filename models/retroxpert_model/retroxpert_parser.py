@@ -8,6 +8,8 @@ def add_preprocess_opts(parser):
     """Preprocessing options"""
     group = parser.add_argument_group("retroxpert_preprocess")
     group.add("--min_freq", help="minimum frequency for patterns to be kept", type=int, default=2)
+    group.add("--model_path_s1", help="model path from stage 1 (needed for stage 2)", type=str, default="")
+    group.add("--load_checkpoint_s1", help="set to true to load trained S1 model", action="store_true")
 
 
 def add_train_opts(parser):

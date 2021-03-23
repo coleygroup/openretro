@@ -65,7 +65,7 @@ class RetroXpertTrainerS1(Trainer):
         logging.info(self.model)
         logging.info(f"\nModel #Params: {sum([x.nelement() for x in self.model.parameters()]) / 1000} k")
 
-        if self.model_args.load and os.path.exists(self.checkpoint_path):
+        if self.model_args.load_checkpoint_s1 and os.path.exists(self.checkpoint_path):
             logging.info(f"Loading from {self.checkpoint_path}")
 
             self.model.load_state_dict(torch.load(self.checkpoint_path, map_location=self.device))

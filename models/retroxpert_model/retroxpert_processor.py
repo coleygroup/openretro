@@ -6,10 +6,14 @@ import os
 import pandas as pd
 import pickle
 from base.processor_base import Processor
+from collections import Counter
+from models.retroxpert_model.data import RetroCenterDatasets
 from models.retroxpert_model.extract_semi_template_pattern import cano_smarts, get_tpl
 from models.retroxpert_model.preprocessing import get_atom_features, get_bond_features, \
-    get_atomidx2mapidx, get_mapidx2atomidx, get_order, get_smarts_pieces
+    get_atomidx2mapidx, get_idx, get_mapidx2atomidx, get_order, get_smarts_pieces, smarts2smiles, smi_tokenizer
+from models.retroxpert_model.retroxpert_trainer import collate, RetroXpertTrainerS1
 from rdkit import Chem
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Dict, List
 
@@ -49,6 +53,21 @@ def find_all_patterns(task):
             np.put(pattern_feature[idx], matches, 1)
     pattern_feature = pattern_feature.transpose().astype('bool_')
     return k, pattern_feature
+
+
+def get_smarts_pieces_s2(mol, src_adj, target_adj, add_bond=False):
+    m, n = src_adj.shape
+    emol = Chem.EditableMol(mol)
+    for j in range(m):
+        for k in range(j + 1, n):
+            if target_adj[j][k] == src_adj[j][k]:
+                continue
+            if 0 == target_adj[j][k]:
+                emol.RemoveBond(j, k)
+            elif add_bond:
+                emol.AddBond(j, k, Chem.rdchem.BondType.SINGLE)
+    synthon_smiles = Chem.MolToSmiles(emol.GetMol(), isomericSmiles=True)
+    return synthon_smiles
 
 
 class RetroXpertProcessorS1(Processor):
@@ -310,3 +329,322 @@ class RetroXpertProcessorS1(Processor):
 
             pool.close()
             pool.join()
+
+
+class RetroXpertProcessorS2(Processor):
+    """Class for RetroXpert Preprocessing, Stage 2"""
+
+    def __init__(self,
+                 model_name: str,
+                 model_args,
+                 model_config: Dict[str, any],
+                 data_name: str,
+                 raw_data_files: List[str],
+                 processed_data_path: str,
+                 num_cores: int = None):
+        super().__init__(model_name=model_name,
+                         model_args=model_args,
+                         model_config=model_config,
+                         data_name=data_name,
+                         raw_data_files=raw_data_files,
+                         processed_data_path=processed_data_path)
+        self.check_count = 100
+
+        self.trainer_s1 = RetroXpertTrainerS1(
+            model_name=model_name,
+            model_args=model_args,
+            model_config=model_config,
+            data_name=data_name,
+            raw_data_files=raw_data_files,
+            processed_data_path=processed_data_path,
+            model_path=model_args.model_path_s1
+        )
+        self.trainer_s1.build_train_model()
+
+    def check_data_format(self) -> None:
+        logging.info("For RetroXpert Stage 2, there is no additional raw data file needed")
+        logging.info("Data format check passed (trivially)")
+
+    def preprocess(self) -> None:
+        """Actual file-based preprocessing"""
+        # self.test_and_save(data_split="test")
+        # self.test_and_save(data_split="train")
+        self.generate_formatted_dataset()
+        self.prepare_test_prediction()
+        self.prepare_train_error_aug()
+
+    def test_and_save(self, data_split: str):
+        fn = f"rxn_data_{data_split}.pkl"
+
+        logging.info(f"Testing on {fn} to generate stage 1 results")
+        data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
+                                   fn=fn)
+        dataloader = DataLoader(data,
+                                batch_size=4 * self.model_args.batch_size,
+                                shuffle=False,
+                                num_workers=0,
+                                collate_fn=collate)
+        self.trainer_s1.test(dataloader=dataloader,
+                             data_split=data_split,
+                             save_pred=True)
+
+    def generate_formatted_dataset(self):
+        """Adapted from prepare_data.py"""
+        logging.info("Generating formatted dataset for OpenNMT (Stage 2)")
+
+        src = {
+            'train': 'src-train-aug.txt',
+            'test': 'src-test.txt',
+            'val': 'src-val.txt',
+        }
+        tgt = {
+            'train': 'tgt-train-aug.txt',
+            'test': 'tgt-test.txt',
+            'val': 'tgt-val.txt',
+        }
+
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_for_s2")
+        os.makedirs(savedir, exist_ok=True)
+
+        tokens = Counter()
+        for data_set in ['val', 'train', 'test']:
+            with open(os.path.join(self.processed_data_path, "opennmt_data", src[data_set])) as f:
+                srcs = f.readlines()
+            with open(os.path.join(self.processed_data_path, "opennmt_data", tgt[data_set])) as f:
+                tgts = f.readlines()
+
+            src_lines = []
+            tgt_lines = []
+            for s, t in tqdm(list(zip(srcs, tgts))):
+                tgt_items = t.strip().split()
+                src_items = s.strip().split()
+                src_items[2] = smi_tokenizer(smarts2smiles(src_items[2]))
+                tokens.update(src_items[2].split(' '))
+                for idx in range(4, len(src_items)):
+                    if src_items[idx] == '.':
+                        continue
+                    src_items[idx] = smi_tokenizer(smarts2smiles(src_items[idx], canonical=False))
+                    tokens.update(src_items[idx].split(' '))
+                for idx in range(len(tgt_items)):
+                    if tgt_items[idx] == '.':
+                        continue
+                    tgt_items[idx] = smi_tokenizer(smarts2smiles(tgt_items[idx]))
+                    tokens.update(tgt_items[idx].split(' '))
+
+                if not self.model_args.typed:
+                    src_items[1] = '[RXN_0]'
+
+                src_line = ' '.join(src_items[1:])
+                tgt_line = ' '.join(tgt_items)
+                src_lines.append(src_line + '\n')
+                tgt_lines.append(tgt_line + '\n')
+
+            src_file = os.path.join(savedir, src[data_set])
+            logging.info(f"src_file: {src_file}")
+            with open(src_file, "w") as f:
+                f.writelines(src_lines)
+
+            tgt_file = os.path.join(savedir, tgt[data_set])
+            logging.info(f"tgt_file: {tgt_file}")
+            with open(tgt_file, "w") as f:
+                f.writelines(tgt_lines)
+
+    @staticmethod
+    def get_bond_disconnection_prediction(pred_results_file: str, bond_pred_results_file: str, reaction_data_file: str):
+        with open(pred_results_file) as f:
+            pred_results = f.readlines()
+        with open(bond_pred_results_file) as f:
+            bond_pred_results = f.readlines()
+        with open(reaction_data_file, "rb") as f:
+            rxn_data_dict = pickle.load(f)
+
+        product_adjs = []
+        product_mols = []
+        product_smiles = []
+        for i, rxn_data in rxn_data_dict.items():
+            product_adjs.append(rxn_data["product_adj"])
+            product_mols.append(rxn_data["product_mol"])
+            product_smiles.append(Chem.MolToSmiles(rxn_data["product_mol"], canonical=False))
+
+        assert len(product_smiles) == len(bond_pred_results)
+
+        cnt = 0
+        guided_pred_results = []
+        bond_disconnection = []
+        bond_disconnection_gt = []
+        for i in range(len(bond_pred_results)):
+            bond_pred_items = bond_pred_results[i].strip().split()
+            bond_change_num = int(bond_pred_items[1]) * 2
+            bond_change_num_gt = int(bond_pred_items[0]) * 2
+
+            gt_adj_list = pred_results[3 * i + 1].strip().split(" ")
+            gt_adj_list = [int(k) for k in gt_adj_list]
+            gt_adj_index = np.argsort(gt_adj_list)
+            gt_adj_index = gt_adj_index[:bond_change_num_gt]
+
+            pred_adj_list = pred_results[3 * i + 2].strip().split(" ")
+            pred_adj_list = [float(k) for k in pred_adj_list]
+            pred_adj_index = np.argsort(pred_adj_list)
+            pred_adj_index = pred_adj_index[:bond_change_num]
+
+            bond_disconnection.append(pred_adj_index)
+            bond_disconnection_gt.append(gt_adj_index)
+            res = set(gt_adj_index) == set(pred_adj_index)
+            guided_pred_results.append(int(res))
+            cnt += res
+
+        logging.info(f"guided bond_disconnection prediction cnt and acc: {cnt} {cnt / len(bond_pred_results)}")
+        logging.info(f"bond_disconnection len: {len(bond_disconnection)}")
+
+        return product_adjs, product_mols, bond_disconnection, guided_pred_results
+
+    def prepare_test_prediction(self):
+        """Adapted from prepare_test_prediction.py"""
+        logging.info("Using bond disconnection prediction to generate synthons for test data")
+
+        pred_results_file = os.path.join(
+            self.processed_data_path, f"test_result_mol_{self.trainer_s1.exp_name}.txt")
+        bond_pred_results_file = os.path.join(
+            self.processed_data_path, f"test_disconnection_{self.trainer_s1.exp_name}.txt")
+        reaction_data_file = os.path.join(
+            self.processed_data_path, f"rxn_data_test.pkl")
+
+        product_adjs, product_mols, bond_disconnection, guided_pred_results = self.get_bond_disconnection_prediction(
+            pred_results_file=pred_results_file,
+            bond_pred_results_file=bond_pred_results_file,
+            reaction_data_file=reaction_data_file
+        )
+
+        logging.info("Generate synthons from bond disconnection prediction")
+        synthons = []
+        for i, prod_adj in enumerate(product_adjs):
+            x_adj = np.array(prod_adj)
+            # find 1 index
+            idxes = np.argwhere(x_adj > 0)
+            pred_adj = prod_adj.copy()
+            for k in bond_disconnection[i]:
+                idx = idxes[k]
+                assert pred_adj[idx[0], idx[1]] == 1
+                pred_adj[idx[0], idx[1]] = 0
+
+            pred_synthon = get_smarts_pieces_s2(product_mols[i], prod_adj, pred_adj)
+            synthons.append(pred_synthon)
+
+        with open(os.path.join(self.processed_data_path, "opennmt_data", "src-test.txt")) as f:
+            srcs = f.readlines()
+        assert len(synthons) == len(srcs)
+
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_for_s2")
+        src_test_prediction = os.path.join(savedir, "src-test-prediction.txt")
+        logging.info(f"Saving src_test_prediction to {src_test_prediction}")
+
+        cnt = 0
+        with open(src_test_prediction, "w") as f:
+            for src, synthon in zip(srcs, synthons):
+                src_items = src.split(" ")
+                src_items[2] = smi_tokenizer(smarts2smiles(src_items[2]))
+                if not self.model_args.typed:
+                    src_items[1] = '[RXN_0]'
+
+                syns = synthon.split(".")
+                syns = [smarts2smiles(s, canonical=False) for s in syns]
+
+                # Double check the synthon prediction accuracy
+                syns_gt = [smarts2smiles(s, canonical=False) for s in src_items[4:] if s != "."]
+                cnt += set(syns_gt) == set(syns)
+
+                syns = [smi_tokenizer(s) for s in syns]
+                src_line = ' '.join(src_items[1:4]) + ' ' + ' . '.join(syns) + '\n'
+                f.write(src_line)
+
+        logging.info(f"double checking guided synthon prediction acc: {cnt / len(synthons)}")
+
+    def prepare_train_error_aug(self):
+        """Adapted from prepare_train_error_aug.py"""
+        logging.info("Using erroneous bond disconnection prediction to augment train data")
+
+        pred_results_file = os.path.join(
+            self.processed_data_path, f"train_result_mol_{self.trainer_s1.exp_name}.txt")
+        bond_pred_results_file = os.path.join(
+            self.processed_data_path, f"train_disconnection_{self.trainer_s1.exp_name}.txt")
+        reaction_data_file = os.path.join(
+            self.processed_data_path, f"rxn_data_train.pkl")
+
+        product_adjs, product_mols, bond_disconnection, guided_pred_results = self.get_bond_disconnection_prediction(
+            pred_results_file=pred_results_file,
+            bond_pred_results_file=bond_pred_results_file,
+            reaction_data_file=reaction_data_file
+        )
+
+        with open(os.path.join(self.processed_data_path, "opennmt_data", "src-train.txt")) as f:
+            srcs = f.readlines()
+        with open(os.path.join(self.processed_data_path, "opennmt_data", "tgt-train.txt")) as f:
+            tgts = f.readlines()
+
+        # Generate synthons from bond disconnection prediction
+        sources = []
+        targets = []
+        for i, prod_adj in enumerate(product_adjs):
+            if guided_pred_results[i] == 1:
+                continue
+            x_adj = np.array(prod_adj)
+            # find 1 index
+            idxes = np.argwhere(x_adj > 0)
+            pred_adj = prod_adj.copy()
+            for k in bond_disconnection[i]:
+                idx = idxes[k]
+                assert pred_adj[idx[0], idx[1]] == 1
+                pred_adj[idx[0], idx[1]] = 0
+
+            pred_synthon = get_smarts_pieces_s2(product_mols[i], prod_adj, pred_adj)
+
+            reactants = tgts[i].split('.')
+            reactants = [r.strip() for r in reactants]
+
+            syn_idx_list = [get_idx(s) for s in pred_synthon.split('.')]
+            react_idx_list = [get_idx(r) for r in reactants]
+            react_max_common_synthon_index = []
+            for react_idx in react_idx_list:
+                react_common_idx_cnt = []
+                for syn_idx in syn_idx_list:
+                    common_idx = list(set(syn_idx) & set(react_idx))
+                    react_common_idx_cnt.append(len(common_idx))
+                max_cnt = max(react_common_idx_cnt)
+                react_max_common_index = react_common_idx_cnt.index(max_cnt)
+                react_max_common_synthon_index.append(react_max_common_index)
+            react_synthon_index = np.argsort(react_max_common_synthon_index).tolist()
+            reactants = [reactants[k] for k in react_synthon_index]
+
+            # remove mapping number
+            syns = pred_synthon.split('.')
+            syns = [smarts2smiles(s, canonical=False) for s in syns]
+            syns = [smi_tokenizer(s) for s in syns]
+            src_items = srcs[i].strip().split(' ')
+            src_items[2] = smi_tokenizer(smarts2smiles(src_items[2]))
+            if not self.model_args.typed:
+                src_items[1] = '[RXN_0]'
+            src_line = ' '.join(src_items[1:4]) + ' ' + ' . '.join(syns) + '\n'
+
+            reactants = [smi_tokenizer(smarts2smiles(r)) for r in reactants]
+            tgt_line = ' . '.join(reactants) + '\n'
+
+            sources.append(src_line)
+            targets.append(tgt_line)
+
+        logging.info(f"augmentation data size: {len(sources)}")
+
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_for_s2")
+        with open(os.path.join(savedir, "src-train-aug.txt")) as f:
+            srcs = f.readlines()
+        with open(os.path.join(savedir, "tgt-train-aug.txt")) as f:
+            tgts = f.readlines()
+
+        src_train_aug_err = os.path.join(savedir, "src-train-aug-err.txt")
+        logging.info(f"Saving src_train_aug_err to {src_train_aug_err}")
+        with open(src_train_aug_err, "w") as f:
+            f.writelines(srcs + sources)
+
+        tgt_train_aug_err = os.path.join(savedir, "tgt-train-aug-err.txt")
+        logging.info(f"Saving tgt_train_aug_err to {tgt_train_aug_err}")
+        with open(tgt_train_aug_err, "w") as f:
+            f.writelines(tgts + targets)
