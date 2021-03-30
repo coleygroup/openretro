@@ -2,6 +2,20 @@
 An open source library for retrosynthesis benchmarking.
 
 # Environment setup
+### Using docker
+Build docker
+    
+    docker build -t openretro-serving:dev-gln .
+
+Run docker for serving
+
+    docker run --network=host -t openretro-serving:dev-gln \
+      torchserve \
+      --start \
+      --ncs \
+      --model-store=./checkpoints/gln_schneider50k/model-6.dump \
+      --models gln_50k_untyped=gln_50k_untyped.mar
+
 ### Using conda
 Assuming conda is installed and initiated (i.e. conda activate is a warning-free command).
 Then run the following command on a machine with CUDA
@@ -10,8 +24,6 @@ Then run the following command on a machine with CUDA
     conda activate openretro
 
 This will ensure GLN uses the CUDA ops (vs. CPU ops) in GPU training.
-
-### Using docker (TODO)
 
 # Models
 ## GLN
