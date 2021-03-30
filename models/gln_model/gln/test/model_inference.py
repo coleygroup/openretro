@@ -39,8 +39,8 @@ class RetroGLN(object):
 
         model_file = os.path.join(model_dump, 'model.dump')
         self.gln = GraphPath(self.args)
-        self.gln.load_state_dict(torch.load(model_file))
-        self.gln.cuda()
+        self.gln.load_state_dict(torch.load(model_file, map_location=torch.device("cpu")))
+        # self.gln.cuda()
         self.gln.eval()
 
         self.prod_center_maps = {}
