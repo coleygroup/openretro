@@ -20,7 +20,7 @@ WORKDIR /app/openretro
 # GLN installation
 RUN cd ./models/gln_model && pip install -e .
 
-EXPOSE 8080
+EXPOSE 8080 8081 8082
 
 # Mask out GPUs temperarily, just in case
 ENV CUDA_VISIBLE_DEVICES 10

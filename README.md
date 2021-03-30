@@ -1,21 +1,44 @@
 # openretro
-An open source library for retrosynthesis benchmarking.
+An open source library for retrosynthesis benchmarking and planning.
 
-# Environment setup
+# Status for ASKCOS Integration with GLN (Tentative)
+- [x] Add in GLN handler/archiver
+- [x] Containarize GLN deployment in single Docker with USPTO 50k baseline
+- [ ] Finalize inputs/outputs/configs with Max
+- [ ] (?) GLN checkpoint trained on larger dataset
+- [ ] (?) Support offline training (might want to use GPU)
+- [ ] (?) Support online training (might want to use GPU)
+
+# Deployment
 ### Using docker
 Build docker
     
     docker build -t openretro-serving:dev-gln .
 
-Run docker for serving
+Run docker for serving (GLN -- untyped USPTO 50k baseline model)
 
-    docker run --network=host -t openretro-serving:dev-gln \
-      torchserve \
-      --start \
-      --ncs \
-      --model-store=./checkpoints/gln_schneider50k/model-6.dump \
-      --models gln_50k_untyped=gln_50k_untyped.mar
+    sh scripts/gln_serve_in_docker.sh
 
+Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
+    
+    curl http://you.got.the.ips:9918/predictions/gln_50k_untyped \
+        --header "Content-Type: application/json" \
+        --request POST \
+        --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'
+
+Sample return
+
+    List[{
+        "template": List[str], list of top k templates,
+        "reactants": List[str], list of top k proposed reactants based on the templates,
+        "scores": List[float], list of top k corresponding scores
+    }]
+
+Note that the reactants may be duplicated (from different templates)
+
+------------------------------------UP TO HERE for ASKCOS INTEGRATION------------------------------------
+
+# Development
 ### Using conda
 Assuming conda is installed and initiated (i.e. conda activate is a warning-free command).
 Then run the following command on a machine with CUDA
