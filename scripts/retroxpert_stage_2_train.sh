@@ -2,7 +2,7 @@ python train.py \
   --do_train \
   --data="do_not_change_this" \
   --model_name="retroxpert" \
-  --stage=1 \
+  --stage=2 \
   --data_name="retroxpert_uspto50k" \
   --log_file="retroxpert_uspto50k_train_s2" \
   --processed_data_path="./data/retroxpert_uspto50k/processed/" \

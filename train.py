@@ -3,17 +3,20 @@ import logging
 import os
 import sys
 from datetime import datetime
+
+import onmt.opts
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
 from models.retroxpert_model import retroxpert_parser
 from models.retroxpert_model.retroxpert_trainer import RetroXpertTrainerS1, RetroXpertTrainerS2
 from models.transformer_model.transformer_trainer import TransformerTrainer
+from onmt import opts as onmt_opts
 from onmt.bin.train import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
 def get_train_parser():
-    parser = argparse.ArgumentParser("train.py")
+    parser = argparse.ArgumentParser("train.py", conflict_handler="resolve")       # TODO: this is a hardcode
     parser.add_argument("--do_train", help="whether to do training (it's possible to only test)", action="store_true")
     parser.add_argument("--do_test", help="whether to do testing (only if implemented)", action="store_true")
     parser.add_argument("--model_name", help="model name", type=str, default="")
@@ -63,6 +66,9 @@ def train_main(args, train_parser):
             TrainerClass = RetroXpertTrainerS1
         elif args.stage == 2:
             model_name = "retroxpert_s2"
+            onmt_opts.config_opts(train_parser)
+            onmt_opts.model_opts(train_parser)
+            onmt_opts.train_opts(train_parser)
             TrainerClass = RetroXpertTrainerS2
         else:
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
