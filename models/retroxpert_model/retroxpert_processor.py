@@ -395,6 +395,7 @@ class RetroXpertProcessorS2(Processor):
 
         if all(os.path.exists(fn) for fn in [disconnection_fn, result_fn, result_mol_fn]):
             logging.info(f"Found test results for {data_split}, skipping testing")
+            return
 
         data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
                                    fn=fn)
@@ -681,11 +682,12 @@ class RetroXpertProcessorS2(Processor):
     def overwrite_model_args(self):
         """Overwrite model args"""
         # Paths
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_s2")
         self.model_args.save_data = os.path.join(self.processed_data_path, "bin")
-        self.model_args.train_src = [os.path.join(self.processed_data_path, f"src-train-aug-err.txt")]
-        self.model_args.train_tgt = [os.path.join(self.processed_data_path, f"tgt-train-aug-err.txt")]
-        self.model_args.valid_src = os.path.join(self.processed_data_path, f"src-val.txt")
-        self.model_args.valid_tgt = os.path.join(self.processed_data_path, f"tgt-val.txt")
+        self.model_args.train_src = [os.path.join(savedir, f"src-train-aug-err.txt")]
+        self.model_args.train_tgt = [os.path.join(savedir, f"tgt-train-aug-err.txt")]
+        self.model_args.valid_src = os.path.join(savedir, f"src-val.txt")
+        self.model_args.valid_tgt = os.path.join(savedir, f"tgt-val.txt")
         # Runtime args, adapted from OpenNMT-pt/script/{DATASET}/preprocess.sh
         self.model_args.src_seq_length = 1000
         self.model_args.tgt_seq_length = 1000

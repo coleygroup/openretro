@@ -15,7 +15,7 @@ from rdkit import RDLogger
 
 
 def get_preprocess_parser():
-    parser = argparse.ArgumentParser("preprocess.py")
+    parser = argparse.ArgumentParser("preprocess.py", conflict_handler="resolve")       # TODO: this is a hardcode
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
     parser.add_argument("--log_file", help="log file", type=str, default="")
@@ -63,8 +63,8 @@ def preprocess_main(args, preprocess_parser):
         retroxpert_parser.add_preprocess_opts(preprocess_parser)
         retroxpert_parser.add_train_opts(preprocess_parser)
 
-        onmt_opts.config_opts(retroxpert_parser)
-        onmt_opts.preprocess_opts(retroxpert_parser)
+        onmt_opts.config_opts(preprocess_parser)
+        onmt_opts.preprocess_opts(preprocess_parser)
 
         model_args, _unknown = preprocess_parser.parse_known_args()
 

@@ -6,4 +6,9 @@ python preprocess.py \
   --processed_data_path="./data/retroxpert_uspto50k/processed/" \
   --model_path_s1="./checkpoints/retroxpert_uspto50k_untyped" \
   --load_checkpoint_s1 \
-  --num_cores=20
+  --num_cores=20 \
+  --save_data="do_not_change_this" \
+  --train_src="do_not_change_this" \
+  --train_tgt="do_not_change_this" \
+  --valid_src="do_not_change_this" \
+  --valid_tgt="do_not_change_this"

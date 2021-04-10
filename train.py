@@ -56,17 +56,18 @@ def train_main(args, train_parser):
         TrainerClass = TransformerTrainer
     elif args.model_name == "retroxpert":
         retroxpert_parser.add_model_opts(train_parser)
-        retroxpert_parser.add_train_opts(train_parser)
-        model_args, _unknown = train_parser.parse_known_args()
 
         if args.stage == 1:
             model_name = "retroxpert_s1"
+            retroxpert_parser.add_train_opts(train_parser)
             TrainerClass = RetroXpertTrainerS1
         elif args.stage == 2:
             model_name = "retroxpert_s2"
             TrainerClass = RetroXpertTrainerS2
         else:
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
+
+        model_args, _unknown = train_parser.parse_known_args()
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
 
