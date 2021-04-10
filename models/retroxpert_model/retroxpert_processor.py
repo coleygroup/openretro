@@ -1,4 +1,5 @@
 import csv
+import json
 import logging
 import multiprocessing
 import numpy as np
@@ -300,6 +301,10 @@ class RetroXpertProcessorS1(Processor):
                     patterns_filtered.append(pattern)
         logging.info(f"Filtered patterns by min frequency {self.model_args.min_freq}, "
                      f"remaining pattern count: {len(patterns_filtered)}")
+
+        metadata_file = os.path.join(self.processed_data_path, "metadata.json")
+        with open(metadata_file, "w") as of:
+            json.dump({"semi_template_count": len(patterns_filtered)}, of, ensure_ascii=True, indent=4)
 
         # ugly solution -- passing list for pool using global variables
         global G_patterns_filtered

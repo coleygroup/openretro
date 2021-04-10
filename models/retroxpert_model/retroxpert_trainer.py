@@ -1,4 +1,5 @@
 import dgl
+import json
 import logging
 import numpy as np
 import os
@@ -49,11 +50,17 @@ class RetroXpertTrainerS1(Trainer):
         else:
             self.exp_name = f"{data_name}_untyped"
 
+        self.meta_data_file = os.path.join(processed_data_path, "metadata.json")
+        with open(self.meta_data_file, "r") as f:
+            self.meta_data = json.load(f)
+
+        self.semi_template_count = self.meta_data["semi_template_count"]
+
         self.checkpoint_path = os.path.join(self.model_path, f"{self.exp_name}_checkpoint.pt")
 
     def build_train_model(self):
         self.model = GATNet(
-            in_dim=self.model_args.in_dim,
+            in_dim=self.model_args.in_dim + self.semi_template_count,
             num_layers=self.model_args.gat_layers,
             hidden_dim=self.model_args.hidden_dim,
             heads=self.model_args.heads,
@@ -181,6 +188,7 @@ class RetroXpertTrainerS1(Trainer):
                 valid_acc = self.test(valid_dataloader, data_split="val", save_pred=False)
                 logging.info(f"Epoch {epoch}, train_acc: {train_acc}, "
                              f"valid_acc: {valid_acc}, train_loss: {train_loss}")
+                torch.save(self.model.state_dict(), self.checkpoint_path)
 
         torch.save(self.model.state_dict(), self.checkpoint_path)
 

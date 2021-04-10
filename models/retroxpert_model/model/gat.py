@@ -10,9 +10,7 @@ class GATLayer(nn.Module):
         self.embed_node = nn.Linear(in_dim, out_dim, bias=False)
         self.attn_fc = nn.Linear(2 * out_dim + e_in_dim, 1, bias=False)
         self.to_node_fc = nn.Linear(out_dim + e_in_dim, out_dim, bias=False)
-        self.edge_linear = nn.Linear(2 * out_dim + e_in_dim,
-                                     e_out_dim,
-                                     bias=False)
+        self.edge_linear = nn.Linear(2 * out_dim + e_in_dim, e_out_dim, bias=False)
 
     def edge_attention(self, edges):
         z2 = torch.cat([edges.src['h'], edges.dst['h'], edges.data['w']],
