@@ -9,6 +9,7 @@ from models.gln_model.gln_processor import GLNProcessor
 from models.retroxpert_model import retroxpert_parser
 from models.retroxpert_model.retroxpert_processor import RetroXpertProcessorS1, RetroXpertProcessorS2
 from models.transformer_model.transformer_processor import TransformerProcessor
+from onmt import opts as onmt_opts
 from onmt.bin.preprocess import _get_parser as transformer_parser
 from rdkit import RDLogger
 
@@ -61,6 +62,10 @@ def preprocess_main(args, preprocess_parser):
         retroxpert_parser.add_model_opts(preprocess_parser)
         retroxpert_parser.add_preprocess_opts(preprocess_parser)
         retroxpert_parser.add_train_opts(preprocess_parser)
+
+        onmt_opts.config_opts(retroxpert_parser)
+        onmt_opts.preprocess_opts(retroxpert_parser)
+
         model_args, _unknown = preprocess_parser.parse_known_args()
 
         if args.stage == 1:

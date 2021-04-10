@@ -11,8 +11,10 @@ from collections import Counter
 from models.retroxpert_model.data import RetroCenterDatasets
 from models.retroxpert_model.extract_semi_template_pattern import cano_smarts, get_tpl
 from models.retroxpert_model.preprocessing import get_atom_features, get_bond_features, \
-    get_atomidx2mapidx, get_idx, get_mapidx2atomidx, get_order, get_smarts_pieces, smarts2smiles, smi_tokenizer
+    get_atomidx2mapidx, get_idx, get_mapidx2atomidx, get_order, smarts2smiles, smi_tokenizer
+from models.retroxpert_model.preprocessing import get_smarts_pieces as get_smarts_pieces_s1
 from models.retroxpert_model.retroxpert_trainer import collate, RetroXpertTrainerS1
+from onmt.bin.preprocess import preprocess as onmt_preprocess
 from rdkit import Chem
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -168,7 +170,7 @@ class RetroXpertProcessorS1(Processor):
         """Core of stage 1 preprocessing, adapted from preprocessing.py"""
         logging.info(f"Running preprocessing core for stage 1")
 
-        opennmt_data_path = os.path.join(self.processed_data_path, "opennmt_data")
+        opennmt_data_path = os.path.join(self.processed_data_path, "opennmt_data_s1")
         os.makedirs(opennmt_data_path, exist_ok=True)
 
         for phase in ["train", "val", "test"]:
@@ -220,7 +222,7 @@ class RetroXpertProcessorS1(Processor):
 
                 # adapted from generate_opennmt_data()
                 reactants = reactant.split(".")
-                src_item, tgt_item = get_smarts_pieces(product_mol, product_adj, target_adj, reactants)
+                src_item, tgt_item = get_smarts_pieces_s1(product_mol, product_adj, target_adj, reactants)
                 of_src.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
                 of_tgt.write(f"{tgt_item}\n")
 
@@ -372,16 +374,28 @@ class RetroXpertProcessorS2(Processor):
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing"""
-        # self.test_and_save(data_split="test")
-        # self.test_and_save(data_split="train")
+        self.test_and_save(data_split="test")
+        self.test_and_save(data_split="train")
         self.generate_formatted_dataset()
         self.prepare_test_prediction()
         self.prepare_train_error_aug()
+        self.onmt_preprocess()
 
     def test_and_save(self, data_split: str):
         fn = f"rxn_data_{data_split}.pkl"
 
-        logging.info(f"Testing on {fn} to generate stage 1 results")
+        logging.info(f"Testing on {fn} to generate stage 1 results on {data_split}")
+
+        disconnection_fn = os.path.join(
+            self.processed_data_path, f"{data_split}_disconnection_{self.trainer_s1.exp_name}.txt")
+        result_fn = os.path.join(
+            self.processed_data_path, f"{data_split}_result_{self.trainer_s1.exp_name}.txt")
+        result_mol_fn = os.path.join(
+            self.processed_data_path, f"{data_split}_result_mol_{self.trainer_s1.exp_name}.txt")
+
+        if all(os.path.exists(fn) for fn in [disconnection_fn, result_fn, result_mol_fn]):
+            logging.info(f"Found test results for {data_split}, skipping testing")
+
         data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
                                    fn=fn)
         dataloader = DataLoader(data,
@@ -408,14 +422,14 @@ class RetroXpertProcessorS2(Processor):
             'val': 'tgt-val.txt',
         }
 
-        savedir = os.path.join(self.processed_data_path, "opennmt_data_for_s2")
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_s2")
         os.makedirs(savedir, exist_ok=True)
 
         tokens = Counter()
         for data_set in ['val', 'train', 'test']:
-            with open(os.path.join(self.processed_data_path, "opennmt_data", src[data_set])) as f:
+            with open(os.path.join(self.processed_data_path, "opennmt_data_s1", src[data_set])) as f:
                 srcs = f.readlines()
-            with open(os.path.join(self.processed_data_path, "opennmt_data", tgt[data_set])) as f:
+            with open(os.path.join(self.processed_data_path, "opennmt_data_s1", tgt[data_set])) as f:
                 tgts = f.readlines()
 
             src_lines = []
@@ -455,7 +469,8 @@ class RetroXpertProcessorS2(Processor):
                 f.writelines(tgt_lines)
 
     @staticmethod
-    def get_bond_disconnection_prediction(pred_results_file: str, bond_pred_results_file: str, reaction_data_file: str):
+    def get_bond_disconnection_prediction(
+            pred_results_file: str, bond_pred_results_file: str, reaction_data_file: str):
         with open(pred_results_file) as f:
             pred_results = f.readlines()
         with open(bond_pred_results_file) as f:
@@ -535,11 +550,11 @@ class RetroXpertProcessorS2(Processor):
             pred_synthon = get_smarts_pieces_s2(product_mols[i], prod_adj, pred_adj)
             synthons.append(pred_synthon)
 
-        with open(os.path.join(self.processed_data_path, "opennmt_data", "src-test.txt")) as f:
+        with open(os.path.join(self.processed_data_path, "opennmt_data_s1", "src-test.txt")) as f:
             srcs = f.readlines()
         assert len(synthons) == len(srcs)
 
-        savedir = os.path.join(self.processed_data_path, "opennmt_data_for_s2")
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_s2")
         src_test_prediction = os.path.join(savedir, "src-test-prediction.txt")
         logging.info(f"Saving src_test_prediction to {src_test_prediction}")
 
@@ -581,9 +596,9 @@ class RetroXpertProcessorS2(Processor):
             reaction_data_file=reaction_data_file
         )
 
-        with open(os.path.join(self.processed_data_path, "opennmt_data", "src-train.txt")) as f:
+        with open(os.path.join(self.processed_data_path, "opennmt_data_s1", "src-train.txt")) as f:
             srcs = f.readlines()
-        with open(os.path.join(self.processed_data_path, "opennmt_data", "tgt-train.txt")) as f:
+        with open(os.path.join(self.processed_data_path, "opennmt_data_s1", "tgt-train.txt")) as f:
             tgts = f.readlines()
 
         # Generate synthons from bond disconnection prediction
@@ -638,7 +653,7 @@ class RetroXpertProcessorS2(Processor):
 
         logging.info(f"augmentation data size: {len(sources)}")
 
-        savedir = os.path.join(self.processed_data_path, "opennmt_data_for_s2")
+        savedir = os.path.join(self.processed_data_path, "opennmt_data_s2")
         with open(os.path.join(savedir, "src-train-aug.txt")) as f:
             srcs = f.readlines()
         with open(os.path.join(savedir, "tgt-train-aug.txt")) as f:
@@ -653,3 +668,29 @@ class RetroXpertProcessorS2(Processor):
         logging.info(f"Saving tgt_train_aug_err to {tgt_train_aug_err}")
         with open(tgt_train_aug_err, "w") as f:
             f.writelines(tgts + targets)
+
+    def onmt_preprocess(self):
+        logging.info("Running onmt preprocessing")
+
+        logging.info("Overwriting model args, (hardcoding essentially)")
+        self.overwrite_model_args()
+        logging.info(f"Updated model args: {self.model_args}")
+
+        onmt_preprocess(self.model_args)
+
+    def overwrite_model_args(self):
+        """Overwrite model args"""
+        # Paths
+        self.model_args.save_data = os.path.join(self.processed_data_path, "bin")
+        self.model_args.train_src = [os.path.join(self.processed_data_path, f"src-train-aug-err.txt")]
+        self.model_args.train_tgt = [os.path.join(self.processed_data_path, f"tgt-train-aug-err.txt")]
+        self.model_args.valid_src = os.path.join(self.processed_data_path, f"src-val.txt")
+        self.model_args.valid_tgt = os.path.join(self.processed_data_path, f"tgt-val.txt")
+        # Runtime args, adapted from OpenNMT-pt/script/{DATASET}/preprocess.sh
+        self.model_args.src_seq_length = 1000
+        self.model_args.tgt_seq_length = 1000
+        self.model_args.src_vocab_size = 1000
+        self.model_args.tgt_vocab_size = 1000
+        self.model_args.overwrite = True
+        self.model_args.share_vocab = True
+        self.model_args.subword_prefix = "ThisIsAHardCode"  # an arg for BART, leading to weird logging error
