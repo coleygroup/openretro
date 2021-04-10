@@ -5,12 +5,14 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_tester import GLNTester
+from models.retroxpert_model import retroxpert_parser
+from models.retroxpert_model.retroxpert_tester import RetroXpertTester
 from models.transformer_model.transformer_tester import TransformerTester
 from onmt.bin.translate import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
-def parse_args():
+def get_test_parser():
     parser = argparse.ArgumentParser("test.py")
     parser.add_argument("--test_all_ckpts", help="whether to test all checkpoints", action="store_true")
     parser.add_argument("--model_name", help="model name", type=str, default="")
@@ -24,26 +26,30 @@ def parse_args():
     parser.add_argument("--model_path", help="model output path", type=str, default="")
     parser.add_argument("--test_output_path", help="test output path", type=str, default="")
 
-    return parser.parse_known_args()
+    return parser
 
 
-def test_main(args):
+def test_main(args, test_parser):
     """Simplified interface for testing only. For actual usage downstream use the respective proposer class"""
     os.makedirs(args.test_output_path, exist_ok=True)
+
+    model_name = ""
+    model_args = None
+    model_config = {}
+    data_name = args.data_name
+    raw_data_files = []
+    processed_data_path = args.processed_data_path
+    model_path = args.model_path
+    test_output_path = args.test_output_path
 
     if args.model_name == "gln":
         # Overwrite default gln_args with runtime args
         gln_args.test_all_ckpts = args.test_all_ckpts
-        tester = GLNTester(
-            model_name="gln",
-            model_args=gln_args,
-            model_config={},
-            data_name=args.data_name,
-            raw_data_files=[args.train_file, args.val_file, args.test_file],
-            processed_data_path=args.processed_data_path,
-            model_path=args.model_path,
-            test_output_path=args.test_output_path
-        )
+
+        model_name = "gln",
+        model_args = gln_args,
+        raw_data_files = [args.train_file, args.val_file, args.test_file]
+        TesterClass = GLNTester
     elif args.model_name == "transformer":
         # adapted from onmt.bin.translate.main()
         parser = transformer_parser()
@@ -53,26 +59,38 @@ def test_main(args):
         opt.config = args.config_file
         opt.log_file = args.log_file
 
-        tester = TransformerTester(
-            model_name="transformer",
-            model_args=opt,
-            model_config={},
-            data_name=args.data_name,
-            raw_data_files=[],
-            processed_data_path=args.processed_data_path,
-            model_path=args.model_path,
-            test_output_path=args.test_output_path
-        )
+        model_name = "transformer"
+        model_args = opt
+        TesterClass = TransformerTester
+    elif args.model_name == "retroxpert":
+        # retroxpert_parser.add_model_opts(test_parser)
+        # retroxpert_parser.add_train_opts(test_parser)
+        model_args, _unknown = test_parser.parse_known_args()
+
+        model_name = "retroxpert"
+        TesterClass = RetroXpertTester
 
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
 
     logging.info("Start testing")
+
+    tester = TesterClass(
+        model_name=model_name,
+        model_args=model_args,
+        model_config=model_config,
+        data_name=data_name,
+        raw_data_files=raw_data_files,
+        processed_data_path=processed_data_path,
+        model_path=model_path,
+        test_output_path=test_output_path
+    )
     tester.test()
 
 
 if __name__ == "__main__":
-    args, unknown = parse_args()
+    test_parser = get_test_parser()
+    args, unknown = test_parser.parse_known_args()
 
     # logger setup
     RDLogger.DisableLog("rdApp.warning")
@@ -92,4 +110,4 @@ if __name__ == "__main__":
     logger.addHandler(sh)
 
     # test interface
-    test_main(args)
+    test_main(args, test_parser)
