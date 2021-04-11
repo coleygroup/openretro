@@ -11,7 +11,7 @@ from collections import Counter
 from models.retroxpert_model.data import RetroCenterDatasets
 from models.retroxpert_model.extract_semi_template_pattern import cano_smarts, get_tpl
 from models.retroxpert_model.preprocessing import get_atom_features, get_bond_features, \
-    get_atomidx2mapidx, get_idx, get_mapidx2atomidx, get_order, smarts2smiles, smi_tokenizer
+    get_atomidx2mapidx, get_idx, get_mapidx2atomidx, get_order, smarts2smiles, smi_tokenizer, get_smarts_pieces_s2
 from models.retroxpert_model.preprocessing import get_smarts_pieces as get_smarts_pieces_s1
 from models.retroxpert_model.retroxpert_trainer import collate, RetroXpertTrainerS1
 from onmt.bin.preprocess import preprocess as onmt_preprocess
@@ -56,21 +56,6 @@ def find_all_patterns(task):
             np.put(pattern_feature[idx], matches, 1)
     pattern_feature = pattern_feature.transpose().astype('bool_')
     return k, pattern_feature
-
-
-def get_smarts_pieces_s2(mol, src_adj, target_adj, add_bond=False):
-    m, n = src_adj.shape
-    emol = Chem.EditableMol(mol)
-    for j in range(m):
-        for k in range(j + 1, n):
-            if target_adj[j][k] == src_adj[j][k]:
-                continue
-            if 0 == target_adj[j][k]:
-                emol.RemoveBond(j, k)
-            elif add_bond:
-                emol.AddBond(j, k, Chem.rdchem.BondType.SINGLE)
-    synthon_smiles = Chem.MolToSmiles(emol.GetMol(), isomericSmiles=True)
-    return synthon_smiles
 
 
 class RetroXpertProcessorS1(Processor):
@@ -258,7 +243,7 @@ class RetroXpertProcessorS1(Processor):
         logging.info("Extracting semi-templates")
 
         pattern_file = os.path.join(self.processed_data_path, "product_patterns.txt")
-        rxn_data_file = os.path.join(self.processed_data_path, f"rxn_data_train.pkl")
+        rxn_data_file = os.path.join(self.processed_data_path, "rxn_data_train.pkl")
         with open(rxn_data_file, "rb") as f:
             rxn_data_dict = pickle.load(f)
 

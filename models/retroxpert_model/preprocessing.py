@@ -194,6 +194,21 @@ def get_smarts_pieces(mol, src_adj, target_adj, reacts, add_bond=False):
     return ' . '.join(synthons), ' . '.join(reacts)
 
 
+def get_smarts_pieces_s2(mol, src_adj, target_adj, add_bond=False):
+    m, n = src_adj.shape
+    emol = Chem.EditableMol(mol)
+    for j in range(m):
+        for k in range(j + 1, n):
+            if target_adj[j][k] == src_adj[j][k]:
+                continue
+            if 0 == target_adj[j][k]:
+                emol.RemoveBond(j, k)
+            elif add_bond:
+                emol.AddBond(j, k, Chem.rdchem.BondType.SINGLE)
+    synthon_smiles = Chem.MolToSmiles(emol.GetMol(), isomericSmiles=True)
+    return synthon_smiles
+
+
 # Split product smarts into synthons, src seq is synthon and tgt seq is reaction data
 def generate_opennmt_data(save_dir, set_name, data_files):
     assert set_name in ['train', 'test', 'valid']
