@@ -1,4 +1,5 @@
 import argparse
+import logging
 import numpy as np
 import os
 import multiprocessing
@@ -45,9 +46,21 @@ if not args.extract_pattern and os.path.exists(pattern_file):
 
 def get_tpl(task):
     idx, react, prod = task
+
+    if idx % 10000 == 0:
+        logging.info(f"Processing {idx}th reaction")
+
     reaction = {'_id': idx, 'reactants': react, 'products': prod}
     template = extract_from_reaction(reaction, super_general=True)
-    return idx, template
+
+    product_pattern = None
+    if "reaction_smarts" in template:
+        product_pattern = cano_smarts(template["products"])
+
+    del reaction, template
+
+    # return idx, template, product_pattern
+    return idx, product_pattern
 
 
 def cano_smarts(smarts):

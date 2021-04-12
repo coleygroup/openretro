@@ -1,9 +1,9 @@
+import logging
 import numpy as np
-import pandas as pd
-import argparse
 import os
-import re
+import pandas as pd
 import pickle
+import re
 
 from rdkit import Chem
 from tqdm import tqdm
@@ -73,7 +73,7 @@ def get_symbol_onehot(symbol):
         'Mg', 'B', 'Sn', 'I', 'Se', 'unk'
     ]
     if symbol not in symbol_list:
-        print(symbol)
+        logging.info(f"Symbol {symbol} not in predefined symbol list, assigning it to be 'unk'")
         symbol = 'unk'
     return list(map(lambda s: symbol == s, symbol_list))
 
@@ -104,9 +104,7 @@ def get_atom_features(mol):
 
 
 def get_int_bond_type(bond_type):
-    '''
-        bond_type: SINGLE 1, DOUBLE 2, TRIPLE 3, AROMATIC 4
-    '''
+    """bond_type: SINGLE 1, DOUBLE 2, TRIPLE 3, AROMATIC 4"""
     if int(bond_type) == 12:
         return 4
     else:

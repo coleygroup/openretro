@@ -6,6 +6,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+import time
 from base.processor_base import Processor
 from collections import Counter
 from models.retroxpert_model.data import RetroCenterDatasets
@@ -124,6 +125,12 @@ class RetroXpertProcessorS1(Processor):
                                 ("val", self.val_file),
                                 ("test", self.test_file)]:
             df = pd.read_csv(csv_file)
+            output_csv_file = os.path.join(self.processed_data_path, f"canonicalized_{phase}.csv")
+
+            if os.path.exists(output_csv_file):
+                logging.info(f"Output file found at {output_csv_file}, skipping preprocessing core for phase {phase}")
+                continue
+
             reaction_list = df["rxn_smiles"]
             reaction_list_new = []
 
@@ -148,7 +155,6 @@ class RetroXpertProcessorS1(Processor):
                 reaction_list_new.append(f"{reactant}>>{product}")
 
             df["rxn_smiles"] = reaction_list_new
-            output_csv_file = os.path.join(self.processed_data_path, f"canonicalized_{phase}.csv")
             df.to_csv(output_csv_file, index=False)
 
     def preprocess_core(self):
@@ -160,6 +166,12 @@ class RetroXpertProcessorS1(Processor):
 
         for phase in ["train", "val", "test"]:
             csv_file = os.path.join(self.processed_data_path, f"canonicalized_{phase}.csv")
+            ofn = os.path.join(self.processed_data_path, f"rxn_data_{phase}.pkl")
+
+            if os.path.exists(ofn):
+                logging.info(f"Output file found at {ofn}, skipping preprocessing core for phase {phase}")
+                continue
+
             df = pd.read_csv(csv_file)
 
             rxn_data_dict = {}
@@ -234,7 +246,6 @@ class RetroXpertProcessorS1(Processor):
                 of_src_aug.close()
                 of_tgt_aug.close()
 
-            ofn = os.path.join(self.processed_data_path, f"rxn_data_{phase}.pkl")
             with open(ofn, "wb") as of:
                 pickle.dump(rxn_data_dict, of)
 
@@ -249,31 +260,42 @@ class RetroXpertProcessorS1(Processor):
 
         patterns = {}
         rxns = []
-        for i, rxn_data in rxn_data_dict.items():
+        for i, rxn_data in tqdm(rxn_data_dict.items()):
             reactant = Chem.MolToSmiles(rxn_data["reactant_mol"], canonical=False)
             product = Chem.MolToSmiles(rxn_data["product_mol"], canonical=False)
             rxns.append((i, reactant, product))
         logging.info(f"Total training reactions: {len(rxns)}")
+        del rxn_data_dict
 
         pool = multiprocessing.Pool(self.num_cores)
-        for result in tqdm(pool.imap_unordered(get_tpl, rxns), total=len(rxns)):
-            idx, template = result
-            if "reaction_smarts" not in template:
+
+        # inner_loop_size = 50000         # for stability.. weird deadlock otherwise
+        # for result in tqdm(pool.imap_unordered(get_tpl, rxns), total=len(rxns)):
+        results = pool.map(get_tpl, rxns[:200000])
+        logging.info(f"Finished getting templates. Creating patterns dict")
+
+        pool.close()
+        pool.join()
+        del rxns
+
+        for idx, product_pattern in tqdm(results):
+            if product_pattern is None:
                 continue
-            product_pattern = cano_smarts(template["products"])
+
             if product_pattern not in patterns:
                 patterns[product_pattern] = 1
             else:
                 patterns[product_pattern] += 1
 
-        patterns = sorted(patterns.items(), key=lambda x: x[1], reverse=True)
-        patterns = [f"{p[0]}: {p[1]}\n" for p in patterns]
-        logging.info(f"Total patterns: {len(patterns)}")
-        with open(pattern_file, "w") as f:
-            f.writelines(patterns)
+        del results
 
-        pool.close()
-        pool.join()
+        logging.info("Sorting all patterns")
+        patterns = sorted(patterns.items(), key=lambda x: x[1], reverse=True)
+        # patterns = [f"{p[0]}: {p[1]}\n" for p in patterns]
+        logging.info(f"Sorted. Total patterns: {len(patterns)}")
+        with open(pattern_file, "w") as of:
+            for pattern in patterns:
+                of.write(f"{pattern[0]}: {pattern[1]}\n")
 
     def find_patterns_in_data(self):
         """Adapted from extract_semi_template_pattern.py"""

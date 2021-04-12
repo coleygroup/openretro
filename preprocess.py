@@ -63,20 +63,19 @@ def preprocess_main(args, preprocess_parser):
         retroxpert_parser.add_preprocess_opts(preprocess_parser)
         retroxpert_parser.add_train_opts(preprocess_parser)
 
-        onmt_opts.config_opts(preprocess_parser)
-        onmt_opts.preprocess_opts(preprocess_parser)
-
-        model_args, _unknown = preprocess_parser.parse_known_args()
-
         if args.stage == 1:
             model_name = "retroxpert_s1"
             ProcessorClass = RetroXpertProcessorS1
         elif args.stage == 2:
             model_name = "retroxpert_s2"
             raw_data_files = []
+            onmt_opts.config_opts(preprocess_parser)
+            onmt_opts.preprocess_opts(preprocess_parser)
             ProcessorClass = RetroXpertProcessorS2
         else:
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
+
+        model_args, _unknown = preprocess_parser.parse_known_args()
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
 
