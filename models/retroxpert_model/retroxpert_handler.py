@@ -4,8 +4,10 @@ import networkx as nx
 import numpy as np
 import os
 import torch
+from onmt.translate.translation_server import ServerModel as ONMTServerModel
 from retroxpert_model.model.gat import GATNet
-from retroxpert_model.preprocessing import get_atom_features, get_bond_features, get_smarts_pieces_s2
+from retroxpert_model.preprocessing import get_atom_features, get_bond_features, get_smarts_pieces_s2, \
+    smi_tokenizer, smarts2smiles
 from rdkit import Chem
 from typing import Any, Dict, List
 
@@ -18,7 +20,8 @@ class RetroXpertHandler:
         self.initialized = False
 
         self.patterns_filtered = []
-        self.model = None
+        self.model_stage_1 = None
+        self.model_stage_2 = None
         self.device = None
 
         # TODO: temporary hardcode
@@ -27,6 +30,9 @@ class RetroXpertHandler:
         self.heads = 4
         self.hidden_dim = 128
         self.use_cpu = True
+        self.n_best = 5
+        # self.beam_size = 50
+        self.beam_size = 5
 
     def initialize(self, context):
         self._context = context
@@ -49,22 +55,34 @@ class RetroXpertHandler:
         print(f"Filtered patterns by min frequency {min_freq}, "
               f"remaining pattern count: {len(self.patterns_filtered)}")
 
-        self.model = GATNet(
+        self.model_stage_1 = GATNet(
             in_dim=self.in_dim + len(self.patterns_filtered),
             num_layers=self.gat_layers,
             hidden_dim=self.hidden_dim,
             heads=self.heads,
             use_gpu=(not self.use_cpu),
         )
-        self.model = self.model.to(self.device)
+        self.model_stage_1 = self.model_stage_1.to(self.device)
 
         print("Logging model summary")
-        print(self.model)
-        print(f"\nModel #Params: {sum([x.nelement() for x in self.model.parameters()]) / 1000} k")
+        print(self.model_stage_1)
+        print(f"\nModel #Params: {sum([x.nelement() for x in self.model_stage_1.parameters()]) / 1000} k")
 
         checkpoint_path = os.path.join(model_dir, "retroxpert_uspto50k_untyped_checkpoint.pt")
         print(f"Loading from {checkpoint_path}")
-        self.model.load_state_dict(torch.load(checkpoint_path, map_location=self.device))
+        self.model_stage_1.load_state_dict(torch.load(checkpoint_path, map_location=self.device))
+
+        onmt_config = {
+            "models": os.path.join(model_dir, "model_step_300000.pt"),
+            "n_best": self.n_best,
+            "beam_size": self.beam_size
+        }
+
+        self.model_stage_2 = ONMTServerModel(
+            opt=onmt_config,
+            model_id=0,
+            load=True
+        )
 
         self.initialized = True
 
@@ -133,6 +151,7 @@ class RetroXpertHandler:
             product_atom_features = get_atom_features(product_mol)
 
             rxn_data = {
+                "product_smi": smarts2smiles(smi),
                 'rxn_type': reaction_class,
                 'product_adj': product_adj,
                 'product_mol': product_mol,
@@ -150,6 +169,8 @@ class RetroXpertHandler:
         x_atoms = []
         x_adjs = []
         x_graphs = []
+
+        product_smis = []
         product_adjs = []
         product_mols = []
         pred_logits_mol_list = []
@@ -170,6 +191,7 @@ class RetroXpertHandler:
             x_adjs.append(x_adj)
             x_graphs.append(x_graph)
 
+            product_smis.append(rxn_data["product_smi"])
             product_adjs.append(rxn_data["product_adj"])
             product_mols.append(rxn_data["product_mol"])
 
@@ -191,7 +213,7 @@ class RetroXpertHandler:
 
         # batch graph
         g_dgl = dgl.batch(x_graph)
-        h_pred, e_pred = self.model(g_dgl, x_atom)
+        h_pred, e_pred = self.model_stage_1(g_dgl, x_atom)
 
         e_pred = e_pred.squeeze()
         h_pred = torch.argmax(h_pred, dim=1)
@@ -241,20 +263,26 @@ class RetroXpertHandler:
             pred_synthon = get_smarts_pieces_s2(product_mols[i], prod_adj, pred_adj)
             synthons.append(pred_synthon)
 
-        results = synthons
+        # Stage 2
+        input_smiles = []
+        for smi, synthon in zip(product_smis, synthons):
+            input_smiles.append(f"[RXN_0] {smi_tokenizer(smi)} [PREDICT] {smi_tokenizer(synthon)}")
 
-        # topk = 10
-        # beam_size = 10
-        # rxn_type = "UNK"
-        #
-        # results = []
-        # for smi in data[0]["body"]["smiles"]:
-        #     result = self.model.run(raw_prod=smi,
-        #                             beam_size=beam_size,
-        #                             topk=topk,
-        #                             rxn_type=rxn_type)
-        #     result["scores"] = result["scores"].tolist()
-        #     results.append(result)
+        print(input_smiles)
+
+        inputs = [{"src": smi} for smi in input_smiles]
+
+        reactants, scores, _, _, _ = self.model_stage_2.run(inputs=inputs)
+
+        results = []
+        for i, prod in enumerate(input_smiles):  # essentially reshaping (b*n_best,) into (b, n_best)
+            start = self.n_best * i
+            end = self.n_best * (i + 1)
+            result = {
+                "reactants": ["".join(r.split()) for r in reactants[start:end]],
+                "scores": scores[start:end]
+            }
+            results.append(result)
 
         return results
 
