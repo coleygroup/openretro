@@ -9,6 +9,7 @@ import pickle
 import time
 from base.processor_base import Processor
 from collections import Counter
+from concurrent.futures import TimeoutError
 from models.retroxpert_model.data import RetroCenterDatasets
 from models.retroxpert_model.extract_semi_template_pattern import cano_smarts, get_tpl
 from models.retroxpert_model.preprocessing import get_atom_features, get_bond_features, \
@@ -16,6 +17,7 @@ from models.retroxpert_model.preprocessing import get_atom_features, get_bond_fe
 from models.retroxpert_model.preprocessing import get_smarts_pieces as get_smarts_pieces_s1
 from models.retroxpert_model.retroxpert_trainer import collate, RetroXpertTrainerS1
 from onmt.bin.preprocess import preprocess as onmt_preprocess
+from pebble import ProcessPool
 from rdkit import Chem
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -255,6 +257,11 @@ class RetroXpertProcessorS1(Processor):
 
         pattern_file = os.path.join(self.processed_data_path, "product_patterns.txt")
         rxn_data_file = os.path.join(self.processed_data_path, "rxn_data_train.pkl")
+
+        if os.path.exists(pattern_file):
+            logging.info(f"Output file found at {pattern_file}, skipping extract_semi_templates()")
+            return
+
         with open(rxn_data_file, "rb") as f:
             rxn_data_dict = pickle.load(f)
 
@@ -267,27 +274,29 @@ class RetroXpertProcessorS1(Processor):
         logging.info(f"Total training reactions: {len(rxns)}")
         del rxn_data_dict
 
-        pool = multiprocessing.Pool(self.num_cores)
+        with ProcessPool(max_workers=self.num_cores) as pool:
+            # had to resort to pebble to add timeout. rdchiral could hang
+            future = pool.map(get_tpl, rxns, timeout=10)
 
-        # inner_loop_size = 50000         # for stability.. weird deadlock otherwise
-        # for result in tqdm(pool.imap_unordered(get_tpl, rxns), total=len(rxns)):
-        results = pool.map(get_tpl, rxns[:200000])
+            iterator = future.result()
+            while True:
+                try:
+                    result = next(iterator)
+                    idx, product_pattern = result
+
+                    if product_pattern is None:
+                        continue
+                    if product_pattern not in patterns:
+                        patterns[product_pattern] = 1
+                    else:
+                        patterns[product_pattern] += 1
+                except StopIteration:
+                    break
+                except TimeoutError as error:
+                    logging.info(f"get_tpl call took more than {error.args} seconds")
+
         logging.info(f"Finished getting templates. Creating patterns dict")
-
-        pool.close()
-        pool.join()
-        del rxns
-
-        for idx, product_pattern in tqdm(results):
-            if product_pattern is None:
-                continue
-
-            if product_pattern not in patterns:
-                patterns[product_pattern] = 1
-            else:
-                patterns[product_pattern] += 1
-
-        del results
+        del rxns, future
 
         logging.info("Sorting all patterns")
         patterns = sorted(patterns.items(), key=lambda x: x[1], reverse=True)
