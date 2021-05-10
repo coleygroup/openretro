@@ -4,10 +4,17 @@ import os
 import sys
 import time
 from datetime import datetime
-from gln.common.cmd_args import cmd_args as gln_args
-from models.gln_model.gln_processor import GLNProcessor
-from models.transformer_model.transformer_processor import TransformerProcessor
-from onmt.bin.preprocess import _get_parser
+try:
+    from gln.common.cmd_args import cmd_args as gln_args
+    from models.gln_model.gln_processor import GLNProcessor
+except Exception as e:
+    print(e)
+
+try:
+    from models.transformer_model.transformer_processor import TransformerProcessor
+    from onmt.bin.preprocess import _get_parser
+except Exception as e:
+    print(e)
 from rdkit import RDLogger
 
 

@@ -1,0 +1,1290 @@
+conda activate
+Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=1, bn=True, cooked_root=None, data_name=None, dropbox=None, dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=1, num_data_proc=0, num_epochs=50, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=1, tpl_enc='deepset', tpl_min_cnt=0, tpl_name=None)
+use gpu indexed: 0
+No module named 'onmt'
+Start testing
+test_all_ckpts flag set to True, testing all checkpoints
+Checkpoints found at ./checkpoints/gln_schneider50k/model-0.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-0.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.4630
+top 2: 0.5719
+top 3: 0.6458
+top 4: 0.6889
+top 5: 0.7278
+top 6: 0.7494
+top 7: 0.7717
+top 8: 0.7879
+top 9: 0.8026
+top 10: 0.8148
+top 11: 0.8230
+top 12: 0.8324
+top 13: 0.8425
+top 14: 0.8501
+top 15: 0.8565
+top 16: 0.8619
+top 17: 0.8665
+top 18: 0.8709
+top 19: 0.8755
+top 20: 0.8785
+top 21: 0.8813
+top 22: 0.8835
+top 23: 0.8866
+top 24: 0.8884
+top 25: 0.8910
+top 26: 0.8932
+top 27: 0.8958
+top 28: 0.8968
+top 29: 0.8982
+top 30: 0.8994
+top 31: 0.9018
+top 32: 0.9024
+top 33: 0.9034
+top 34: 0.9042
+top 35: 0.9056
+top 36: 0.9068
+top 37: 0.9080
+top 38: 0.9098
+top 39: 0.9104
+top 40: 0.9116
+top 41: 0.9120
+top 42: 0.9126
+top 43: 0.9130
+top 44: 0.9132
+top 45: 0.9136
+top 46: 0.9140
+top 47: 0.9142
+top 48: 0.9148
+top 49: 0.9154
+top 50: 0.9158
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.4647
+top 2: 0.5812
+top 3: 0.6474
+top 4: 0.6905
+top 5: 0.7249
+top 6: 0.7489
+top 7: 0.7692
+top 8: 0.7864
+top 9: 0.8020
+top 10: 0.8144
+top 11: 0.8276
+top 12: 0.8368
+top 13: 0.8450
+top 14: 0.8525
+top 15: 0.8601
+top 16: 0.8651
+top 17: 0.8699
+top 18: 0.8731
+top 19: 0.8763
+top 20: 0.8803
+top 21: 0.8833
+top 22: 0.8873
+top 23: 0.8891
+top 24: 0.8915
+top 25: 0.8935
+top 26: 0.8955
+top 27: 0.8983
+top 28: 0.9001
+top 29: 0.9029
+top 30: 0.9051
+top 31: 0.9071
+top 32: 0.9081
+top 33: 0.9097
+top 34: 0.9119
+top 35: 0.9135
+top 36: 0.9145
+top 37: 0.9155
+top 38: 0.9165
+top 39: 0.9169
+top 40: 0.9175
+top 41: 0.9179
+top 42: 0.9187
+top 43: 0.9191
+top 44: 0.9193
+top 45: 0.9195
+top 46: 0.9201
+top 47: 0.9205
+top 48: 0.9209
+top 49: 0.9209
+top 50: 0.9209
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-1.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-1.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.4931
+top 2: 0.6007
+top 3: 0.6661
+top 4: 0.7080
+top 5: 0.7436
+top 6: 0.7667
+top 7: 0.7905
+top 8: 0.8050
+top 9: 0.8192
+top 10: 0.8296
+top 11: 0.8421
+top 12: 0.8505
+top 13: 0.8569
+top 14: 0.8635
+top 15: 0.8677
+top 16: 0.8717
+top 17: 0.8761
+top 18: 0.8787
+top 19: 0.8817
+top 20: 0.8851
+top 21: 0.8894
+top 22: 0.8916
+top 23: 0.8936
+top 24: 0.8954
+top 25: 0.8976
+top 26: 0.9000
+top 27: 0.9020
+top 28: 0.9030
+top 29: 0.9048
+top 30: 0.9062
+top 31: 0.9084
+top 32: 0.9088
+top 33: 0.9098
+top 34: 0.9102
+top 35: 0.9118
+top 36: 0.9128
+top 37: 0.9134
+top 38: 0.9142
+top 39: 0.9156
+top 40: 0.9158
+top 41: 0.9158
+top 42: 0.9162
+top 43: 0.9162
+top 44: 0.9164
+top 45: 0.9166
+top 46: 0.9170
+top 47: 0.9172
+top 48: 0.9172
+top 49: 0.9172
+top 50: 0.9174
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.4869
+top 2: 0.5938
+top 3: 0.6615
+top 4: 0.7109
+top 5: 0.7429
+top 6: 0.7674
+top 7: 0.7862
+top 8: 0.8068
+top 9: 0.8224
+top 10: 0.8330
+top 11: 0.8420
+top 12: 0.8507
+top 13: 0.8589
+top 14: 0.8635
+top 15: 0.8687
+top 16: 0.8731
+top 17: 0.8767
+top 18: 0.8805
+top 19: 0.8835
+top 20: 0.8875
+top 21: 0.8913
+top 22: 0.8945
+top 23: 0.8965
+top 24: 0.8983
+top 25: 0.9009
+top 26: 0.9031
+top 27: 0.9043
+top 28: 0.9069
+top 29: 0.9089
+top 30: 0.9097
+top 31: 0.9117
+top 32: 0.9131
+top 33: 0.9141
+top 34: 0.9153
+top 35: 0.9171
+top 36: 0.9183
+top 37: 0.9195
+top 38: 0.9205
+top 39: 0.9211
+top 40: 0.9213
+top 41: 0.9219
+top 42: 0.9221
+top 43: 0.9221
+top 44: 0.9221
+top 45: 0.9225
+top 46: 0.9227
+top 47: 0.9227
+top 48: 0.9229
+top 49: 0.9229
+top 50: 0.9237
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-2.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-2.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5043
+top 2: 0.6069
+top 3: 0.6807
+top 4: 0.7258
+top 5: 0.7579
+top 6: 0.7829
+top 7: 0.8046
+top 8: 0.8186
+top 9: 0.8330
+top 10: 0.8423
+top 11: 0.8511
+top 12: 0.8581
+top 13: 0.8667
+top 14: 0.8731
+top 15: 0.8775
+top 16: 0.8811
+top 17: 0.8845
+top 18: 0.8880
+top 19: 0.8900
+top 20: 0.8924
+top 21: 0.8940
+top 22: 0.8964
+top 23: 0.8992
+top 24: 0.9006
+top 25: 0.9034
+top 26: 0.9066
+top 27: 0.9080
+top 28: 0.9094
+top 29: 0.9100
+top 30: 0.9112
+top 31: 0.9120
+top 32: 0.9124
+top 33: 0.9134
+top 34: 0.9142
+top 35: 0.9154
+top 36: 0.9162
+top 37: 0.9168
+top 38: 0.9176
+top 39: 0.9184
+top 40: 0.9184
+top 41: 0.9188
+top 42: 0.9190
+top 43: 0.9196
+top 44: 0.9200
+top 45: 0.9200
+top 46: 0.9202
+top 47: 0.9208
+top 48: 0.9210
+top 49: 0.9210
+top 50: 0.9212
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.4997
+top 2: 0.6048
+top 3: 0.6815
+top 4: 0.7241
+top 5: 0.7560
+top 6: 0.7772
+top 7: 0.7932
+top 8: 0.8112
+top 9: 0.8244
+top 10: 0.8346
+top 11: 0.8448
+top 12: 0.8533
+top 13: 0.8599
+top 14: 0.8675
+top 15: 0.8723
+top 16: 0.8773
+top 17: 0.8831
+top 18: 0.8873
+top 19: 0.8901
+top 20: 0.8931
+top 21: 0.8959
+top 22: 0.8981
+top 23: 0.8999
+top 24: 0.9021
+top 25: 0.9049
+top 26: 0.9065
+top 27: 0.9087
+top 28: 0.9099
+top 29: 0.9113
+top 30: 0.9133
+top 31: 0.9139
+top 32: 0.9149
+top 33: 0.9159
+top 34: 0.9167
+top 35: 0.9175
+top 36: 0.9183
+top 37: 0.9193
+top 38: 0.9197
+top 39: 0.9199
+top 40: 0.9211
+top 41: 0.9219
+top 42: 0.9227
+top 43: 0.9227
+top 44: 0.9233
+top 45: 0.9233
+top 46: 0.9235
+top 47: 0.9235
+top 48: 0.9239
+top 49: 0.9239
+top 50: 0.9239
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-3.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-3.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5155
+top 2: 0.6216
+top 3: 0.6889
+top 4: 0.7282
+top 5: 0.7593
+top 6: 0.7829
+top 7: 0.8026
+top 8: 0.8194
+top 9: 0.8300
+top 10: 0.8408
+top 11: 0.8513
+top 12: 0.8569
+top 13: 0.8631
+top 14: 0.8685
+top 15: 0.8741
+top 16: 0.8779
+top 17: 0.8829
+top 18: 0.8857
+top 19: 0.8872
+top 20: 0.8894
+top 21: 0.8920
+top 22: 0.8952
+top 23: 0.8984
+top 24: 0.9010
+top 25: 0.9032
+top 26: 0.9046
+top 27: 0.9064
+top 28: 0.9080
+top 29: 0.9096
+top 30: 0.9116
+top 31: 0.9120
+top 32: 0.9126
+top 33: 0.9144
+top 34: 0.9152
+top 35: 0.9166
+top 36: 0.9170
+top 37: 0.9176
+top 38: 0.9182
+top 39: 0.9182
+top 40: 0.9184
+top 41: 0.9188
+top 42: 0.9198
+top 43: 0.9200
+top 44: 0.9204
+top 45: 0.9210
+top 46: 0.9210
+top 47: 0.9210
+top 48: 0.9210
+top 49: 0.9212
+top 50: 0.9212
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5099
+top 2: 0.6216
+top 3: 0.6905
+top 4: 0.7329
+top 5: 0.7636
+top 6: 0.7884
+top 7: 0.8042
+top 8: 0.8186
+top 9: 0.8276
+top 10: 0.8380
+top 11: 0.8456
+top 12: 0.8527
+top 13: 0.8601
+top 14: 0.8673
+top 15: 0.8737
+top 16: 0.8785
+top 17: 0.8831
+top 18: 0.8883
+top 19: 0.8907
+top 20: 0.8931
+top 21: 0.8957
+top 22: 0.8979
+top 23: 0.9001
+top 24: 0.9021
+top 25: 0.9035
+top 26: 0.9057
+top 27: 0.9073
+top 28: 0.9091
+top 29: 0.9109
+top 30: 0.9119
+top 31: 0.9131
+top 32: 0.9143
+top 33: 0.9153
+top 34: 0.9165
+top 35: 0.9175
+top 36: 0.9183
+top 37: 0.9191
+top 38: 0.9195
+top 39: 0.9197
+top 40: 0.9201
+top 41: 0.9205
+top 42: 0.9209
+top 43: 0.9213
+top 44: 0.9213
+top 45: 0.9215
+top 46: 0.9221
+top 47: 0.9223
+top 48: 0.9227
+top 49: 0.9227
+top 50: 0.9229
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-4.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-4.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5213
+top 2: 0.6226
+top 3: 0.6949
+top 4: 0.7406
+top 5: 0.7677
+top 6: 0.7915
+top 7: 0.8128
+top 8: 0.8234
+top 9: 0.8360
+top 10: 0.8447
+top 11: 0.8539
+top 12: 0.8601
+top 13: 0.8669
+top 14: 0.8723
+top 15: 0.8773
+top 16: 0.8815
+top 17: 0.8843
+top 18: 0.8882
+top 19: 0.8910
+top 20: 0.8934
+top 21: 0.8970
+top 22: 0.8998
+top 23: 0.9024
+top 24: 0.9040
+top 25: 0.9058
+top 26: 0.9070
+top 27: 0.9086
+top 28: 0.9096
+top 29: 0.9106
+top 30: 0.9120
+top 31: 0.9130
+top 32: 0.9142
+top 33: 0.9156
+top 34: 0.9160
+top 35: 0.9170
+top 36: 0.9180
+top 37: 0.9184
+top 38: 0.9190
+top 39: 0.9196
+top 40: 0.9200
+top 41: 0.9204
+top 42: 0.9204
+top 43: 0.9210
+top 44: 0.9212
+top 45: 0.9214
+top 46: 0.9218
+top 47: 0.9218
+top 48: 0.9220
+top 49: 0.9226
+top 50: 0.9228
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5137
+top 2: 0.6218
+top 3: 0.6901
+top 4: 0.7279
+top 5: 0.7616
+top 6: 0.7846
+top 7: 0.8016
+top 8: 0.8166
+top 9: 0.8284
+top 10: 0.8402
+top 11: 0.8494
+top 12: 0.8571
+top 13: 0.8643
+top 14: 0.8709
+top 15: 0.8761
+top 16: 0.8799
+top 17: 0.8847
+top 18: 0.8875
+top 19: 0.8907
+top 20: 0.8931
+top 21: 0.8949
+top 22: 0.8983
+top 23: 0.9003
+top 24: 0.9027
+top 25: 0.9037
+top 26: 0.9051
+top 27: 0.9069
+top 28: 0.9081
+top 29: 0.9099
+top 30: 0.9109
+top 31: 0.9121
+top 32: 0.9131
+top 33: 0.9147
+top 34: 0.9159
+top 35: 0.9163
+top 36: 0.9175
+top 37: 0.9185
+top 38: 0.9195
+top 39: 0.9199
+top 40: 0.9201
+top 41: 0.9207
+top 42: 0.9209
+top 43: 0.9211
+top 44: 0.9215
+top 45: 0.9219
+top 46: 0.9223
+top 47: 0.9223
+top 48: 0.9223
+top 49: 0.9225
+top 50: 0.9225
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-5.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-5.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5318
+top 2: 0.6278
+top 3: 0.6971
+top 4: 0.7360
+top 5: 0.7709
+top 6: 0.7913
+top 7: 0.8104
+top 8: 0.8282
+top 9: 0.8390
+top 10: 0.8475
+top 11: 0.8563
+top 12: 0.8637
+top 13: 0.8685
+top 14: 0.8743
+top 15: 0.8797
+top 16: 0.8839
+top 17: 0.8866
+top 18: 0.8898
+top 19: 0.8930
+top 20: 0.8944
+top 21: 0.8970
+top 22: 0.8986
+top 23: 0.9006
+top 24: 0.9036
+top 25: 0.9052
+top 26: 0.9064
+top 27: 0.9082
+top 28: 0.9106
+top 29: 0.9114
+top 30: 0.9124
+top 31: 0.9132
+top 32: 0.9138
+top 33: 0.9144
+top 34: 0.9150
+top 35: 0.9162
+top 36: 0.9172
+top 37: 0.9184
+top 38: 0.9188
+top 39: 0.9188
+top 40: 0.9192
+top 41: 0.9196
+top 42: 0.9206
+top 43: 0.9208
+top 44: 0.9210
+top 45: 0.9212
+top 46: 0.9218
+top 47: 0.9218
+top 48: 0.9220
+top 49: 0.9220
+top 50: 0.9222
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5139
+top 2: 0.6182
+top 3: 0.6853
+top 4: 0.7273
+top 5: 0.7570
+top 6: 0.7780
+top 7: 0.7984
+top 8: 0.8152
+top 9: 0.8260
+top 10: 0.8374
+top 11: 0.8474
+top 12: 0.8545
+top 13: 0.8615
+top 14: 0.8675
+top 15: 0.8721
+top 16: 0.8769
+top 17: 0.8811
+top 18: 0.8825
+top 19: 0.8857
+top 20: 0.8879
+top 21: 0.8915
+top 22: 0.8939
+top 23: 0.8963
+top 24: 0.8983
+top 25: 0.9009
+top 26: 0.9019
+top 27: 0.9043
+top 28: 0.9057
+top 29: 0.9063
+top 30: 0.9081
+top 31: 0.9099
+top 32: 0.9117
+top 33: 0.9131
+top 34: 0.9145
+top 35: 0.9161
+top 36: 0.9171
+top 37: 0.9179
+top 38: 0.9183
+top 39: 0.9185
+top 40: 0.9195
+top 41: 0.9201
+top 42: 0.9203
+top 43: 0.9209
+top 44: 0.9209
+top 45: 0.9221
+top 46: 0.9221
+top 47: 0.9223
+top 48: 0.9225
+top 49: 0.9225
+top 50: 0.9233
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-6.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-6.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5203
+top 2: 0.6198
+top 3: 0.6937
+top 4: 0.7336
+top 5: 0.7609
+top 6: 0.7821
+top 7: 0.7990
+top 8: 0.8134
+top 9: 0.8282
+top 10: 0.8388
+top 11: 0.8481
+top 12: 0.8571
+top 13: 0.8647
+top 14: 0.8709
+top 15: 0.8763
+top 16: 0.8795
+top 17: 0.8839
+top 18: 0.8886
+top 19: 0.8906
+top 20: 0.8938
+top 21: 0.8956
+top 22: 0.8990
+top 23: 0.9012
+top 24: 0.9030
+top 25: 0.9038
+top 26: 0.9058
+top 27: 0.9070
+top 28: 0.9082
+top 29: 0.9094
+top 30: 0.9102
+top 31: 0.9112
+top 32: 0.9124
+top 33: 0.9134
+top 34: 0.9146
+top 35: 0.9154
+top 36: 0.9160
+top 37: 0.9166
+top 38: 0.9168
+top 39: 0.9172
+top 40: 0.9176
+top 41: 0.9180
+top 42: 0.9184
+top 43: 0.9186
+top 44: 0.9190
+top 45: 0.9194
+top 46: 0.9196
+top 47: 0.9200
+top 48: 0.9204
+top 49: 0.9206
+top 50: 0.9210
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5109
+top 2: 0.6098
+top 3: 0.6871
+top 4: 0.7271
+top 5: 0.7590
+top 6: 0.7812
+top 7: 0.7992
+top 8: 0.8114
+top 9: 0.8242
+top 10: 0.8336
+top 11: 0.8406
+top 12: 0.8488
+top 13: 0.8549
+top 14: 0.8635
+top 15: 0.8693
+top 16: 0.8753
+top 17: 0.8809
+top 18: 0.8839
+top 19: 0.8867
+top 20: 0.8895
+top 21: 0.8907
+top 22: 0.8933
+top 23: 0.8967
+top 24: 0.8995
+top 25: 0.9017
+top 26: 0.9033
+top 27: 0.9057
+top 28: 0.9069
+top 29: 0.9085
+top 30: 0.9095
+top 31: 0.9103
+top 32: 0.9115
+top 33: 0.9127
+top 34: 0.9137
+top 35: 0.9147
+top 36: 0.9153
+top 37: 0.9163
+top 38: 0.9171
+top 39: 0.9187
+top 40: 0.9197
+top 41: 0.9205
+top 42: 0.9209
+top 43: 0.9211
+top 44: 0.9213
+top 45: 0.9215
+top 46: 0.9215
+top 47: 0.9217
+top 48: 0.9217
+top 49: 0.9223
+top 50: 0.9227
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-7.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-7.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5276
+top 2: 0.6242
+top 3: 0.6859
+top 4: 0.7286
+top 5: 0.7647
+top 6: 0.7861
+top 7: 0.8068
+top 8: 0.8236
+top 9: 0.8344
+top 10: 0.8449
+top 11: 0.8541
+top 12: 0.8605
+top 13: 0.8671
+top 14: 0.8723
+top 15: 0.8779
+top 16: 0.8817
+top 17: 0.8861
+top 18: 0.8894
+top 19: 0.8920
+top 20: 0.8944
+top 21: 0.8964
+top 22: 0.8990
+top 23: 0.9002
+top 24: 0.9018
+top 25: 0.9030
+top 26: 0.9052
+top 27: 0.9072
+top 28: 0.9078
+top 29: 0.9104
+top 30: 0.9118
+top 31: 0.9122
+top 32: 0.9126
+top 33: 0.9136
+top 34: 0.9138
+top 35: 0.9142
+top 36: 0.9150
+top 37: 0.9160
+top 38: 0.9164
+top 39: 0.9166
+top 40: 0.9168
+top 41: 0.9170
+top 42: 0.9172
+top 43: 0.9176
+top 44: 0.9188
+top 45: 0.9192
+top 46: 0.9196
+top 47: 0.9200
+top 48: 0.9206
+top 49: 0.9208
+top 50: 0.9210
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5127
+top 2: 0.6170
+top 3: 0.6881
+top 4: 0.7283
+top 5: 0.7562
+top 6: 0.7784
+top 7: 0.7982
+top 8: 0.8150
+top 9: 0.8266
+top 10: 0.8374
+top 11: 0.8458
+top 12: 0.8529
+top 13: 0.8613
+top 14: 0.8669
+top 15: 0.8715
+top 16: 0.8743
+top 17: 0.8785
+top 18: 0.8821
+top 19: 0.8853
+top 20: 0.8899
+top 21: 0.8931
+top 22: 0.8959
+top 23: 0.8985
+top 24: 0.9005
+top 25: 0.9033
+top 26: 0.9049
+top 27: 0.9065
+top 28: 0.9095
+top 29: 0.9111
+top 30: 0.9119
+top 31: 0.9125
+top 32: 0.9137
+top 33: 0.9143
+top 34: 0.9163
+top 35: 0.9169
+top 36: 0.9179
+top 37: 0.9185
+top 38: 0.9195
+top 39: 0.9201
+top 40: 0.9209
+top 41: 0.9211
+top 42: 0.9217
+top 43: 0.9219
+top 44: 0.9227
+top 45: 0.9231
+top 46: 0.9233
+top 47: 0.9233
+top 48: 0.9237
+top 49: 0.9239
+top 50: 0.9241
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-8.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-8.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5334
+top 2: 0.6264
+top 3: 0.6867
+top 4: 0.7250
+top 5: 0.7547
+top 6: 0.7795
+top 7: 0.7978
+top 8: 0.8140
+top 9: 0.8282
+top 10: 0.8406
+top 11: 0.8481
+top 12: 0.8571
+top 13: 0.8647
+top 14: 0.8697
+top 15: 0.8745
+top 16: 0.8791
+top 17: 0.8817
+top 18: 0.8872
+top 19: 0.8906
+top 20: 0.8928
+top 21: 0.8954
+top 22: 0.8978
+top 23: 0.9018
+top 24: 0.9034
+top 25: 0.9040
+top 26: 0.9054
+top 27: 0.9068
+top 28: 0.9072
+top 29: 0.9082
+top 30: 0.9092
+top 31: 0.9106
+top 32: 0.9114
+top 33: 0.9120
+top 34: 0.9128
+top 35: 0.9142
+top 36: 0.9148
+top 37: 0.9154
+top 38: 0.9160
+top 39: 0.9162
+top 40: 0.9166
+top 41: 0.9170
+top 42: 0.9182
+top 43: 0.9188
+top 44: 0.9188
+top 45: 0.9190
+top 46: 0.9192
+top 47: 0.9204
+top 48: 0.9206
+top 49: 0.9208
+top 50: 0.9208
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5203
+top 2: 0.6190
+top 3: 0.6837
+top 4: 0.7221
+top 5: 0.7542
+top 6: 0.7794
+top 7: 0.7954
+top 8: 0.8114
+top 9: 0.8240
+top 10: 0.8336
+top 11: 0.8436
+top 12: 0.8501
+top 13: 0.8571
+top 14: 0.8635
+top 15: 0.8687
+top 16: 0.8733
+top 17: 0.8779
+top 18: 0.8811
+top 19: 0.8847
+top 20: 0.8893
+top 21: 0.8927
+top 22: 0.8951
+top 23: 0.8967
+top 24: 0.8987
+top 25: 0.9013
+top 26: 0.9025
+top 27: 0.9041
+top 28: 0.9057
+top 29: 0.9073
+top 30: 0.9089
+top 31: 0.9101
+top 32: 0.9119
+top 33: 0.9135
+top 34: 0.9145
+top 35: 0.9151
+top 36: 0.9157
+top 37: 0.9171
+top 38: 0.9177
+top 39: 0.9177
+top 40: 0.9187
+top 41: 0.9197
+top 42: 0.9209
+top 43: 0.9217
+top 44: 0.9221
+top 45: 0.9229
+top 46: 0.9247
+top 47: 0.9249
+top 48: 0.9251
+top 49: 0.9251
+top 50: 0.9251
+============================
+Checkpoints found at ./checkpoints/gln_schneider50k/model-9.dump, building wrapper
+Loaded actual args used for training: Namespace(act_func='relu', act_last=True, att_type='bilinear', batch_size=64, beam_size=50, bn=True, cooked_root=None, data_name='schneider50k', dropbox='./data/gln_schneider50k/processed', dropout=0, edge_dims='128', embed_dim=256, epochs2save=1, epochs_per_part=1, eval_func='acc', eval_start_idx=0, f_atoms='./data/gln_schneider50k/processed/cooked_schneider50k/atom_list.txt', file_for_eval=None, fp_degree=2, fp_dim=2048, gen_method='weighted', ggnn_update_type='gru', gm='mean_field', gnn_out='last', gnn_share_param=False, gpu=0, grad_clip=5, init_model_dump=None, is_training=True, iters_per_val=3000, latent_dim=128, learning_rate=0.001, logic_net='gpath', max_lv=3, max_neg_reacts=0, mlp_hidden=256, model_for_eval=None, msg_agg_type='sum', neg_local=False, neg_num=64, neg_sample='all', node_dims='128', num_cores=8, num_data_proc=0, num_epochs=10, num_parts=1, part_id=0, part_num=0, phase=None, readout_agg_type='max', retro_during_train=True, save_dir='.', seed=19260817, split_mode='single', subg_enc='mean_field', test_during_train=False, test_mode='model', topk=50, tpl_enc='deepset', tpl_min_cnt=0, tpl_name='default', train_file='./data/gln_schneider50k/clean_train.csv')
+loading data info from ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default
+loading templates
+# unique templates 11580
+loading smiles feature dump
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/graph_smarts
+loading binary features
+mol_holder loading ./data/gln_schneider50k/processed/cooked_schneider50k/tpl-default/../graph_smiles
+loading binary features
+Testing ./checkpoints/gln_schneider50k/model-9.dump
+loading raw {name}
+loading templates
+num val: 4989
+average # centers per mol: 29.639462602767196
+========val results========
+top 1: 0.5197
+top 2: 0.6135
+top 3: 0.6771
+top 4: 0.7234
+top 5: 0.7551
+top 6: 0.7773
+top 7: 0.7949
+top 8: 0.8120
+top 9: 0.8240
+top 10: 0.8342
+top 11: 0.8443
+top 12: 0.8513
+top 13: 0.8561
+top 14: 0.8645
+top 15: 0.8697
+top 16: 0.8729
+top 17: 0.8773
+top 18: 0.8815
+top 19: 0.8843
+top 20: 0.8878
+top 21: 0.8894
+top 22: 0.8912
+top 23: 0.8942
+top 24: 0.8970
+top 25: 0.8986
+top 26: 0.9018
+top 27: 0.9050
+top 28: 0.9060
+top 29: 0.9072
+top 30: 0.9090
+top 31: 0.9098
+top 32: 0.9108
+top 33: 0.9112
+top 34: 0.9126
+top 35: 0.9136
+top 36: 0.9152
+top 37: 0.9158
+top 38: 0.9166
+top 39: 0.9168
+top 40: 0.9172
+top 41: 0.9172
+top 42: 0.9174
+top 43: 0.9176
+top 44: 0.9180
+top 45: 0.9182
+top 46: 0.9188
+top 47: 0.9192
+top 48: 0.9196
+top 49: 0.9200
+top 50: 0.9200
+===========================
+loading raw {name}
+loading templates
+num test: 5005
+average # centers per mol: 29.37797321607036
+========test results========
+top 1: 0.5161
+top 2: 0.6166
+top 3: 0.6793
+top 4: 0.7183
+top 5: 0.7493
+top 6: 0.7730
+top 7: 0.7922
+top 8: 0.8088
+top 9: 0.8208
+top 10: 0.8310
+top 11: 0.8396
+top 12: 0.8456
+top 13: 0.8549
+top 14: 0.8625
+top 15: 0.8669
+top 16: 0.8707
+top 17: 0.8747
+top 18: 0.8775
+top 19: 0.8817
+top 20: 0.8845
+top 21: 0.8867
+top 22: 0.8879
+top 23: 0.8913
+top 24: 0.8941
+top 25: 0.8955
+top 26: 0.8981
+top 27: 0.8993
+top 28: 0.9023
+top 29: 0.9045
+top 30: 0.9055
+top 31: 0.9073
+top 32: 0.9093
+top 33: 0.9099
+top 34: 0.9113
+top 35: 0.9123
+top 36: 0.9129
+top 37: 0.9149
+top 38: 0.9161
+top 39: 0.9173
+top 40: 0.9179
+top 41: 0.9179
+top 42: 0.9183
+top 43: 0.9185
+top 44: 0.9191
+top 45: 0.9201
+top 46: 0.9211
+top 47: 0.9213
+top 48: 0.9221
+top 49: 0.9221
+top 50: 0.9225
+============================
+No checkpoints found at ./checkpoints/gln_schneider50k/model-10.dump, exiting
+type overall
+top 1: 0.5203
+top 2: 0.6190
+top 3: 0.6837
+top 4: 0.7221
+top 5: 0.7542
+top 6: 0.7794
+top 7: 0.7954
+top 8: 0.8114
+top 9: 0.8240
+top 10: 0.8336
+top 11: 0.8436
+top 12: 0.8501
+top 13: 0.8571
+top 14: 0.8635
+top 15: 0.8687
+top 16: 0.8733
+top 17: 0.8779
+top 18: 0.8811
+top 19: 0.8847
+top 20: 0.8893
+top 21: 0.8927
+top 22: 0.8951
+top 23: 0.8967
+top 24: 0.8987
+top 25: 0.9013
+top 26: 0.9025
+top 27: 0.9041
+top 28: 0.9057
+top 29: 0.9073
+top 30: 0.9089
+top 31: 0.9101
+top 32: 0.9119
+top 33: 0.9135
+top 34: 0.9145
+top 35: 0.9151
+top 36: 0.9157
+top 37: 0.9171
+top 38: 0.9177
+top 39: 0.9177
+top 40: 0.9187
+top 41: 0.9197
+top 42: 0.9209
+top 43: 0.9217
+top 44: 0.9221
+top 45: 0.9229
+top 46: 0.9247
+top 47: 0.9249
+top 48: 0.9251
+top 49: 0.9251
+top 50: 0.9251
+best test results: ./results/gln_schneider50k/test-8.summary
+Finished testing

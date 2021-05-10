@@ -5,8 +5,11 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
-from models.transformer_model.transformer_trainer import TransformerTrainer
-from onmt.bin.train import _get_parser
+try:
+    from models.transformer_model.transformer_trainer import TransformerTrainer
+    from onmt.bin.train import _get_parser
+except Exception as e:
+    print(e)
 from rdkit import RDLogger
 
 
@@ -21,12 +24,17 @@ def parse_args():
     parser.add_argument("--train_file", help="train SMILES file", type=str, default="")
     parser.add_argument("--processed_data_path", help="output path for processed data", type=str, default="")
     parser.add_argument("--model_path", help="model output path", type=str, default="")
+    parser.add_argument("--model_seed", help="model seed", type=int, default=0)
 
     return parser.parse_known_args()
 
 
 def train_main(args):
     if args.model_name == "gln":
+        gln_args.seed = args.model_seed
+
+        logging.info('gln args')
+        logging.info(f'{gln_args}')
         trainer = GLNTrainer(
             model_name="gln",
             model_args=gln_args,
@@ -64,10 +72,13 @@ def train_main(args):
     if args.do_train:
         logging.info("Start training")
         trainer.train()
+        logging.info("Finished training")
     if args.do_test:
         logging.info("Start testing")
         trainer.test()
+        logging.info("Finished testing")
 
+    sys.exit()
 
 if __name__ == "__main__":
     args, unknown = parse_args()

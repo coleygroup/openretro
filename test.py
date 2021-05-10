@@ -5,8 +5,11 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_tester import GLNTester
-from models.transformer_model.transformer_tester import TransformerTester
-from onmt.bin.translate import _get_parser
+try:
+    from models.transformer_model.transformer_tester import TransformerTester
+    from onmt.bin.translate import _get_parser
+except Exception as e:
+    print(e)
 from rdkit import RDLogger
 
 
@@ -69,6 +72,9 @@ def test_main(args):
 
     logging.info("Start testing")
     tester.test()
+    logging.info('Finished testing')
+
+    sys.exit()
 
 
 if __name__ == "__main__":

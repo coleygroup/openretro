@@ -1,4 +1,5 @@
-python train.py \
+conda activate openretro
+python3 train.py \
   --do_train \
   --data="do_not_change_this" \
   --model_name="transformer" \
@@ -10,7 +11,7 @@ python train.py \
   -gpu_ranks 0 \
   -save_checkpoint_steps 20000 \
   -keep_checkpoint 10 \
-  -train_steps 500000 \
+  -train_steps 1000000 \
   -param_init 0 \
   -param_init_glorot \
   -max_generator_batches 32 \
@@ -39,3 +40,9 @@ python train.py \
   -self_attn_type scaled-dot \
   --heads 8 \
   -transformer_ff 512
+
+# batch_size 30000
+# train_steps 500000
+# added world_size
+# changed gpu_ranks from 0 to 1 (didn't work, prolly need to configure the torch.distributed properly)
+# -world_size 2

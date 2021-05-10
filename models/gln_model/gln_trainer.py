@@ -34,6 +34,8 @@ class GLNTrainer(Trainer):
         random.seed(self.model_args.seed)
         np.random.seed(self.model_args.seed)
         torch.manual_seed(self.model_args.seed)
+        os.environ["PYTHONHASHSEED"] = str(self.model_args.seed) # do we need this? min htoo added on 23/04/2021
+        
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -79,6 +81,7 @@ class GLNTrainer(Trainer):
         self.model_args.act_last = True
         self.model_args.iters_per_val = 3000
         self.model_args.gpu = 0
+        self.model_args.num_cores = len(os.sched_getaffinity(0))
         self.model_args.topk = 50
         self.model_args.beam_size = 50
         self.model_args.num_parts = 1

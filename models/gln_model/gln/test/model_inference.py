@@ -1,25 +1,23 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
-
-import rdkit
-from rdkit import Chem
-import os
-import logging
-import numpy as np
-import torch
-import pickle as cp
 import math
+import os
+import pickle as cp
+
+import numpy as np
+import rdkit
+import torch
+from rdkit import Chem
 from scipy.special import softmax
-from gln.data_process.data_info import DataInfo, load_bin_feats
-from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
+
 from gln.common.reactor import Reactor
+from gln.data_process.data_info import DataInfo, load_bin_feats
 from gln.graph_logic.logic_net import GraphPath
+from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
 
 
 class RetroGLN(object):
-    def __init__(self, dropbox, model_dump):
+    def __init__(self, dropbox, model_dump, args=None): # minhtoo added args as parameter into RetroGLN instantiation (10th May)
         """
         Args:
             dropbox: the dropbox folder
@@ -27,20 +25,28 @@ class RetroGLN(object):
         """
         assert os.path.isdir(model_dump)
 
-        arg_file = os.path.join(model_dump, 'args.pkl')
-        with open(arg_file, 'rb') as f:
-            self.args = cp.load(f)
+        if args is not None: # minhtoo add
+            print("Using user-provided args")
+            self.args = args
             self.args.dropbox = dropbox
-
-        logging.info(f"Loaded actual args used for training: {self.args}")
+        else:
+            arg_file = os.path.join(model_dump, 'args.pkl')
+            print(f"Loading args from {arg_file}")
+            with open(arg_file, 'rb') as f:
+                self.args = cp.load(f)
+                self.args.dropbox = dropbox
 
         DataInfo.init(dropbox, self.args)
         load_bin_feats(dropbox, self.args)
 
         model_file = os.path.join(model_dump, 'model.dump')
+        print(f"Loading model from {model_file}") # minhtoo add
         self.gln = GraphPath(self.args)
-        self.gln.load_state_dict(torch.load(model_file))
-        self.gln.cuda()
+        try:
+            self.gln.load_state_dict(torch.load(model_file))
+            self.gln.cuda() 
+        except:
+            self.gln.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
         self.gln.eval()
 
         self.prod_center_maps = {}

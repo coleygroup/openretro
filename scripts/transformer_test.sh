@@ -1,9 +1,9 @@
-python test.py \
+python3 test.py \
   --model_name="transformer" \
   --data_name="transformer-karpov" \
   --log_file="transformer_test" \
   --processed_data_path="./data/transformer-karpov/processed/" \
-  --model_path="./checkpoints/transformer-karpov/model_step_500000.pt" \
+  --model_path="./checkpoints/transformer-karpov/model_step_1000000.pt" \
   --test_output_path="./results/transformer-karpov" \
   -batch_size 64 \
   -replace_unk \
