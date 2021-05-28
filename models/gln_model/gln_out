@@ -1,6 +1,0 @@
-Obtaining file:///home/linmin001/openretro/models/gln_model
-Requirement already satisfied: torch in /home/linmin001/.conda/envs/openretro/lib/python3.6/site-packages (from gln==0.0.0) (1.6.0)
-Requirement already satisfied: future in /home/linmin001/.conda/envs/openretro/lib/python3.6/site-packages (from torch->gln==0.0.0) (0.18.2)
-Requirement already satisfied: numpy in /home/linmin001/.local/lib/python3.6/site-packages (from torch->gln==0.0.0) (1.19.2)
-Installing collected packages: gln
-  Running setup.py develop for gln
