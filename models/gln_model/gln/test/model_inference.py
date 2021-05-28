@@ -7,13 +7,12 @@ import pickle as cp
 import numpy as np
 import rdkit
 import torch
-from rdkit import Chem
-from scipy.special import softmax
-
 from gln.common.reactor import Reactor
 from gln.data_process.data_info import DataInfo, load_bin_feats
 from gln.graph_logic.logic_net import GraphPath
 from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
+from rdkit import Chem
+from scipy.special import softmax
 
 
 class RetroGLN(object):

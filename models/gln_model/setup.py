@@ -14,12 +14,8 @@ BASEPATH = os.path.dirname(os.path.abspath(__file__))
 compile_args = []
 link_args = []
 
-# if platform.system() != 'Darwin':  # add openmp
-#     compile_args.append('-fopenmp')
-#     link_args.append('-lgomp')
 if platform.system() != 'Darwin':  # add openmp
     compile_args.append('-fopenmp')
-    # compile_args.append('-std=c++11')
     link_args.append('-lgomp')
     
 ext_modules=[CppExtension('extlib', 
@@ -55,9 +51,6 @@ setup(name='gln',
       install_requires=[
           'torch',
       ],
-    #   cmdclass={
-    #       'develop': custom_develop
-    #     }
       cmdclass={
         'develop': custom_develop,
         'build_ext': BuildExtension,

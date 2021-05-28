@@ -15,7 +15,6 @@ class JaggedLogSoftmaxFunc(Function):
     @staticmethod
     def forward(ctx, logits, prefix_sum):
         assert len(prefix_sum.size()) == 1
-        # output = extlib.jagged_log_softmax_forward(logits, prefix_sum)
         if not logits.is_cuda:
             output = extlib.jagged_log_softmax_forward(logits, prefix_sum)
         else:
@@ -27,7 +26,6 @@ class JaggedLogSoftmaxFunc(Function):
     @staticmethod
     def backward(ctx, grad_output):
         prefix_sum, output = ctx.saved_variables
-        # grad_input = extlib.jagged_log_softmax_backward(output.data, grad_output, prefix_sum.data)
         if not grad_output.is_cuda:
             grad_input = extlib.jagged_log_softmax_backward(output.data, grad_output, prefix_sum.data)
         else:
