@@ -5,4 +5,6 @@ python train.py \
   --data_name="retroxpert_uspto_full" \
   --log_file="retroxpert_uspto_full_train_s1" \
   --processed_data_path="./data/retroxpert_uspto_full/processed/" \
-  --model_path="./checkpoints/retroxpert_uspto_full_untyped"
+  --model_path="./checkpoints/retroxpert_uspto_full_untyped" \
+  --batch_size=128 \
+  --epochs=20

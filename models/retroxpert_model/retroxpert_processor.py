@@ -330,6 +330,9 @@ class RetroXpertProcessorS1(Processor):
 
         for phase in ["train", "val", "test"]:
             rxn_data_file = os.path.join(self.processed_data_path, f"rxn_data_{phase}.pkl")
+            pattern_feat_file = os.path.join(self.processed_data_path, f"pattern_feat_{phase}.npz")
+
+            logging.info(f"Loading from {rxn_data_file}")
             with open(rxn_data_file, "rb") as f:
                 rxn_data_dict = pickle.load(f)
 
@@ -337,21 +340,36 @@ class RetroXpertProcessorS1(Processor):
                      for idx, rxn_data in rxn_data_dict.items()]
 
             counter = []
+            pattern_features = []
+            pattern_features_lens = []
+
             pool = multiprocessing.Pool(self.num_cores)
-            for result in tqdm(pool.imap_unordered(find_all_patterns, tasks), total=len(tasks)):
+            for i, result in enumerate(tqdm(pool.imap(find_all_patterns, tasks), total=len(tasks))):
                 k, pattern_feature = result
-                reaction_data = rxn_data_dict[k]
-                reaction_data["pattern_feat"] = pattern_feature.astype(np.bool)
+                assert i == k
+
+                pattern_features.append(pattern_feature)
+                pattern_features_lens.append(pattern_feature.shape[0])
 
                 pa = np.sum(pattern_feature, axis=0)            # what's this?
                 counter.append(np.sum(pa > 0))
 
-            logging.info(f"# ave center per mol: {np.mean(counter)}")
-            with open(rxn_data_file, "wb") as of:
-                pickle.dump(rxn_data_dict, of)
+            pattern_features = np.concatenate(pattern_features, axis=0)
+            pattern_features_lens = np.asarray(pattern_features_lens)
+
+            logging.info(f"# ave center per mol: {np.mean(counter)}, "
+                         f"shape of pattern_features: {pattern_features.shape}, "
+                         f"shape of pattern_features_lens: {pattern_features_lens.shape}, "
+                         f"dumping into {pattern_feat_file}")
+            np.savez(pattern_feat_file,
+                     pattern_features=pattern_features,
+                     pattern_features_lens=pattern_features_lens)
+            logging.info("Dumped. Cleaning up")
 
             pool.close()
             pool.join()
+
+            del pattern_features, pattern_features_lens
 
 
 class RetroXpertProcessorS2(Processor):
@@ -399,6 +417,7 @@ class RetroXpertProcessorS2(Processor):
 
     def test_and_save(self, data_split: str):
         fn = f"rxn_data_{data_split}.pkl"
+        fn_pattern = f"pattern_feat_{data_split}.npz"
 
         logging.info(f"Testing on {fn} to generate stage 1 results on {data_split}")
 
@@ -414,7 +433,7 @@ class RetroXpertProcessorS2(Processor):
             return
 
         data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
-                                   fn=fn)
+                                   fns=[fn, fn_pattern])
         dataloader = DataLoader(data,
                                 batch_size=4 * self.model_args.batch_size,
                                 shuffle=False,

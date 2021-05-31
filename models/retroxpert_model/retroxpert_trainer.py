@@ -91,7 +91,7 @@ class RetroXpertTrainerS1(Trainer):
 
         logging.info("Creating data loaders")
         train_data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
-                                         fn="rxn_data_train.pkl")
+                                         fns=["rxn_data_train.pkl", "pattern_feat_train.npz"])
         train_dataloader = DataLoader(train_data,
                                       batch_size=self.model_args.batch_size,
                                       shuffle=True,
@@ -99,7 +99,7 @@ class RetroXpertTrainerS1(Trainer):
                                       collate_fn=collate)
 
         valid_data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
-                                         fn="rxn_data_val.pkl")
+                                         fns=["rxn_data_val.pkl", "pattern_feat_val.npz"])
         valid_dataloader = DataLoader(valid_data,
                                       batch_size=4*self.model_args.batch_size,
                                       shuffle=False,

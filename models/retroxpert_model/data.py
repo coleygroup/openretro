@@ -6,15 +6,32 @@ import os
 import pickle
 from collections import Counter
 from torch.utils.data import Dataset
+from typing import List
+
+
+def len2idx(lens) -> np.ndarray:
+    # end_indices = np.cumsum(np.concatenate(lens, axis=0))
+    end_indices = np.cumsum(lens)
+    start_indices = np.concatenate([[0], end_indices[:-1]], axis=0)
+    indices = np.stack([start_indices, end_indices], axis=1)
+
+    return indices
 
 
 class RetroCenterDatasets(Dataset):
     """Modified dataset, now there is a single .pkl file per phase"""
-    def __init__(self, processed_data_path: str, fn: str):
-        fn = os.path.join(processed_data_path, fn)
+    def __init__(self, processed_data_path: str, fns: List[str]):
+        fn = os.path.join(processed_data_path, fns[0])
         logging.info(f"Creating dataset from {fn}")
         with open(fn, "rb") as f:
             self.rxn_data_dict = pickle.load(f)
+
+        fn_pattern = os.path.join(processed_data_path, fns[1])
+        logging.info(f"Loading pattern features from {fn_pattern}")
+        feat = np.load(fn_pattern)
+        self.pattern_features = feat["pattern_features"]
+        self.pattern_features_lens = feat["pattern_features_lens"]
+        self.pattern_features_indices = len2idx(self.pattern_features_lens)
 
         self.disconnection_num = []
         cnt = Counter()
@@ -33,7 +50,7 @@ class RetroCenterDatasets(Dataset):
         rxn_data = self.rxn_data_dict[index]
 
         x_atom = rxn_data["product_atom_features"].astype(np.float32)
-        x_pattern_feat = rxn_data["pattern_feat"].astype(np.float32)
+        # x_pattern_feat = rxn_data["pattern_feat"].astype(np.float32)
         x_bond = rxn_data["product_bond_features"].astype(np.float32)
         x_adj = rxn_data["product_adj"]
         y_adj = rxn_data["target_adj"]
@@ -48,6 +65,10 @@ class RetroCenterDatasets(Dataset):
         # Construct graph and add edge data
         x_graph = dgl.DGLGraph(nx.from_numpy_matrix(x_adj))
         x_graph.edata["w"] = x_bond[x_adj]
+
+        start, end = self.pattern_features_indices[index]
+        x_pattern_feat = self.pattern_features[start:end]
+
         return rxn_class, x_pattern_feat, x_atom, x_adj, x_graph, y_adj, disconnection_num
 
     def __len__(self):
