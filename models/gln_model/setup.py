@@ -25,7 +25,9 @@ ext_modules=[CppExtension('extlib',
 
 # build cuda lib
 import torch
-if torch.cuda.is_available():
+gpu_flag = getattr(os.environ, "GPU_FLAG", 0)
+if torch.cuda.is_available() or int(gpu_flag) == 1:
+    print("building gln with CUDA support")
     ext_modules.append(CUDAExtension('extlib_cuda',
                                     ['gln/mods/torchext/src/extlib_cuda.cpp', 'gln/mods/torchext/src/extlib_cuda_kernels.cu']))
 
