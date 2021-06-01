@@ -7,7 +7,7 @@ RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebbl
 
 ENV CUDA_CODE cu102
 ENV GPU_FLAG 1
-ENV TORCH_VER 1.8.1
+ENV TORCH_VER 1.8.0
 ENV DGLBACKEND pytorch
 
 RUN pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
