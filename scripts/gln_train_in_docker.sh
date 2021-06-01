@@ -10,6 +10,7 @@ if [[ $1 == use_gpu ]]; then
     -v "$MODEL_PATH":/app/openretro/checkpoints/tmp_for_docker \
     -t openretro:gpu \
     python train.py \
+    --do_train \
     --model_name="gln" \
     --data_name="$DATA_NAME" \
     --log_file="gln_train_$DATA_NAME" \
@@ -26,6 +27,7 @@ else
     -v "$MODEL_PATH":/app/openretro/checkpoints/tmp_for_docker \
     -t openretro:cpu \
     python train.py \
+    --do_train \
     --model_name="gln" \
     --data_name="$DATA_NAME" \
     --log_file="gln_train_$DATA_NAME" \

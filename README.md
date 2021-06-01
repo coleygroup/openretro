@@ -85,7 +85,7 @@ List[{
 
 # Development with Docker (recommended)
 Please rebuild the Docker before running any scripts if there is any change in code.
-As a reminder, the docker commands in the scripts are for the CPU-only image.
+As a reminder, the docker commands in some scripts are for the CPU-only image.
 Please make changes accordingly for GPU image (especially for training and testing).
 Training and testing with CPU are likely to be <b>very slow</b>.
 
@@ -106,7 +106,7 @@ Step 2. Preprocessing
 
 Step 3. Training
     
-    sh scripts/gln_train.sh
+    bash scripts/gln_train_in_docker.sh use_gpu
 
 Step 4. Testing
     
