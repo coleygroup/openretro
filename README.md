@@ -98,7 +98,7 @@ for sample data format.
 Configure variables in ./scripts/config_gln.sh to point to the <b>absolute</b> path of 
 raw files and desired output paths. Then execute the configuration script with
 
-    sh scripts/config_gln.sh
+    source scripts/config_gln.sh
 
 Step 2. Preprocessing
 
