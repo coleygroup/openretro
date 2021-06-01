@@ -1,7 +1,7 @@
 docker run \
-  -v "$(PWD)/logs":/app/openretro/logs \
-  -v "$(PWD)/checkpoints":/app/openretro/checkpoints \
-  -v "$(PWD)/results":/app/openretro/results \
+  -v "$PWD/logs":/app/openretro/logs \
+  -v "$PWD/checkpoints":/app/openretro/checkpoints \
+  -v "$PWD/results":/app/openretro/results \
   -v "$TRAIN_FILE":/app/openretro/data/tmp_for_docker/raw_train.csv \
   -v "$VAL_FILE":/app/openretro/data/tmp_for_docker/raw_val.csv \
   -v "$TEST_FILE":/app/openretro/data/tmp_for_docker/raw_test.csv \
