@@ -9,7 +9,6 @@ ENV CUDA_CODE 102
 ENV GPU_FLAG 1
 ENV TORCH_VER 1.8.0
 ENV DGLBACKEND pytorch
-ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 7.5 8.0 8.6+PTX"
 
 RUN pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
