@@ -1,11 +1,11 @@
 FROM continuumio/miniconda3:4.9.2
 
 RUN apt-get update && apt-get -y install gcc g++ make
-RUN conda install -c pytorch pytorch=1.8.0 cudatoolkit=10.2 torchserve=0.3.1
+RUN conda install -c pytorch pytorch=1.8.0 cudatoolkit=11.1 torchserve=0.3.1
 RUN conda install -c conda-forge openjdk=11 rdkit
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble
 
-ENV CUDA_CODE cu102
+ENV CUDA_CODE cu111
 ENV GPU_FLAG 1
 ENV TORCH_VER 1.8.0
 ENV DGLBACKEND pytorch
