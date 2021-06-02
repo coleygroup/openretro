@@ -1,1 +1,3 @@
-data/retroxpert_uspto50k
+data/*
+results/*
+logs/*

@@ -1,11 +1,9 @@
 import torch
 import extlib
-USE_CUDA_JAGGED = True
 try:
     import extlib_cuda
 except:
     print('not loading cuda jagged ops')
-    USE_CUDA_JAGGED = False
 from torch.autograd import Function
 from torch.nn import Module
 import numpy as np
@@ -17,7 +15,7 @@ class JaggedLogSoftmaxFunc(Function):
     @staticmethod
     def forward(ctx, logits, prefix_sum):
         assert len(prefix_sum.size()) == 1        
-        if not logits.is_cuda or not USE_CUDA_JAGGED:
+        if not logits.is_cuda:
             output = extlib.jagged_log_softmax_forward(logits, prefix_sum)
         else:
             output = extlib_cuda.jagged_log_softmax_forward_cuda(logits, prefix_sum)
