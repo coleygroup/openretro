@@ -1,3 +1,5 @@
+#!/bin/bash
+
 docker run \
   -v "$PWD/logs":/app/openretro/logs \
   -v "$PWD/checkpoints":/app/openretro/checkpoints \
@@ -6,7 +8,7 @@ docker run \
   -v "$VAL_FILE":/app/openretro/data/tmp_for_docker/raw_val.csv \
   -v "$TEST_FILE":/app/openretro/data/tmp_for_docker/raw_test.csv \
   -v "$PROCESSED_DATA_PATH":/app/openretro/data/tmp_for_docker/processed \
-  -t openretro:cpu \
+  -t openretro:gpu \
   python preprocess.py \
   --model_name="gln" \
   --data_name="$DATA_NAME" \

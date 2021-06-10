@@ -15,11 +15,11 @@ docker build -f Dockerfile_gpu -t openretro:gpu .
 
 ## Option 2. Using Conda (not recommended; WIP)
 Please contact Zhengkai (ztu@mit.edu) if you have an urgent need for non-Docker environments.
-We recommend using Docker in general because some models have dependencies that are platform specific
+We recommend using Docker in general because some models have platform-specific dependencies
 (e.g. requiring reasonably new G++ for compilation) which we can help you handle inside Docker.
 
 # Benchmarking in Docker
-Please rebuild the Docker before running if there is any change in code.
+Note: please rebuild the Docker before running if there is any change in code.
 
 ## Step 1/3
 Prepare the raw atom-mapped .csv files for train, validation and test.
@@ -30,12 +30,11 @@ behaviour of these models without atom mapping is undefined.
 
 It is possible to run benchmarking with non atom-mapped reactions, with *template-free models only*.
 Currently, the only template-free model supported is Transformer.
-If only non atom-mapped reaction data are available, please prepare the raw SMILES .txt/.smi files for train, validation and test.
-See https://github.com/bigchem/retrosynthesis/tree/master/data for sample data format.
 
 ## Step 2/3
 Configure variables in ./scripts/config_metadata.sh, especially the paths to point to the <b>absolute</b> path of 
-raw files and desired output paths. Then execute the configuration script with
+raw files and desired output paths. Only the variables related to benchmarked models need to be configured. 
+Once the changes have been made, execute the configuration script with
 ```
 source scripts/config_metadata.sh
 ```
@@ -66,13 +65,13 @@ bash scripts/benchmark_in_docker.sh transformer
 By default, the benchmarking engine will canonicalize the reactions and subsequently re-number the atoms.
 This is done to avoid the information leak that RetroXpert (https://github.com/uta-smile/RetroXpert/blob/canonical_product/readme.md)
 and GraphRetro (https://arxiv.org/pdf/2006.07038.pdf) have suffered from.
-Without re-calibrating the atom mapping, the accuracies would be higher than expected
+Without re-calibrating the atom mapping, the test accuracies would be higher than expected
 since the original numbering might hint at where the reaction center is.
 Nevertheless, in some cases it would be necessary to turn off canonicalization,
 e.g. when benchmarking Transformer with augmented non-canonical data.
 To benchmark without canonicalization (for Transformer only), run
 ```
-bash scripts/benchmark_in_docker.sh --no_canonicalization transformer
+bash scripts/benchmark_in_docker.sh no_canonicalization transformer
 ```
 
 # Development (TODO)

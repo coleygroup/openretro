@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # global
 DATA_NAME="schneider50k"
 TRAIN_FILE=$PWD/data/gln_schneider50k/raw/raw_train.csv
