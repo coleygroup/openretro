@@ -5,8 +5,8 @@ docker run --gpus 1 \
   -v "$PWD/checkpoints":/app/openretro/checkpoints \
   -v "$PWD/results":/app/openretro/results \
   -v "$TRAIN_FILE":/app/openretro/data/tmp_for_docker/raw_train.csv \
-  -v "$PROCESSED_DATA_PATH":/app/openretro/data/tmp_for_docker/processed \
-  -v "$MODEL_PATH":/app/openretro/checkpoints/tmp_for_docker \
+  -v "$PROCESSED_DATA_PATH_GLN":/app/openretro/data/tmp_for_docker/processed \
+  -v "$MODEL_PATH_GLN":/app/openretro/checkpoints/tmp_for_docker \
   -t openretro:gpu \
   python train.py \
   --do_train \

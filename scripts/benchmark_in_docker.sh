@@ -12,7 +12,7 @@ fi
 # gln
 if [[ "$*" == *"gln"* ]]; then
 #  bash scripts/gln/gln_preprocess_in_docker.sh $CANONICALIZATION_FLAG
-#  bash scripts/gln/gln_train_in_docker.sh
+  bash scripts/gln/gln_train_in_docker.sh
   bash scripts/gln/gln_predict_in_docker.sh
   bash scripts/gln/gln_score_in_docker.sh
 fi

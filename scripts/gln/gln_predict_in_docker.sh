@@ -7,8 +7,8 @@ docker run --gpus 1 \
   -v "$TRAIN_FILE":/app/openretro/data/tmp_for_docker/raw_train.csv \
   -v "$VAL_FILE":/app/openretro/data/tmp_for_docker/raw_val.csv \
   -v "$TEST_FILE":/app/openretro/data/tmp_for_docker/raw_test.csv \
-  -v "$PROCESSED_DATA_PATH":/app/openretro/data/tmp_for_docker/processed \
-  -v "$MODEL_PATH":/app/openretro/checkpoints/tmp_for_docker \
+  -v "$PROCESSED_DATA_PATH_GLN":/app/openretro/data/tmp_for_docker/processed \
+  -v "$MODEL_PATH_GLN":/app/openretro/checkpoints/tmp_for_docker \
   -v "$TEST_OUTPUT_PATH_GLN":/app/openretro/results/tmp_for_docker \
   -t openretro:gpu \
   python predict.py \
