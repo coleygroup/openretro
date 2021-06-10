@@ -4,16 +4,16 @@ import os
 import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
-from models.gln_model.gln_tester import GLNTester
+from models.gln_model.gln_predictor import GLNPredictor
 from models.retroxpert_model import retroxpert_parser
-from models.retroxpert_model.retroxpert_tester import RetroXpertTester
-from models.transformer_model.transformer_tester import TransformerTester
+# from models.retroxpert_model.retroxpert_predictor import RetroXpertPredictor
+# from models.transformer_model.transformer_predictor import TransformerPredictor
 from onmt.bin.translate import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
-def get_test_parser():
-    parser = argparse.ArgumentParser("test.py")
+def get_predict_parser():
+    parser = argparse.ArgumentParser("predict.py")
     parser.add_argument("--test_all_ckpts", help="whether to test all checkpoints", action="store_true")
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
@@ -29,8 +29,8 @@ def get_test_parser():
     return parser
 
 
-def test_main(args, test_parser):
-    """Simplified interface for testing only. For actual usage downstream use the respective proposer class"""
+def predict_main(args, predict_parser):
+    """Simplified interface for predicting only"""
     os.makedirs(args.test_output_path, exist_ok=True)
 
     model_name = ""
@@ -49,7 +49,7 @@ def test_main(args, test_parser):
         model_name = "gln",
         model_args = gln_args,
         raw_data_files = [args.train_file, args.val_file, args.test_file]
-        TesterClass = GLNTester
+        PredictorClass = GLNPredictor
     elif args.model_name == "transformer":
         # adapted from onmt.bin.translate.main()
         parser = transformer_parser()
@@ -61,21 +61,21 @@ def test_main(args, test_parser):
 
         model_name = "transformer"
         model_args = opt
-        TesterClass = TransformerTester
+        PredictorClass = TransformerPredictor
     elif args.model_name == "retroxpert":
         # retroxpert_parser.add_model_opts(test_parser)
         # retroxpert_parser.add_train_opts(test_parser)
         model_args, _unknown = test_parser.parse_known_args()
 
         model_name = "retroxpert"
-        TesterClass = RetroXpertTester
+        PredictorClass = RetroXpertPredictor
 
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
 
-    logging.info("Start testing")
+    logging.info("Start predicting")
 
-    tester = TesterClass(
+    predictor = PredictorClass(
         model_name=model_name,
         model_args=model_args,
         model_config=model_config,
@@ -85,19 +85,19 @@ def test_main(args, test_parser):
         model_path=model_path,
         test_output_path=test_output_path
     )
-    tester.test()
+    predictor.predict()
 
 
 if __name__ == "__main__":
-    test_parser = get_test_parser()
-    args, unknown = test_parser.parse_known_args()
+    predict_parser = get_predict_parser()
+    args, unknown = predict_parser.parse_known_args()
 
     # logger setup
     RDLogger.DisableLog("rdApp.warning")
 
-    os.makedirs("./logs/test", exist_ok=True)
+    os.makedirs("./logs/predict", exist_ok=True)
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
-    args.log_file = f"./logs/test/{args.log_file}.{dt}"
+    args.log_file = f"./logs/predict/{args.log_file}.{dt}"
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -109,5 +109,5 @@ if __name__ == "__main__":
     logger.addHandler(fh)
     logger.addHandler(sh)
 
-    # test interface
-    test_main(args, test_parser)
+    # predict interface
+    predict_main(args, predict_parser)

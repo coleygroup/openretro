@@ -8,8 +8,8 @@ from gln.test.model_inference import RetroGLN
 from typing import Dict, List
 
 
-class GLNTester:
-    """Class for GLN Testing"""
+class GLNPredictor:
+    """Class for GLN Predicting"""
 
     def __init__(self,
                  model_name: str,
@@ -36,7 +36,7 @@ class GLNTester:
 
         self.dropbox = processed_data_path
 
-    def test(self):
+    def predict(self):
         """Core of test_all.sh and test_single.sh, adapted from test/main_test.py"""
         if self.model_args.test_all_ckpts:
             logging.info(f"test_all_ckpts flag set to True, testing all checkpoints")
