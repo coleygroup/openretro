@@ -52,7 +52,7 @@ Currently we support 4 models as MODEL_NAME, namely,
   and Molecular Transformer (https://github.com/pschwllr/MolecularTransformer).
   We (trivially) re-implemented the Transformer using models from OpenNMT, which gave cleaner and more modularized codes. 
   
-For example, to benchmark with all for models, run
+For example, to benchmark with all 4 models, run
 ```
 bash scripts/benchmark_in_docker.sh gln retroxpert neuralsym transformer
 ```
@@ -75,6 +75,6 @@ bash scripts/benchmark_in_docker.sh no_canonicalization transformer
 ```
 
 The estimated running time for benchmarking the USPTO_50k dataset on a 20-core machine with 1 RTX3090 GPU is
-* GLN: ~1 hr preprocessing
+* GLN: ~1 hr preprocessing, ~2 hrs training, ~3 hrs testing
 
 # Development (TODO)

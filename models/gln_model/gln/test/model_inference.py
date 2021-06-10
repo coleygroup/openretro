@@ -16,6 +16,7 @@ from gln.data_process.data_info import DataInfo, load_bin_feats
 from gln.mods.mol_gnn.mol_utils import SmartsMols, SmilesMols
 from gln.common.reactor import Reactor
 from gln.graph_logic.logic_net import GraphPath
+from gln.common.consts import DEVICE
 
 
 class RetroGLN(object):
@@ -40,7 +41,7 @@ class RetroGLN(object):
         model_file = os.path.join(model_dump, 'model.dump')
         self.gln = GraphPath(self.args)
         self.gln.load_state_dict(torch.load(model_file, map_location=torch.device("cpu")))
-        # self.gln.cuda()
+        self.gln = self.gln.to(DEVICE)
         self.gln.eval()
 
         self.prod_center_maps = {}

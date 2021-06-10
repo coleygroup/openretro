@@ -46,8 +46,8 @@ def predict_main(args, predict_parser):
         # Overwrite default gln_args with runtime args
         gln_args.test_all_ckpts = args.test_all_ckpts
 
-        model_name = "gln",
-        model_args = gln_args,
+        model_name = "gln"
+        model_args = gln_args
         raw_data_files = [args.train_file, args.val_file, args.test_file]
         PredictorClass = GLNPredictor
     elif args.model_name == "transformer":
