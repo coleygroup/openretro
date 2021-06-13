@@ -99,6 +99,8 @@ class RetroXpertProcessorS1(Processor):
                     if i > self.check_count:            # check the first few rows
                         break
 
+                    # ztu 210613: let's maintain a single input format (the one GLN used)
+                    """
                     assert "rxn_smiles" in row, \
                         f"Error processing file {fn} line {i}, ensure column 'rxn_smiles' is included!"
                     if self.model_args.typed:
@@ -107,6 +109,15 @@ class RetroXpertProcessorS1(Processor):
                             f"if --typed is specified, ensure 'class' column is numeric or 'UNK'"
 
                     reactants, products = row["rxn_smiles"].split(">>")
+                    """
+
+                    assert (c in row for c in ["class", "reactants>reagents>production"]), \
+                        f"Error processing file {fn} line {i}, ensure columns 'class' and " \
+                        f"'reactants>reagents>production' is included!"
+                    assert row["class"] == "UNK" or row["class"].isnumeric(), \
+                        f"Error processing file {fn} line {i}, ensure 'class' is UNK or numeric!"
+
+                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
                     Chem.MolFromSmiles(reactants)       # simply ensures that SMILES can be parsed
                     Chem.MolFromSmiles(products)        # simply ensures that SMILES can be parsed
 
@@ -133,7 +144,7 @@ class RetroXpertProcessorS1(Processor):
                 logging.info(f"Output file found at {output_csv_file}, skipping preprocessing core for phase {phase}")
                 continue
 
-            reaction_list = df["rxn_smiles"]
+            reaction_list = df["reactants>reagents>production"]
             reaction_list_new = []
 
             for reaction in tqdm(reaction_list):
@@ -151,12 +162,22 @@ class RetroXpertProcessorS1(Processor):
 
                 matches = mol.GetSubstructMatches(mol_cano)
                 if matches:
+                    mapnums_old2new = {}
                     for atom, mat in zip(mol_cano.GetAtoms(), matches[0]):
-                        atom.SetAtomMapNum(index2mapnums[mat])
-                    product = Chem.MolToSmiles(mol_cano, canonical=False)
+                        mapnums_old2new[index2mapnums[mat]] = 1 + atom.GetIdx()
+                        # update product mapping numbers according to canonical atom order
+                        # to completely remove potential information leak
+                        atom.SetAtomMapNum(1 + atom.GetIdx())
+                    product = Chem.MolToSmiles(mol_cano)
+                    # update reactant mapping numbers accordingly
+                    mol_react = Chem.MolFromSmiles(reactant)
+                    for atom in mol_react.GetAtoms():
+                        if atom.GetAtomMapNum() > 0:
+                            atom.SetAtomMapNum(mapnums_old2new[atom.GetAtomMapNum()])
+                    reactant = Chem.MolToSmiles(mol_react)
                 reaction_list_new.append(f"{reactant}>>{product}")
 
-            df["rxn_smiles"] = reaction_list_new
+            df["reactants>reagents>production"] = reaction_list_new
             df.to_csv(output_csv_file, index=False)
 
     def preprocess_core(self):
@@ -186,7 +207,7 @@ class RetroXpertProcessorS1(Processor):
 
             for i, row in tqdm(df.iterrows()):
                 # adapted from __main__()
-                reactant, product = row["rxn_smiles"].split(">>")
+                reactant, product = row["reactants>reagents>production"].split(">>")
                 reaction_class = int(row["class"] - 1) if self.model_args.typed else "UNK"
 
                 product_mol = Chem.MolFromSmiles(product)
