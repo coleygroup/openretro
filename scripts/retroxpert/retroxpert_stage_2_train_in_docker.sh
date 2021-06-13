@@ -1,12 +1,21 @@
-python train.py \
+#!/bin/bash
+
+docker run --gpus 1 \
+  -v "$PWD/logs":/app/openretro/logs \
+  -v "$PWD/checkpoints":/app/openretro/checkpoints \
+  -v "$PWD/results":/app/openretro/results \
+  -v "$PROCESSED_DATA_PATH_RETROXPERT":/app/openretro/data/tmp_for_docker/processed \
+  -v "$MODEL_PATH_RETROXPERT":/app/openretro/checkpoints/tmp_for_docker \
+  -t openretro:gpu \
+  python train.py \
   --do_train \
-  --data="do_not_change_this" \
   --model_name="retroxpert" \
+  --data="do_not_change_this" \
   --stage=2 \
-  --data_name="retroxpert_uspto50k" \
-  --log_file="retroxpert_uspto50k_train_s2" \
-  --processed_data_path="./data/retroxpert_uspto50k/processed/" \
-  --model_path="./checkpoints/retroxpert_uspto50k_untyped" \
+  --data_name="$DATA_NAME" \
+  --log_file="retroxpert_train_s2_$DATA_NAME" \
+  --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
+  --model_path=/app/openretro/checkpoints/tmp_for_docker \
   -seed 42 \
   -gpu_ranks 0 \
   -save_checkpoint_steps 10000 \
