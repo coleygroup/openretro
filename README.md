@@ -76,5 +76,6 @@ bash scripts/benchmark_in_docker.sh no_canonicalization transformer
 
 The estimated running time for benchmarking the USPTO_50k dataset on a 20-core machine with 1 RTX3090 GPU is
 * GLN: ~1 hr preprocessing, ~2 hrs training, ~3 hrs testing
+* RetroXpert: ~5 mins stage 1 preprocessing, ~2 hrs stage 1 training
 
 # Development (TODO)

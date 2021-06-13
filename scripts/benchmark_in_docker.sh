@@ -19,12 +19,12 @@ fi
 
 # retroxpert
 if [[ "$*" == *"retroxpert"* ]]; then
-  bash scripts/retroxpert/retroxpert_stage_1_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+#  bash scripts/retroxpert/retroxpert_stage_1_preprocess_in_docker.sh $CANONICALIZATION_FLAG
   bash scripts/retroxpert/retroxpert_stage_1_train_in_docker.sh
-  bash scripts/retroxpert/retroxpert_stage_2_preprocess_in_docker.sh $CANONICALIZATION_FLAG
-  bash scripts/retroxpert/retroxpert_stage_2_train_in_docker.sh
-  bash scripts/retroxpert/retroxpert_predict_in_docker.sh
-  bash scripts/retroxpert/retroxpert_score_in_docker.sh
+#  bash scripts/retroxpert/retroxpert_stage_2_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+#  bash scripts/retroxpert/retroxpert_stage_2_train_in_docker.sh
+#  bash scripts/retroxpert/retroxpert_predict_in_docker.sh
+#  bash scripts/retroxpert/retroxpert_score_in_docker.sh
 fi
 
 # neuralsym
