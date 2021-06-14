@@ -19,7 +19,7 @@ def canonicalize_smiles(smiles: str):
         return ""
 
 
-class TransformerTester:
+class TransformerPredictor:
     """Class for Transformer Testing"""
 
     def __init__(self,
@@ -57,8 +57,8 @@ class TransformerTester:
         self.model_args.src = os.path.join(self.processed_data_path, "src-test.txt")
         self.model_args.output = os.path.join(self.test_output_path, "predictions_on_test.txt")
 
-    def test(self):
-        """Actual file-based testing, a wrapper to onmt.bin.translate()"""
+    def predict(self):
+        """Actual file-based predicting, a wrapper to onmt.bin.translate()"""
         onmt_translate(self.model_args)
         self.score_predictions()
 

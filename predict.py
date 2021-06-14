@@ -6,7 +6,7 @@ from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_predictor import GLNPredictor
 from models.retroxpert_model.retroxpert_predictor import RetroXpertPredictor
-# from models.transformer_model.transformer_predictor import TransformerPredictor
+from models.transformer_model.transformer_predictor import TransformerPredictor
 from onmt import opts as onmt_opts
 from onmt.bin.translate import _get_parser as transformer_parser
 from rdkit import RDLogger

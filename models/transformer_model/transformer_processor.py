@@ -1,9 +1,11 @@
+import csv
 import logging
 import os
 import re
 from base.processor_base import Processor
 from onmt.bin.preprocess import preprocess as onmt_preprocess
 from rdkit import Chem
+from tqdm import tqdm
 from typing import Dict, List
 
 
@@ -64,23 +66,30 @@ class TransformerProcessor(Processor):
             if not fn:
                 continue
 
-            with open(fn, "r") as f:
-                for i, line in enumerate(f):
-                    if i > self.check_count:                        # check the first few rows
+            with open(fn, "r") as csv_file:
+                csv_reader = csv.DictReader(csv_file)
+                for i, row in enumerate(csv_reader):
+                    if i > self.check_count:            # check the first few rows
                         break
 
-                    product, reagents, reactants = line.split(">")
-                    Chem.MolFromSmiles(product.strip())             # simply ensures that SMILES can be parsed
-                    Chem.MolFromSmiles(reactants.strip())
+                    assert (c in row for c in ["class", "reactants>reagents>production"]), \
+                        f"Error processing file {fn} line {i}, ensure columns 'class' and " \
+                        f"'reactants>reagents>production' is included!"
+                    assert row["class"] == "UNK" or row["class"].isnumeric(), \
+                        f"Error processing file {fn} line {i}, ensure 'class' is UNK or numeric!"
+
+                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
+                    Chem.MolFromSmiles(reactants)       # simply ensures that SMILES can be parsed
+                    Chem.MolFromSmiles(products)        # simply ensures that SMILES can be parsed
 
         logging.info("Data format check passed")
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing"""
-        self.split_src_tgt()
+        self.split_src_tgt(canonicalized=True)
         onmt_preprocess(self.model_args)
 
-    def split_src_tgt(self):
+    def split_src_tgt(self, canonicalized: bool = True):
         """Split reaction SMILES into source and target"""
         logging.info("Splitting reaction SMILES into source and target")
         for phase, fn in [("train", self.train_file),
@@ -89,7 +98,16 @@ class TransformerProcessor(Processor):
             ofn_src = os.path.join(self.processed_data_path, f"src-{phase}.txt")
             ofn_tgt = os.path.join(self.processed_data_path, f"tgt-{phase}.txt")
             with open(fn, "r") as f, open(ofn_src, "w") as of_src, open(ofn_tgt, "w") as of_tgt:
-                for line in f:
-                    product, _, reactants = line.strip().split(">")
-                    of_src.write(f"{smi_tokenizer(product.strip())}\n")
-                    of_tgt.write(f"{smi_tokenizer(reactants.strip())}\n")
+                csv_reader = csv.DictReader(f)
+                for row in tqdm(csv_reader):
+                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
+                    mols_r = Chem.MolFromSmiles(reactants)
+                    mols_p = Chem.MolFromSmiles(products)
+                    [a.ClearProp('molAtomMapNumber') for a in mols_r.GetAtoms()]
+                    [a.ClearProp('molAtomMapNumber') for a in mols_p.GetAtoms()]
+
+                    cano_smi_r = Chem.MolToSmiles(mols_r, isomericSmiles=True, canonical=canonicalized)
+                    cano_smi_p = Chem.MolToSmiles(mols_p, isomericSmiles=True, canonical=canonicalized)
+
+                    of_src.write(f"{smi_tokenizer(cano_smi_p.strip())}\n")
+                    of_tgt.write(f"{smi_tokenizer(cano_smi_r.strip())}\n")

@@ -1,35 +1,31 @@
 #!/bin/bash
 
-docker run \
+docker run --gpus 1 \
   -v "$PWD/logs":/app/openretro/logs \
   -v "$PWD/checkpoints":/app/openretro/checkpoints \
   -v "$PWD/results":/app/openretro/results \
-  -v "$TRAIN_FILE":/app/openretro/data/tmp_for_docker/raw_train.csv \
-  -v "$VAL_FILE":/app/openretro/data/tmp_for_docker/raw_val.csv \
-  -v "$TEST_FILE":/app/openretro/data/tmp_for_docker/raw_test.csv \
   -v "$PROCESSED_DATA_PATH_TRANSFORMER":/app/openretro/data/tmp_for_docker/processed \
+  -v "$MODEL_PATH_TRANSFORMER":/app/openretro/checkpoints/tmp_for_docker \
   -t openretro:gpu \
-  python preprocess.py \
-
-python train.py \
+  python train.py \
   --do_train \
   --data="do_not_change_this" \
   --model_name="transformer" \
-  --data_name="transformer-karpov" \
-  --log_file="transformer_train" \
-  --processed_data_path="./data/transformer-karpov/processed/" \
-  --model_path="./checkpoints/transformer-karpov" \
+  --data_name="$DATA_NAME" \
+  --log_file="transformer_train_$DATA_NAME" \
+  --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
+  --model_path=/app/openretro/checkpoints/tmp_for_docker \
   -seed 42 \
   -gpu_ranks 0 \
-  -save_checkpoint_steps 20000 \
+  -save_checkpoint_steps 10000 \
   -keep_checkpoint 10 \
-  -train_steps 500000 \
+  -train_steps 125000 \
   -param_init 0 \
   -param_init_glorot \
   -max_generator_batches 32 \
-  -batch_size 3000 \
-  -batch_type tokens \
-  -normalization tokens \
+  -batch_size 32 \
+  -batch_type sents \
+  -normalization sents \
   -max_grad_norm 0 \
   -optim adam \
   -adam_beta1 0.9 \
@@ -39,7 +35,7 @@ python train.py \
   -learning_rate 2 \
   -label_smoothing 0.0 \
   -report_every 1000 \
-  -layers 3 \
+  -layers 6 \
   -rnn_size 64 \
   -word_vec_size 64 \
   -encoder_type transformer \
