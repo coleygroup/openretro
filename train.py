@@ -4,7 +4,6 @@ import os
 import sys
 from datetime import datetime
 
-import onmt.opts
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
 from models.retroxpert_model import retroxpert_parser

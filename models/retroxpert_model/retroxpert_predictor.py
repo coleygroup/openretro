@@ -1,3 +1,4 @@
+import glob
 import logging
 import numpy as np
 import os
@@ -19,8 +20,8 @@ def canonicalize_smiles(smiles: str):
         return ""
 
 
-class RetroXpertTester:
-    """Class for RetroXpert Testing"""
+class RetroXpertPredictor:
+    """Class for RetroXpert Predicting"""
 
     def __init__(self,
                  model_name: str,
@@ -53,11 +54,15 @@ class RetroXpertTester:
     def overwrite_model_args(self):
         """Overwrite model args"""
         # Paths
-        self.model_args.models = [self.model_path]
-        self.model_args.src = os.path.join(self.processed_data_path, "src-test.txt")
+        # Overwriting model path with the last checkpoint
+        checkpoints = glob.glob(os.path.join(self.model_path, "model_step_*.pt"))
+        last_checkpoint = sorted(checkpoints, reverse=True)[0]
+        # self.model_args.models = [self.model_path]
+        self.model_args.models = [last_checkpoint]
+        self.model_args.src = os.path.join(self.processed_data_path, "opennmt_data_s2", "src-test-prediction.txt")
         self.model_args.output = os.path.join(self.test_output_path, "predictions_on_test.txt")
 
-    def test(self):
+    def predict(self):
         """Actual file-based testing, a wrapper to onmt.bin.translate()"""
         onmt_translate(self.model_args)
         self.score_predictions()
@@ -65,7 +70,7 @@ class RetroXpertTester:
     def score_predictions(self):
         """Adapted from Molecular Transformer"""
         logging.info("Done generation, scoring predictions")
-        with open(os.path.join(self.processed_data_path, "tgt-test.txt"), "r") as f:
+        with open(os.path.join(self.processed_data_path, "opennmt_data_s2", "tgt-test.txt"), "r") as f:
             gts = f.readlines()
         with open(self.model_args.output, "r") as f:
             predictions = f.readlines()

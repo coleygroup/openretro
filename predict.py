@@ -5,15 +5,15 @@ import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_predictor import GLNPredictor
-from models.retroxpert_model import retroxpert_parser
-# from models.retroxpert_model.retroxpert_predictor import RetroXpertPredictor
+from models.retroxpert_model.retroxpert_predictor import RetroXpertPredictor
 # from models.transformer_model.transformer_predictor import TransformerPredictor
+from onmt import opts as onmt_opts
 from onmt.bin.translate import _get_parser as transformer_parser
 from rdkit import RDLogger
 
 
 def get_predict_parser():
-    parser = argparse.ArgumentParser("predict.py")
+    parser = argparse.ArgumentParser("predict.py", conflict_handler="resolve")       # TODO: this is a hardcode
     parser.add_argument("--test_all_ckpts", help="whether to test all checkpoints", action="store_true")
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
@@ -65,7 +65,9 @@ def predict_main(args, predict_parser):
     elif args.model_name == "retroxpert":
         # retroxpert_parser.add_model_opts(test_parser)
         # retroxpert_parser.add_train_opts(test_parser)
-        model_args, _unknown = test_parser.parse_known_args()
+
+        onmt_opts.translate_opts(predict_parser)
+        model_args, _unknown = predict_parser.parse_known_args()
 
         model_name = "retroxpert"
         PredictorClass = RetroXpertPredictor

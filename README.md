@@ -79,6 +79,6 @@ The estimated running time for benchmarking the USPTO_50k dataset on a 20-core m
   ~1 hr preprocessing, ~2 hrs training, ~3 hrs testing
 * RetroXpert:
   ~5 mins stage 1 preprocessing, ~2 hrs stage 1 training,
-  ~10 mins stage 2 preprocessing, ~12 hrs stage 2 training,
+  ~10 mins stage 2 preprocessing, ~12 hrs stage 2 training, ~20 mins testing
 
 # Development (TODO)
