@@ -94,8 +94,6 @@ class RetroXpertProcessorS1(Processor):
             with open(fn, "r") as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 for i, row in enumerate(csv_reader):
-                    if i == 0:                          # header
-                        continue
                     if i > self.check_count:            # check the first few rows
                         break
 

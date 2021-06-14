@@ -1,3 +1,16 @@
+#!/bin/bash
+
+docker run \
+  -v "$PWD/logs":/app/openretro/logs \
+  -v "$PWD/checkpoints":/app/openretro/checkpoints \
+  -v "$PWD/results":/app/openretro/results \
+  -v "$TRAIN_FILE":/app/openretro/data/tmp_for_docker/raw_train.csv \
+  -v "$VAL_FILE":/app/openretro/data/tmp_for_docker/raw_val.csv \
+  -v "$TEST_FILE":/app/openretro/data/tmp_for_docker/raw_test.csv \
+  -v "$PROCESSED_DATA_PATH_TRANSFORMER":/app/openretro/data/tmp_for_docker/processed \
+  -t openretro:gpu \
+  python preprocess.py \
+
 python train.py \
   --do_train \
   --data="do_not_change_this" \
