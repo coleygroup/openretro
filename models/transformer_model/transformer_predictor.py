@@ -1,3 +1,4 @@
+import glob
 import logging
 import numpy as np
 import os
@@ -53,7 +54,10 @@ class TransformerPredictor:
     def overwrite_model_args(self):
         """Overwrite model args"""
         # Paths
-        self.model_args.models = [self.model_path]
+        checkpoints = glob.glob(os.path.join(self.model_path, "model_step_*.pt"))
+        last_checkpoint = sorted(checkpoints, reverse=True)[0]
+        # self.model_args.models = [self.model_path]
+        self.model_args.models = [last_checkpoint]
         self.model_args.src = os.path.join(self.processed_data_path, "src-test.txt")
         self.model_args.output = os.path.join(self.test_output_path, "predictions_on_test.txt")
 

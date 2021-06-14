@@ -31,13 +31,13 @@ docker run --gpus 1 \
   -adam_beta1 0.9 \
   -adam_beta2 0.998 \
   -decay_method noam \
-  -warmup_steps 16000 \
+  -warmup_steps 8000 \
   -learning_rate 2 \
   -label_smoothing 0.0 \
   -report_every 1000 \
-  -layers 6 \
-  -rnn_size 64 \
-  -word_vec_size 64 \
+  -layers 4 \
+  -rnn_size 256 \
+  -word_vec_size 256 \
   -encoder_type transformer \
   -decoder_type transformer \
   -dropout 0.1 \
@@ -47,4 +47,4 @@ docker run --gpus 1 \
   -global_attention_function softmax \
   -self_attn_type scaled-dot \
   --heads 8 \
-  -transformer_ff 512
+  -transformer_ff 2048

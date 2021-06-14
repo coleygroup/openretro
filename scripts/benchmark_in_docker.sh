@@ -38,7 +38,7 @@ fi
 # transformer
 if [[ "$*" == *"transformer"* ]]; then
   bash scripts/transformer/transformer_preprocess_in_docker.sh $CANONICALIZATION_FLAG
-#  bash scripts/transformer/transformer_train_in_docker.sh
-#  bash scripts/transformer/transformer_predict_in_docker.sh
-#  bash scripts/transformer/transformer_score_in_docker.sh
+  bash scripts/transformer/transformer_train_in_docker.sh
+  bash scripts/transformer/transformer_predict_in_docker.sh
+  bash scripts/transformer/transformer_score_in_docker.sh
 fi
