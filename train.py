@@ -31,6 +31,8 @@ def get_train_parser():
 
 
 def train_main(args, train_parser):
+    logging.info(args)
+
     model_name = ""
     model_args = None
     model_config = {}

@@ -6,6 +6,8 @@ import time
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_processor import GLNProcessor
+from models.neuralsym_model import neuralsym_parser
+from models.neuralsym_model.neuralsym_processor import NeuralSymProcessor
 from models.retroxpert_model import retroxpert_parser
 from models.retroxpert_model.retroxpert_processor import RetroXpertProcessorS1, RetroXpertProcessorS2
 from models.transformer_model.transformer_processor import TransformerProcessor
@@ -31,6 +33,8 @@ def get_preprocess_parser():
 
 
 def preprocess_main(args, preprocess_parser):
+    logging.info(args)
+
     start = time.time()
 
     model_name = ""
@@ -76,6 +80,12 @@ def preprocess_main(args, preprocess_parser):
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
 
         model_args, _unknown = preprocess_parser.parse_known_args()
+    elif args.model_name == "neuralsym":
+        neuralsym_parser.add_model_opts(preprocess_parser)
+
+        model_name = "neuralsym"
+        model_args, _unknown = preprocess_parser.parse_known_args()
+        ProcessorClass = NeuralSymProcessor
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
 

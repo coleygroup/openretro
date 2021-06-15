@@ -31,6 +31,8 @@ def get_predict_parser():
 
 def predict_main(args, predict_parser):
     """Simplified interface for predicting only"""
+    logging.info(args)
+
     os.makedirs(args.test_output_path, exist_ok=True)
 
     model_name = ""
