@@ -33,3 +33,11 @@ def add_train_opts(parser):
     # model params
     group.add("--hidden_size", help="hidden size", type=int, default=512)
     group.add("--depth", help="depth", type=int, default=5)
+
+
+def add_predict_opts(parser):
+    """Predicting options"""
+    group = parser.add_argument_group("neuralsym_predict")
+    group.add("--num_cores", help="number of cpu cores to use", type=int, default=4)
+    group.add("--topk", help="How many top-k proposals to generate and put in valid/test (not guaranteed)",
+              type=int, default=50)
