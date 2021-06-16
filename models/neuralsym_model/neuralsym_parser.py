@@ -9,15 +9,27 @@ def add_model_opts(parser):
 
 def add_train_opts(parser):
     """Training options"""
-    group = parser.add_argument_group("retroxpert_train")
-    group.add("--seed", help="random seed", type=int, default=123)
-    group.add("--use_cpu", help="whether to use CPU", action="store_true")
-    group.add("--load_checkpoint_s1", help="set to true to load trained S1 model", action="store_true")
-    group.add("--batch_size", help="batch size", type=int, default=32)
-    group.add("--epochs", help="no. of training epochs", type=int, default=80)
-    group.add("--lr", help="learning rate", type=float, default=5e-4)
-    group.add("--in_dim", help="dim of atom feature", type=int, default=47)
-    # this was 47+657 originally, but semi-pattern count (657) is not deterministic
-    group.add("--hidden_dim", help="hidden size", type=int, default=128)
-    group.add("--heads", help="no. of attention heads", type=int, default=4)
-    group.add("--gat_layers", help="no. of GAT layers", type=int, default=3)
+    group = parser.add_argument_group("neuralsym_train")
+    group.add("--model", help="['Highway', 'FC']", type=str, default='Highway')
+    # training params
+    group.add("--random_seed", help="random seed", type=int, default=0)
+    group.add("--bs", help="batch size", type=int, default=128)
+    group.add("--bs_eval", help="batch size (valid/test)", type=int, default=256)
+    group.add("--learning_rate", help="learning rate", type=float, default=1e-3)
+    group.add("--epochs", help="num. of epochs", type=int, default=30)
+    group.add("--early_stop", help="whether to use early stopping", action="store_true")
+    group.add("--early_stop_patience",
+              help="num. of epochs tolerated without improvement in criteria before early stop",
+              type=int, default=2)
+    group.add("--early_stop_min_delta",
+              help="min. improvement in criteria needed to not early stop", type=float, default=1e-4)
+    group.add("--lr_scheduler_factor",
+              help="factor by which to reduce LR (ReduceLROnPlateau)", type=float, default=0.3)
+    group.add("--lr_scheduler_patience",
+              help="num. of epochs with no improvement after which to reduce LR (ReduceLROnPlateau)",
+              type=int, default=1)
+    group.add("--lr_cooldown", help="epochs to wait before resuming normal operation (ReduceLROnPlateau)",
+              type=int, default=0)
+    # model params
+    group.add("--hidden_size", help="hidden size", type=int, default=512)
+    group.add("--depth", help="depth", type=int, default=5)

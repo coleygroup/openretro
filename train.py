@@ -6,6 +6,8 @@ from datetime import datetime
 
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
+from models.neuralsym_model import neuralsym_parser
+from models.neuralsym_model.neuralsym_trainer import NeuralSymTrainer
 from models.retroxpert_model import retroxpert_parser
 from models.retroxpert_model.retroxpert_trainer import RetroXpertTrainerS1, RetroXpertTrainerS2
 from models.transformer_model.transformer_trainer import TransformerTrainer
@@ -17,7 +19,6 @@ from rdkit import RDLogger
 def get_train_parser():
     parser = argparse.ArgumentParser("train.py", conflict_handler="resolve")       # TODO: this is a hardcode
     parser.add_argument("--do_train", help="whether to do training (it's possible to only test)", action="store_true")
-    parser.add_argument("--do_test", help="whether to do testing (only if implemented)", action="store_true")
     parser.add_argument("--model_name", help="model name", type=str, default="")
     parser.add_argument("--data_name", help="name of dataset, for easier reference", type=str, default="")
     parser.add_argument("--log_file", help="log file", type=str, default="")
@@ -75,6 +76,13 @@ def train_main(args, train_parser):
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
 
         model_args, _unknown = train_parser.parse_known_args()
+    elif args.model_name == "neuralsym":
+        neuralsym_parser.add_model_opts(train_parser)
+        neuralsym_parser.add_train_opts(train_parser)
+
+        model_name = "neuralsym"
+        model_args, _unknown = train_parser.parse_known_args()
+        TrainerClass = NeuralSymTrainer
     else:
         raise ValueError(f"Model {args.model_name} not supported!")
 
@@ -94,9 +102,6 @@ def train_main(args, train_parser):
     if args.do_train:
         logging.info("Start training")
         trainer.train()
-    if args.do_test:
-        logging.info("Start testing")
-        trainer.test()
 
 
 if __name__ == "__main__":
