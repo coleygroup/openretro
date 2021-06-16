@@ -1,6 +1,6 @@
 FROM pytorch/pytorch:1.8.0-cuda11.1-cudnn8-devel
 
-RUN apt-get update && apt-get -y install gcc g++ make curl
+RUN apt-get update && apt-get -y install gcc g++ make curl git
 RUN conda install torchserve=0.3.1 -c pytorch
 RUN conda install openjdk=11 rdkit -c conda-forge
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble
@@ -28,6 +28,6 @@ ENV TORCH_CUDA_ARCH_LIST "5.2 6.0 6.1 7.0 7.5 8.0 8.6+PTX"
 RUN cd ./models/gln_model && pip install -e .
 
 # RDChiral installation
-pip install -e "git://github.com/connorcoley/rdchiral.git#egg=rdchiral"
+RUN pip install -e "git://github.com/connorcoley/rdchiral.git#egg=rdchiral"
 
 EXPOSE 8080 8081 8082

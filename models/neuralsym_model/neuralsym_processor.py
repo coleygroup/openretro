@@ -191,7 +191,7 @@ class NeuralSymProcessor(Processor):
         logging.info(f'Parallelizing over {self.num_cores} cores')
         pool = multiprocessing.Pool(self.num_cores)
 
-        for phase in ["train", "valid", "test"]:
+        for phase in ["train", "val", "test"]:
             prod_fps = sparse.load_npz(os.path.join(self.processed_data_path, f"prod_fps_{phase}.npz"))
 
             logged = []

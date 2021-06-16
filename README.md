@@ -82,5 +82,7 @@ The estimated running time for benchmarking the USPTO_50k dataset on a 20-core m
   ~10 mins stage 2 preprocessing, ~12 hrs stage 2 training, ~20 mins testing
 * Transformer:
   ~1 min preprocessing, ~2 hrs training, ~10 mins testing
+* NeuralSym:
+  ~15 mins preprocessing
 
 # Development (TODO)
