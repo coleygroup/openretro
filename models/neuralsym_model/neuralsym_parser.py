@@ -10,9 +10,9 @@ def add_model_opts(parser):
 def add_train_opts(parser):
     """Training options"""
     group = parser.add_argument_group("neuralsym_train")
-    group.add("--model", help="['Highway', 'FC']", type=str, default='Highway')
+    group.add("--model_arch", help="['Highway', 'FC']", type=str, default='Highway')
     # training params
-    group.add("--random_seed", help="random seed", type=int, default=0)
+    group.add("--seed", help="random seed", type=int, default=0)
     group.add("--bs", help="batch size", type=int, default=128)
     group.add("--bs_eval", help="batch size (valid/test)", type=int, default=256)
     group.add("--learning_rate", help="learning rate", type=float, default=1e-3)

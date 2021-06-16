@@ -56,21 +56,21 @@ class NeuralSymTrainer(Trainer):
         logging.info(f'Total number of template patterns: {len(self.templates_filtered)}')
 
     def build_train_model(self):
-        if self.model_args.model == 'Highway':
+        if self.model_args.model_arch == 'Highway':
             self.model = TemplateNN_Highway(
                 output_size=len(self.templates_filtered),
                 size=self.model_args.hidden_size,
                 num_layers_body=self.model_args.depth,
                 input_size=self.model_args.final_fp_size
             )
-        elif self.model_args.model == 'FC':
+        elif self.model_args.model_arch == 'FC':
             self.model = TemplateNN_FC(
                 output_size=len(self.templates_filtered),
                 size=self.model_args.hidden_size,
                 input_size=self.model_args.fp_size
             )
         else:
-            raise ValueError(f"Unrecognized model name: {self.model_args.model}")
+            raise ValueError(f"Unrecognized model name: {self.model_args.model_arch}")
 
         self.model = self.model.to(self.device)
 

@@ -16,7 +16,7 @@ docker run --gpus 1 \
   --train_file=/app/openretro/data/tmp_for_docker/raw_train.csv \
   --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
   --model_path=/app/openretro/checkpoints/tmp_for_docker \
-  --model 'Highway' \
+  --model_arch 'Highway' \
   --bs 300 \
   --bs_eval 300 \
   --seed 77777777 \
