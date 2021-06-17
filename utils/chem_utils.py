@@ -6,10 +6,16 @@ def canonicalize_smiles(smiles: str, remove_atom_number: bool = True):
     smiles = "".join(smiles.split())
 
     mol = Chem.MolFromSmiles(smiles)
-    if remove_atom_number:
-        [a.ClearProp('molAtomMapNumber') for a in mol.GetAtoms()]
 
     if mol is not None:
-        return Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
+        if remove_atom_number:
+            [a.ClearProp('molAtomMapNumber') for a in mol.GetAtoms()]
+
+        cano_smiles = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
+        # Sometimes stereochem takes another canonicalization... (just in case)
+        mol = Chem.MolFromSmiles(cano_smiles)
+        cano_smiles = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
+
+        return cano_smiles
     else:
         return ""
