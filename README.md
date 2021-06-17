@@ -47,6 +47,7 @@ bash scripts/benchmark_in_docker.sh MODEL_NAME1 MODEL_NAME2 ...
 
 This will run the preprocessing, training, predicting and scoring with specified models,
 with Top-n accuracies up to n=50 as the final outputs.
+Progress and result logs will be saved under ./logs 
 
 Currently, we support 4 models as MODEL_NAME, namely,
 * <b>gln</b>, adapted from original GLN (https://github.com/Hanjun-Dai/GLN)
@@ -89,4 +90,4 @@ The estimated running time for benchmarking the USPTO_50k dataset on a 20-core m
 * NeuralSym:
   ~15 mins preprocessing, ~5 mins training, ~2 mins testing
 
-# Development (TODO)
+# Development (W.I.P)

@@ -35,8 +35,13 @@ class GLNPredictor:
         torch.manual_seed(model_args.seed)
 
         self.dropbox = processed_data_path
+        self.best_model_idx = 0
 
     def predict(self):
+        self.val()
+        self.compile_into_csv()
+
+    def val(self):
         """Core of test_all.sh and test_single.sh, adapted from test/main_test.py"""
         if self.model_args.test_all_ckpts:
             logging.info(f"test_all_ckpts flag set to True, testing all checkpoints")
@@ -52,10 +57,9 @@ class GLNPredictor:
                 model = RetroGLN(self.dropbox, self.model_args.model_for_test)
 
                 logging.info(f"Testing {model_dump}")
-                for phase, fname in [("val", self.val_file),
-                                     ("test", self.test_file)]:
-                    fname_pred = os.path.join(self.test_output_path, f"{phase}-{i}.pred")
-                    eval_model(phase, fname, model, fname_pred)
+                fname = self.val_file
+                fname_pred = os.path.join(self.test_output_path, f"val-{i}.pred")
+                eval_model("val", fname, model, fname_pred)
                 i += 1
         else:
             model = RetroGLN(self.dropbox, self.model_args.model_for_test)
@@ -70,20 +74,58 @@ class GLNPredictor:
         files = os.listdir(self.test_output_path)
 
         best_val = 0.0
-        best_test = None
+        best_model_idx = 0
         for fname in files:
             if "val-" in fname and "summary" in fname:
-                f_test = os.path.join(self.test_output_path, f"test{fname[3:]}")
-                if not os.path.isfile(f_test):
-                    continue
                 with open(os.path.join(self.test_output_path, fname), "r") as f:
                     f.readline()
                     top1 = float(f.readline().strip().split()[-1].strip())
                     if top1 > best_val:
                         best_val = top1
-                        best_test = f_test
-        assert best_test is not None
-        with open(best_test, "r") as f:
-            for row in f:
-                logging.info(row.strip())
-        logging.info(f"best test results: {best_test}")
+                        best_model_idx = fname.lstrip("val-").rstrip(".summary")
+
+        logging.info(f"Best model idx: {best_model_idx}")
+        model_dump = os.path.join(self.model_path, f"model-{best_model_idx}.dump")
+
+        logging.info(f"Checkpoints found at {model_dump}, building wrapper")
+        self.model_args.model_for_test = model_dump
+        model = RetroGLN(self.dropbox, self.model_args.model_for_test)
+
+        logging.info(f"Testing {model_dump}")
+        fname = self.test_file
+        fname_pred = os.path.join(self.test_output_path, f"test-{best_model_idx}.pred")
+        eval_model("test", fname, model, fname_pred)
+
+        self.best_model_idx = best_model_idx
+
+    def compile_into_csv(self):
+        logging.info("Compiling into predictions.csv")
+
+        fname_pred = os.path.join(self.test_output_path, f"test-{self.best_model_idx}.pred")
+        output_file = os.path.join(self.test_output_path, "predictions.csv")
+
+        with open(fname_pred, "r") as f:
+            line = f.readline()
+
+        rxn_class, rxn_smi, n_best = line.strip().split()
+        n_best = int(n_best)
+
+        proposed_col_names = [f'cand_precursor_{i}' for i in range(1, n_best + 1)]
+        headers = ['prod_smi']
+        headers.extend(proposed_col_names)
+
+        with open(fname_pred, "r") as f, open(output_file, "w") as of:
+            header_line = ",".join(headers)
+            of.write(f"{header_line}")
+
+            for i, line in enumerate(f):
+                items = line.strip().split()
+                if len(items) == 3:         # meta line
+                    rxn_class, rxn_smi, n_cand = items
+                    reactants, reagent, product = rxn_smi.split(">")
+                    of.write("\n")
+                    of.write(product.strip())
+                elif len(items) == 2:       # proposal line
+                    template, reactants = items
+                    of.write(",")
+                    of.write(reactants.strip())

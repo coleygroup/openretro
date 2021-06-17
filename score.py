@@ -47,7 +47,7 @@ def score_main(args):
                 except KeyError:
                     break
 
-                if prediction == "9999":        # padding
+                if not prediction or prediction == "9999":        # padding
                     break
 
                 prediction = canonicalize_smiles(prediction)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     os.makedirs("./logs/score", exist_ok=True)
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
-    args.log_file = f"./logs/predict/{args.log_file}.{dt}"
+    args.log_file = f"./logs/score/{args.log_file}.{dt}"
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
