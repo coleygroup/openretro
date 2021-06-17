@@ -4,6 +4,7 @@ from rdkit import Chem
 def canonicalize_smiles(smiles: str, remove_atom_number: bool = True):
     """Adapted from Molecular Transformer"""
     smiles = "".join(smiles.split())
+    cano_smiles = ""
 
     mol = Chem.MolFromSmiles(smiles)
 
@@ -14,8 +15,7 @@ def canonicalize_smiles(smiles: str, remove_atom_number: bool = True):
         cano_smiles = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
         # Sometimes stereochem takes another canonicalization... (just in case)
         mol = Chem.MolFromSmiles(cano_smiles)
-        cano_smiles = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
+        if mol is not None:
+            cano_smiles = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
 
-        return cano_smiles
-    else:
-        return ""
+    return cano_smiles

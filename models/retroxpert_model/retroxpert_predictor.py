@@ -65,35 +65,41 @@ class RetroXpertPredictor:
     def predict(self):
         """Actual file-based testing, a wrapper to onmt.bin.translate()"""
         onmt_translate(self.model_args)
-        self.score_predictions()
+        self.compile_into_csv()
 
-    def score_predictions(self):
-        """Adapted from Molecular Transformer"""
-        logging.info("Done generation, scoring predictions")
-        with open(os.path.join(self.processed_data_path, "opennmt_data_s2", "tgt-test.txt"), "r") as f:
-            gts = f.readlines()
+    def compile_into_csv(self):
+        logging.info("Compiling into predictions.csv")
+
+        src_file = os.path.join(self.processed_data_path, "opennmt_data_s2", "src-test.txt")
+        output_file = os.path.join(self.test_output_path, "predictions.csv")
+
+        with open(src_file, "r") as f:
+            total_src = sum(1 for _ in f)
+
         with open(self.model_args.output, "r") as f:
-            predictions = f.readlines()
+            total_gen = sum(1 for _ in f)
 
         n_best = self.model_args.n_best
-        assert len(gts) == (len(predictions) / n_best), \
-            f"File length mismatch! Ground truth total: {len(gts)}, " \
-            f"prediction total: {len(predictions)}, n_best: {n_best}"
+        assert total_src == total_gen / n_best, \
+            f"File length mismatch! Source total: {total_src}, " \
+            f"prediction total: {total_gen}, n_best: {n_best}"
 
-        accuracies = np.zeros([len(gts), n_best], dtype=np.float32)
+        proposed_col_names = [f'cand_precursor_{i}' for i in range(1, self.model_args.n_best + 1)]
+        headers = ['prod_smi']
+        headers.extend(proposed_col_names)
 
-        for i, gt in enumerate(gts):
-            gt_smiles = [canonicalize_smiles(smi) for smi in gt.strip().split(".")]
+        with open(src_file, "r") as src_f, open(self.model_args.output, "r") as pred_f, open(output_file, "w") as of:
+            header_line = ",".join(headers)
+            of.write(f"{header_line}\n")
 
-            for j in range(n_best):
-                prediction = predictions[i*n_best+j]
-                predicted_smiles = [canonicalize_smiles(smi) for smi in prediction.strip().split(".")]
+            for src_line in src_f:
+                prod = src_line.split("[PREDICT]")[0]
+                prods = prod.strip().split()[1:]        # drop the [RXN] token
 
-                if len(gt_smiles) == len(predicted_smiles) and all(smi in gt_smiles for smi in predicted_smiles):
-                    accuracies[i, j:] = 1.0             # accuracies on or after jth rank will be 1.0
-                    break
+                of.write("".join(prods))
 
-        # Log statistics
-        mean_accuracies = np.mean(accuracies, axis=0)
-        for n in range(n_best):
-            logging.info(f"Top {n+1} accuracy: {mean_accuracies[n]}")
+                for j in range(n_best):
+                    cand = pred_f.readline()
+                    of.write(",")
+                    of.write("".join(cand.strip().split()))
+                of.write("\n")
