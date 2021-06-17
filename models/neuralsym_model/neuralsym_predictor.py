@@ -36,10 +36,10 @@ def gen_precs(templates_filtered, preds, phase_topk, task):
     pred_temp_idxs = preds[i]
     for idx in pred_temp_idxs:
         template = templates_filtered[idx]
-
-        rxn = rdchiralReaction(template)
-        prod = rdchiralReactants(prod_smi_nomap)
         try:
+            rxn = rdchiralReaction(template)
+            prod = rdchiralReactants(prod_smi_nomap)
+
             precs = rdchiralRun(rxn, prod)
             precursors.extend(precs)
         except:

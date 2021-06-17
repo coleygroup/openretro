@@ -31,7 +31,7 @@ fi
 if [[ "$*" == *"neuralsym"* ]]; then
 #  bash scripts/neuralsym/neuralsym_preprocess_in_docker.sh $CANONICALIZATION_FLAG
 #  bash scripts/neuralsym/neuralsym_train_in_docker.sh
-  bash scripts/neuralsym/neuralsym_predict_in_docker.sh
+#  bash scripts/neuralsym/neuralsym_predict_in_docker.sh
   bash scripts/neuralsym/neuralsym_score_in_docker.sh
 fi
 
