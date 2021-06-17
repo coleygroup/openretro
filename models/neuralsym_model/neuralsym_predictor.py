@@ -18,17 +18,6 @@ from tqdm import tqdm
 from typing import Dict, List
 
 
-def canonicalize_smiles(smiles: str):
-    """Adapted from Molecular Transformer"""
-    smiles = "".join(smiles.split())
-
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is not None:
-        return Chem.MolToSmiles(mol, isomericSmiles=True)
-    else:
-        return ""
-
-
 def gen_precs(templates_filtered, preds, phase_topk, task):
     i, prod_smi_nomap = task
     # generate predictions from templates

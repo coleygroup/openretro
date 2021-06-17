@@ -5,19 +5,7 @@ import os
 import random
 import torch
 from onmt.bin.translate import translate as onmt_translate
-from rdkit import Chem
 from typing import Dict, List
-
-
-def canonicalize_smiles(smiles: str):
-    """Adapted from Molecular Transformer"""
-    smiles = "".join(smiles.split())
-
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is not None:
-        return Chem.MolToSmiles(mol, isomericSmiles=True)
-    else:
-        return ""
 
 
 class RetroXpertPredictor:
