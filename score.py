@@ -5,6 +5,7 @@ import numpy as np
 import os
 import sys
 from datetime import datetime
+from rdkit import RDLogger
 from tqdm import tqdm
 from utils.chem_utils import canonicalize_smiles
 
@@ -41,7 +42,11 @@ def score_main(args):
 
             gt = canonicalize_smiles(gt)
             for j in range(n_best):
-                prediction = prediction_row[f"cand_precursor_{j+1}"]
+                try:
+                    prediction = prediction_row[f"cand_precursor_{j+1}"]
+                except KeyError:
+                    break
+
                 if prediction == "9999":        # padding
                     break
 
@@ -62,6 +67,8 @@ if __name__ == "__main__":
     args, unknown = score_parser.parse_known_args()
 
     # logger setup
+    RDLogger.DisableLog("rdApp.*")
+
     os.makedirs("./logs/score", exist_ok=True)
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
     args.log_file = f"./logs/predict/{args.log_file}.{dt}"

@@ -44,7 +44,11 @@ Run benchmarking on a machine with GPU using
 ```
 bash scripts/benchmark_in_docker.sh MODEL_NAME1 MODEL_NAME2 ...
 ```
-Currently we support 4 models as MODEL_NAME, namely,
+
+This will run the preprocessing, training, predicting and scoring with specified models,
+with Top-n accuracies up to n=50 as the final outputs.
+
+Currently, we support 4 models as MODEL_NAME, namely,
 * <b>gln</b>, adapted from original GLN (https://github.com/Hanjun-Dai/GLN)
 * <b>retroxpert</b>, adapted from original RetroXpert (https://github.com/uta-smile/RetroXpert)
 * <b>neuralsym</b>, adapted from Min Htoo's re-implementation (https://github.com/linminhtoo/neuralsym)

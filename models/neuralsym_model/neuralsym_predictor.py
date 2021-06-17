@@ -201,6 +201,8 @@ class NeuralSymPredictor:
         logging.info(f'Saved preds of test as npy!')
 
     def compile_into_csv(self):
+        logging.info("Compiling into predictions.csv")
+
         preds = np.load(os.path.join(self.test_output_path, "raw_outputs_on_test.npy"))
 
         # load mapped_rxn_smi
