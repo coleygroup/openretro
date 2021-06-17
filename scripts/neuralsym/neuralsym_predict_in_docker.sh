@@ -22,4 +22,4 @@ docker run --gpus 1 \
   --bs 500 \
   --depth 0 \
   --hidden_size 300 \
-  --topk=50
+  --topk=200
