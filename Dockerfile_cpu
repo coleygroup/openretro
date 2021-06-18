@@ -1,6 +1,6 @@
 FROM continuumio/miniconda3:4.9.2
 
-RUN apt-get update && apt-get -y install gcc g++ make
+RUN apt-get update && apt-get -y install gcc g++ make curl git
 RUN conda install -c pytorch pytorch=1.8.0 torchserve=0.3.1 cpuonly
 RUN conda install -c conda-forge openjdk=11 rdkit
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble

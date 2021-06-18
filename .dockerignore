@@ -1,5 +1,6 @@
 checkpoints/*
 !checkpoints/retroxpert_uspto50k_untyped/*
+!checkpoints/transformer_50k_untyped/*
 
 data/*
 logs/*
