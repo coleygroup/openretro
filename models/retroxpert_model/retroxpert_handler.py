@@ -63,6 +63,7 @@ class RetroXpertHandler:
             use_gpu=(not self.use_cpu),
         )
         self.model_stage_1 = self.model_stage_1.to(self.device)
+        self.model_stage_1.eval()
 
         print("Logging model summary")
         print(self.model_stage_1)

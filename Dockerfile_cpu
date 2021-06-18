@@ -26,6 +26,9 @@ RUN cat ./checkpoints/retroxpert_uspto50k_untyped/retroxpert_uspto50k_untyped.ma
 # GLN installation
 RUN cd ./models/gln_model && pip install -e .
 
+# RDChiral installation
+RUN pip install -e "git://github.com/connorcoley/rdchiral.git#egg=rdchiral"
+
 EXPOSE 8080 8081 8082
 
 # Mask out GPUs temporarily, just in case
