@@ -72,7 +72,8 @@ This is done to avoid the information leak that RetroXpert (https://github.com/u
 and GraphRetro (https://arxiv.org/pdf/2006.07038.pdf) have suffered from.
 Without re-calibrating the atom mapping, the test accuracies would be higher than expected
 since the original numbering might hint at where the reaction center is.
-Nevertheless, in some cases it would be necessary to turn off canonicalization,
+
+(W.I.P.) Nevertheless, in some cases it would be necessary to turn off canonicalization,
 e.g. when benchmarking Transformer with augmented non-canonical data.
 To benchmark without canonicalization (for Transformer only), run
 ```

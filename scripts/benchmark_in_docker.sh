@@ -6,7 +6,15 @@ fi
 
 CANONICALIZATION_FLAG=""
 if [[ "$*" == *"no_canonicalization"* ]]; then
+  echo "no_canonicalization flag detected, skipping canonicalization"
   CANONICALIZATION_FLAG="no_canonicalization"
+else
+  echo "running canonicalization"
+#  bash scripts/canonicalize_in_docker.sh
+#  TRAIN_FILE=$TRAIN_FILE.cano.csv
+#  VAL_FILE=$VAL_FILE.cano.csv
+#  TEST_FILE=$TEST_FILE.cano.csv
+#  export TRAIN_FILE VAL_FILE TEST_FILE
 fi
 
 # gln
