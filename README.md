@@ -23,8 +23,8 @@ Note: please rebuild the Docker before running if there is any change in code.
 
 ## Step 1/3
 Prepare the raw atom-mapped .csv files for train, validation and test.
-See https://www.dropbox.com/sh/6ideflxcakrak10/AADN-TNZnuGjvwZYiLk7zvwra/schneider50k?dl=0&subfolder_nav_tracking=1
-for sample data format.
+The required columns are "class", "id" and "rxn_smiles".
+See https://raw.githubusercontent.com/uta-smile/RetroXpert/canonical_product/data/USPTO50K/canonicalized_csv/test.csv for sample data format.
 Atom mapping is *required* for GLN, RetroXpert and NeuralSym;
 behaviour of these models without atom mapping is undefined.
 

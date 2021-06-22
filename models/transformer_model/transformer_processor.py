@@ -72,13 +72,11 @@ class TransformerProcessor(Processor):
                     if i > self.check_count:            # check the first few rows
                         break
 
-                    assert (c in row for c in ["class", "reactants>reagents>production"]), \
+                    assert (c in row for c in ["class", "rxn_smiles"]), \
                         f"Error processing file {fn} line {i}, ensure columns 'class' and " \
-                        f"'reactants>reagents>production' is included!"
-                    assert row["class"] == "UNK" or row["class"].isnumeric(), \
-                        f"Error processing file {fn} line {i}, ensure 'class' is UNK or numeric!"
+                        f"'rxn_smiles' is included!"
 
-                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
+                    reactants, reagents, products = row["rxn_smiles"].split(">")
                     Chem.MolFromSmiles(reactants)       # simply ensures that SMILES can be parsed
                     Chem.MolFromSmiles(products)        # simply ensures that SMILES can be parsed
 
@@ -100,7 +98,7 @@ class TransformerProcessor(Processor):
             with open(fn, "r") as f, open(ofn_src, "w") as of_src, open(ofn_tgt, "w") as of_tgt:
                 csv_reader = csv.DictReader(f)
                 for row in tqdm(csv_reader):
-                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
+                    reactants, reagents, products = row["rxn_smiles"].split(">")
                     mols_r = Chem.MolFromSmiles(reactants)
                     mols_p = Chem.MolFromSmiles(products)
                     [a.ClearProp('molAtomMapNumber') for a in mols_r.GetAtoms()]
