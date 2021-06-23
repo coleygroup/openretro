@@ -95,17 +95,29 @@ class TransformerProcessor(Processor):
                           ("test", self.test_file)]:
             ofn_src = os.path.join(self.processed_data_path, f"src-{phase}.txt")
             ofn_tgt = os.path.join(self.processed_data_path, f"tgt-{phase}.txt")
+            invalid_count = 0
             with open(fn, "r") as f, open(ofn_src, "w") as of_src, open(ofn_tgt, "w") as of_tgt:
                 csv_reader = csv.DictReader(f)
                 for row in tqdm(csv_reader):
-                    reactants, reagents, products = row["rxn_smiles"].split(">")
-                    mols_r = Chem.MolFromSmiles(reactants)
-                    mols_p = Chem.MolFromSmiles(products)
-                    [a.ClearProp('molAtomMapNumber') for a in mols_r.GetAtoms()]
-                    [a.ClearProp('molAtomMapNumber') for a in mols_p.GetAtoms()]
+                    try:
+                        reactants, reagents, products = row["rxn_smiles"].split(">")
+                        mols_r = Chem.MolFromSmiles(reactants)
+                        mols_p = Chem.MolFromSmiles(products)
+                        if mols_r is None or mols_p is None:
+                            invalid_count += 1
+                            continue
 
-                    cano_smi_r = Chem.MolToSmiles(mols_r, isomericSmiles=True, canonical=canonicalized)
-                    cano_smi_p = Chem.MolToSmiles(mols_p, isomericSmiles=True, canonical=canonicalized)
+                        [a.ClearProp('molAtomMapNumber') for a in mols_r.GetAtoms()]
+                        [a.ClearProp('molAtomMapNumber') for a in mols_p.GetAtoms()]
 
-                    of_src.write(f"{smi_tokenizer(cano_smi_p.strip())}\n")
-                    of_tgt.write(f"{smi_tokenizer(cano_smi_r.strip())}\n")
+                        cano_smi_r = Chem.MolToSmiles(mols_r, isomericSmiles=True, canonical=canonicalized)
+                        cano_smi_p = Chem.MolToSmiles(mols_p, isomericSmiles=True, canonical=canonicalized)
+
+                        of_src.write(f"{smi_tokenizer(cano_smi_p.strip())}\n")
+                        of_tgt.write(f"{smi_tokenizer(cano_smi_r.strip())}\n")
+                    except Exception as e:
+                        logging.info(e)
+                        logging.info(row["rxn_smiles"].split(">"))
+                        invalid_count += 1
+
+            logging.info(f"Invalid count: {invalid_count}")

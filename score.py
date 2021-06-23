@@ -35,7 +35,7 @@ def score_main(args):
         prediction_reader = csv.DictReader(prediction_csv)
 
         for i, (test_row, prediction_row) in enumerate(tqdm(zip(test_reader, prediction_reader))):
-            gt, reagent, prod = test_row["reactants>reagents>production"].strip().split(">")
+            gt, reagent, prod = test_row["rxn_smiles"].strip().split(">")
 
             assert canonicalize_smiles(prod) == canonicalize_smiles(prediction_row["prod_smi"]), \
                 f"Product mismatch on row {i}! Given: {prod}, for generation: {prediction_row['prod_smi']}"

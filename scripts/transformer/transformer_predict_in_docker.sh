@@ -18,8 +18,9 @@ docker run --gpus 1 \
   -batch_size 64 \
   -replace_unk \
   -max_length 200 \
-  -beam_size 5 \
+  -beam_size 20 \
   -n_best 20 \
   -gpu 0 \
+  -report_every 1000 \
   -model "do_not_change_this" \
   --src="do_not_change_this"
