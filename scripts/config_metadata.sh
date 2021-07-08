@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # global
-DATA_NAME="schneider50k"
-TRAIN_FILE=$PWD/data/schneider50k/raw/raw_train.csv
-VAL_FILE=$PWD/data/schneider50k/raw/raw_val.csv
-TEST_FILE=$PWD/data/schneider50k/raw/raw_test.csv
+DATA_NAME="pistachio"
+TRAIN_FILE=/home/ztu/pistachio/data/raw_train.csv
+VAL_FILE=/home/ztu/pistachio/data/raw_val.csv
+TEST_FILE=/home/ztu/pistachio/data/raw_test.csv
+#TEST_FILE=$PWD/data/schneider50k/raw/raw_test.csv
 NUM_CORES=20
 
 # paths for gln
@@ -18,14 +19,14 @@ MODEL_PATH_RETROXPERT=$PWD/checkpoints/schneider50k_retrained_retroxpert
 TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/schneider50k_retroxpert
 
 # paths for transformer
-PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/schneider50k/processed_transformer
-MODEL_PATH_TRANSFORMER=$PWD/checkpoints/schneider50k_retrained_transformer
-TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/schneider50k_transformer
+PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/pistachio/processed_transformer
+MODEL_PATH_TRANSFORMER=$PWD/checkpoints/pistachio_transformer
+TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/pistachio_transformer
 
 # paths for neuralsym
-PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/schneider50k/processed_neuralsym
-MODEL_PATH_NEURALSYM=$PWD/checkpoints/schneider50k_retrained_neuralsym
-TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/schneider50k_neuralsym
+PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym
+MODEL_PATH_NEURALSYM=$PWD/checkpoints/pistachio_retrained_neuralsym
+TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/pistachio_neuralsym
 
 export DATA_NAME TRAIN_FILE VAL_FILE TEST_FILE NUM_CORES
 export PROCESSED_DATA_PATH_GLN MODEL_PATH_GLN TEST_OUTPUT_PATH_GLN

@@ -5,14 +5,27 @@ import numpy as np
 import os
 import pickle
 import scipy
+import sys
 from base.processor_base import Processor
+from concurrent.futures import TimeoutError
 from functools import partial
+from pebble import ProcessPool
 from rdchiral.template_extractor import extract_from_reaction
 from rdkit import Chem, DataStructs
 from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
 from scipy import sparse
 from tqdm import tqdm
 from typing import Dict, List
+
+
+class BlockPrint:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 
 def mol_smi_to_count_fp(
@@ -31,6 +44,8 @@ def mol_smi_to_count_fp(
 def gen_prod_fps_helper(args, rxn_smi):
     prod_smi_map = rxn_smi.split('>>')[-1]
     prod_mol = Chem.MolFromSmiles(prod_smi_map)
+    if prod_mol is None:
+        logging.info(rxn_smi)
     [atom.ClearProp('molAtomMapNumber') for atom in prod_mol.GetAtoms()]
     prod_smi_nomap = Chem.MolToSmiles(prod_mol, True)
     # Sometimes stereochem takes another canonicalization... (just in case)
@@ -51,8 +66,12 @@ def var_col(col):
 def get_tpl(task):
     idx, react, prod = task
     reaction = {'_id': idx, 'reactants': react, 'products': prod}
-    template = extract_from_reaction(reaction)
-    # https://github.com/connorcoley/rdchiral/blob/master/rdchiral/template_extractor.py
+    try:
+        with BlockPrint():
+            template = extract_from_reaction(reaction)
+        # https://github.com/connorcoley/rdchiral/blob/master/rdchiral/template_extractor.py
+    except:
+        return idx, None
     return idx, template
 
 
@@ -74,10 +93,10 @@ def get_template_idx(temps_dict, task):
     ############################################################
     # original label generation pipeline
     # extract template for this rxn_smi, and match it to template dictionary from training data
-    rxn = (rxn_idx, r, p) # r & p must be atom-mapped
+    rxn = (rxn_idx, r, p)   # r & p must be atom-mapped
     rxn_idx, rxn_template = get_tpl(task)
 
-    if 'reaction_smarts' not in rxn_template:
+    if rxn_template is None or 'reaction_smarts' not in rxn_template:
         return rxn_idx, -1                  # unable to extract template
     p_temp = cano_smarts(rxn_template['products'])
     r_temp = cano_smarts(rxn_template['reactants'])
@@ -125,13 +144,11 @@ class NeuralSymProcessor(Processor):
                     if i > self.check_count:            # check the first few rows
                         break
 
-                    assert (c in row for c in ["class", "reactants>reagents>production"]), \
+                    assert (c in row for c in ["class", "rxn_smiles"]), \
                         f"Error processing file {fn} line {i}, ensure columns 'class' and " \
-                        f"'reactants>reagents>production' is included!"
-                    assert row["class"] == "UNK" or row["class"].isnumeric(), \
-                        f"Error processing file {fn} line {i}, ensure 'class' is UNK or numeric!"
+                        f"'rxn_smiles' is included!"
 
-                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
+                    reactants, reagents, products = row["rxn_smiles"].split(">")
                     Chem.MolFromSmiles(reactants)       # simply ensures that SMILES can be parsed
                     Chem.MolFromSmiles(products)        # simply ensures that SMILES can be parsed
 
@@ -139,9 +156,9 @@ class NeuralSymProcessor(Processor):
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing, adpated from prepare_data.py"""
-        self.gen_prod_fps()
-        self.variance_cutoff()
-        self.get_train_templates()
+        # self.gen_prod_fps()
+        # self.variance_cutoff()
+        # self.get_train_templates()
         self.match_templates()
 
     def gen_prod_fps(self):
@@ -154,7 +171,7 @@ class NeuralSymProcessor(Processor):
 
             with open(fn, "r") as csv_file:
                 csv_reader = csv.DictReader(csv_file)
-                clean_rxnsmi_phase = [row["reactants>reagents>production"].strip()
+                clean_rxnsmi_phase = [row["rxn_smiles"].strip()
                                       for row in csv_reader]
 
             logging.info(f'Parallelizing over {self.num_cores} cores')
@@ -254,7 +271,7 @@ class NeuralSymProcessor(Processor):
 
         with open(self.train_file, "r") as csv_file:
             csv_reader = csv.DictReader(csv_file)
-            clean_rxnsmi_phase = [row["reactants>reagents>production"].strip()
+            clean_rxnsmi_phase = [row["rxn_smiles"].strip()
                                   for row in csv_reader]
 
         templates = {}
@@ -266,27 +283,61 @@ class NeuralSymProcessor(Processor):
         logging.info(f'Total training rxns: {len(rxns)}')
 
         logging.info(f'Parallelizing over {self.num_cores} cores')
-        pool = multiprocessing.Pool(self.num_cores)
         invalid_temp = 0
         # here the order doesn't matter since we just want a dictionary of templates
-        for result in tqdm(pool.imap_unordered(get_tpl, rxns),
-                           total=len(rxns)):
-            idx, template = result
-            if 'reaction_smarts' not in template:
-                invalid_temp += 1
-                logging.info(f'At {idx}, could not extract template')
-                continue  # no template could be extracted
+        with ProcessPool(max_workers=self.num_cores) as pool:
+            # had to resort to pebble to add timeout. rdchiral could hang
+            future = pool.map(get_tpl, rxns, timeout=10)
 
-            # canonicalize template (needed, bcos q a number of templates are equivalent, 10247 --> 10198)
-            p_temp = cano_smarts(template['products'])
-            r_temp = cano_smarts(template['reactants'])
-            cano_temp = p_temp + '>>' + r_temp
-            # NOTE: 'reaction_smarts' is actually: p_temp >> r_temp !!!!! 
+            iterator = future.result()
+            while True:
+                try:
+                    result = next(iterator)
+                    idx, template = result
 
-            if cano_temp not in templates:
-                templates[cano_temp] = 1
-            else:
-                templates[cano_temp] += 1
+                    if idx % 10000 == 0:
+                        logging.info(f"Processing {idx}th reaction")
+
+                    if template is None or 'reaction_smarts' not in template:
+                        invalid_temp += 1
+                        # have to comment out this.. there might be a lot of such reactions!
+                        # logging.info(f'At {idx}, could not extract template')
+                        continue  # no template could be extracted
+
+                    # canonicalize template (needed, bcos q a number of templates are equivalent, 10247 --> 10198)
+                    p_temp = cano_smarts(template['products'])
+                    r_temp = cano_smarts(template['reactants'])
+                    cano_temp = p_temp + '>>' + r_temp
+                    # NOTE: 'reaction_smarts' is actually: p_temp >> r_temp !!!!!
+
+                    if cano_temp not in templates:
+                        templates[cano_temp] = 1
+                    else:
+                        templates[cano_temp] += 1
+                except StopIteration:
+                    break
+                except TimeoutError as error:
+                    logging.info(f"get_tpl call took more than {error.args} seconds")
+
+        # for result in tqdm(pool.imap_unordered(get_tpl, rxns),
+        #                    total=len(rxns)):
+        #     idx, template = result
+        #     if template is None or 'reaction_smarts' not in template:
+        #         invalid_temp += 1
+        #         # have to comment out this.. there might be a lot of such reactions!
+        #         # logging.info(f'At {idx}, could not extract template')
+        #         continue  # no template could be extracted
+        #
+        #     # canonicalize template (needed, bcos q a number of templates are equivalent, 10247 --> 10198)
+        #     p_temp = cano_smarts(template['products'])
+        #     r_temp = cano_smarts(template['reactants'])
+        #     cano_temp = p_temp + '>>' + r_temp
+        #     # NOTE: 'reaction_smarts' is actually: p_temp >> r_temp !!!!!
+        #
+        #     if cano_temp not in templates:
+        #         templates[cano_temp] = 1
+        #     else:
+        #         templates[cano_temp] += 1
 
         pool.close()
         pool.join()
@@ -317,7 +368,7 @@ class NeuralSymProcessor(Processor):
         logging.info(f'Total number of template patterns: {len(temps_filtered)}')
 
         logging.info(f'Parallelizing over {self.num_cores} cores')
-        pool = multiprocessing.Pool(self.num_cores)
+        # pool = multiprocessing.Pool(self.num_cores)
 
         logging.info('Matching against extracted templates')
         for phase, fn in [("train", self.train_file),
@@ -326,7 +377,7 @@ class NeuralSymProcessor(Processor):
             logging.info(f'Processing {phase}')
             with open(fn, "r") as csv_file:
                 csv_reader = csv.DictReader(csv_file)
-                clean_rxnsmi_phase = [row["reactants>reagents>production"].strip()
+                clean_rxnsmi_phase = [row["rxn_smiles"].strip()
                                       for row in csv_reader]
 
             with open(os.path.join(self.processed_data_path, f"prod_smis_nomap_{phase}.smi"), 'rb') as f:
@@ -346,30 +397,40 @@ class NeuralSymProcessor(Processor):
             found = 0
             get_template_partial = partial(get_template_idx, temps_dict)
             # don't use imap_unordered!!!! it doesn't guarantee the order, or we can use it and then sort by rxn_idx
-            for result in tqdm(pool.imap(get_template_partial, tasks),
-                               total=len(tasks)):
-                rxn_idx, template_idx = result
+            with ProcessPool(max_workers=self.num_cores) as pool:
+                # had to resort to pebble to add timeout. rdchiral could hang
+                future = pool.map(get_template_partial, tasks, timeout=10)
 
-                rcts_smi_map = clean_rxnsmi_phase[rxn_idx].split('>>')[0]
-                rcts_mol = Chem.MolFromSmiles(rcts_smi_map)
-                [atom.ClearProp('molAtomMapNumber') for atom in rcts_mol.GetAtoms()]
-                rcts_smi_nomap = Chem.MolToSmiles(rcts_mol, True)
-                # Sometimes stereochem takes another canonicalization...
-                rcts_smi_nomap = Chem.MolToSmiles(Chem.MolFromSmiles(rcts_smi_nomap), True)
+                iterator = future.result()
+                while True:
+                    try:
+                        result = next(iterator)
 
-                template = temps_filtered[template_idx] if template_idx != len(temps_filtered) else ''
-                rows.append([
-                    rxn_idx,
-                    phase_prod_smi_nomap[rxn_idx],
-                    rcts_smi_nomap,  # tasks[rxn_idx][1],
-                    template,
-                    template_idx,
-                ])
-                labels.append(template_idx)
-                found += (template_idx != len(temps_filtered))
+                        rxn_idx, template_idx = result
+                        if rxn_idx % 10000 == 0:
+                            logging.info(f"Processing {rxn_idx}th reaction")
 
-                if phase == 'train' and template_idx == len(temps_filtered):
-                    logging.info(f'At {rxn_idx} of train, could not recall template for some reason')
+                        rcts_smi_map = clean_rxnsmi_phase[rxn_idx].split('>>')[0]
+                        rcts_mol = Chem.MolFromSmiles(rcts_smi_map)
+                        [atom.ClearProp('molAtomMapNumber') for atom in rcts_mol.GetAtoms()]
+                        rcts_smi_nomap = Chem.MolToSmiles(rcts_mol, True)
+                        # Sometimes stereochem takes another canonicalization...
+                        rcts_smi_nomap = Chem.MolToSmiles(Chem.MolFromSmiles(rcts_smi_nomap), True)
+
+                        template = temps_filtered[template_idx] if template_idx != len(temps_filtered) else ''
+                        rows.append([
+                            rxn_idx,
+                            phase_prod_smi_nomap[rxn_idx],
+                            rcts_smi_nomap,  # tasks[rxn_idx][1],
+                            template,
+                            template_idx,
+                        ])
+                        labels.append(template_idx)
+                        found += (template_idx != len(temps_filtered))
+                    except StopIteration:
+                        break
+                    except TimeoutError as error:
+                        logging.info(f"get_tpl call took more than {error.args} seconds")
 
             logging.info(f'Template coverage: {found / len(tasks) * 100:.2f}%')
             labels = np.array(labels)
