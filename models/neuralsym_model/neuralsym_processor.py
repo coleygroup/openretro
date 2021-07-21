@@ -63,8 +63,49 @@ def var_col(col):
     return np.var(col.toarray())
 
 
+def pass_bond_edits_test(r: str, p: str, max_rbonds=5, max_pbonds=3, max_atoms=10):
+    """Adapted from filter.py and rdkit.py in temprel"""
+    rmol = Chem.MolFromSmiles(r)
+    pmol = Chem.MolFromSmiles(p)
+
+    pbonds = []
+    for bond in pmol.GetBonds():
+        a = bond.GetBeginAtom().GetAtomMapNum()
+        b = bond.GetEndAtom().GetAtomMapNum()
+        if a or b:
+            pbonds.append(tuple(sorted([a, b])))
+
+    rbonds = []
+    for bond in rmol.GetBonds():
+        a = bond.GetBeginAtom().GetAtomMapNum()
+        b = bond.GetEndAtom().GetAtomMapNum()
+        if a or b:
+            rbonds.append(tuple(sorted([a, b])))
+
+    r_changed = set(rbonds) - set(pbonds)
+    p_changed = set(pbonds) - set(rbonds)
+
+    if len(r_changed) > max_rbonds or len(p_changed) > max_pbonds:
+        return False
+
+    atoms_changed = set()
+    for ch in list(r_changed) + list(p_changed):
+        atoms_changed.add(ch[0])
+        atoms_changed.add(ch[1])
+    atoms_changed -= {0}
+
+    if len(atoms_changed) > max_atoms:
+        return False
+
+    # if passing all three criteria
+    return True
+
+
 def get_tpl(task):
     idx, react, prod = task
+    if not pass_bond_edits_test(r=react, p=prod):
+        return idx, None
+
     reaction = {'_id': idx, 'reactants': react, 'products': prod}
     try:
         with BlockPrint():
@@ -158,7 +199,7 @@ class NeuralSymProcessor(Processor):
         """Actual file-based preprocessing, adpated from prepare_data.py"""
         # self.gen_prod_fps()
         # self.variance_cutoff()
-        # self.get_train_templates()
+        self.get_train_templates()
         self.match_templates()
 
     def gen_prod_fps(self):

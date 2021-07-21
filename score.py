@@ -30,20 +30,17 @@ def score_main(args):
 
     accuracies = np.zeros([total, n_best], dtype=np.float32)
 
-    with open(args.test_file, "r") as test_csv, open(args.prediction_file, "r") as prediction_csv:
-        test_reader = csv.DictReader(test_csv)
+    # Load predictions and transform into a huge table {cano_prod: [cano_cand, ...]}
+    predictions = {}
+    with open(args.prediction_file, "r") as prediction_csv:
         prediction_reader = csv.DictReader(prediction_csv)
+        for prediction_row in tqdm(prediction_reader):
+            k = canonicalize_smiles(prediction_row["prod_smi"])
+            v = []
 
-        for i, (test_row, prediction_row) in enumerate(tqdm(zip(test_reader, prediction_reader))):
-            gt, reagent, prod = test_row["rxn_smiles"].strip().split(">")
-
-            assert canonicalize_smiles(prod) == canonicalize_smiles(prediction_row["prod_smi"]), \
-                f"Product mismatch on row {i}! Given: {prod}, for generation: {prediction_row['prod_smi']}"
-
-            gt = canonicalize_smiles(gt)
-            for j in range(n_best):
+            for i in range(n_best):
                 try:
-                    prediction = prediction_row[f"cand_precursor_{j+1}"]
+                    prediction = prediction_row[f"cand_precursor_{i+1}"]
                 except KeyError:
                     break
 
@@ -51,7 +48,23 @@ def score_main(args):
                     break
 
                 prediction = canonicalize_smiles(prediction)
+                v.append(prediction)
 
+            predictions[k] = v
+
+    with open(args.test_file, "r") as test_csv:
+        test_reader = csv.DictReader(test_csv)
+
+        for i, test_row in enumerate(tqdm(test_reader)):
+            gt, reagent, prod = test_row["rxn_smiles"].strip().split(">")
+            k = canonicalize_smiles(prod)
+
+            if k not in predictions:
+                logging.info(f"Product {prod} not found in predictions (after canonicalization), skipping")
+                continue
+
+            gt = canonicalize_smiles(gt)
+            for j, prediction in enumerate(predictions[k]):
                 if prediction == gt:
                     accuracies[i, j:] = 1.0
                     break

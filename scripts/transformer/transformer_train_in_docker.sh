@@ -19,13 +19,14 @@ docker run --gpus 1 \
   -gpu_ranks 0 \
   -save_checkpoint_steps 10000 \
   -keep_checkpoint 10 \
-  -train_steps 125000 \
+  -train_steps 250000 \
   -param_init 0 \
   -param_init_glorot \
   -max_generator_batches 32 \
-  -batch_size 32 \
-  -batch_type sents \
-  -normalization sents \
+  -batch_size 4096 \
+  -accum_count 4 \
+  -batch_type tokens \
+  -normalization tokens \
   -max_grad_norm 0 \
   -optim adam \
   -adam_beta1 0.9 \
@@ -36,8 +37,8 @@ docker run --gpus 1 \
   -label_smoothing 0.0 \
   -report_every 1000 \
   -layers 4 \
-  -rnn_size 256 \
-  -word_vec_size 256 \
+  -rnn_size 512 \
+  -word_vec_size 512 \
   -encoder_type transformer \
   -decoder_type transformer \
   -dropout 0.1 \

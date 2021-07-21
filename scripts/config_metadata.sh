@@ -2,9 +2,9 @@
 
 # global
 DATA_NAME="pistachio"
-TRAIN_FILE=/home/ztu/pistachio/data/raw_train.csv
-VAL_FILE=/home/ztu/pistachio/data/raw_val.csv
-TEST_FILE=/home/ztu/pistachio/data/raw_test.csv
+TRAIN_FILE=/home/ztu/pistachio/data_2020Q1/raw_train.csv
+VAL_FILE=/home/ztu/pistachio/data_2020Q1/raw_val.csv
+TEST_FILE=/home/ztu/pistachio/data_2020Q1/raw_test.csv
 #TEST_FILE=$PWD/data/schneider50k/raw/raw_test.csv
 NUM_CORES=20
 
@@ -24,7 +24,7 @@ MODEL_PATH_TRANSFORMER=$PWD/checkpoints/pistachio_transformer
 TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/pistachio_transformer
 
 # paths for neuralsym
-PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym
+PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym_2020Q1
 MODEL_PATH_NEURALSYM=$PWD/checkpoints/pistachio_retrained_neuralsym
 TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/pistachio_neuralsym
 
