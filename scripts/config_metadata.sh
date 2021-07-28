@@ -2,11 +2,11 @@
 
 # global
 DATA_NAME="pistachio"
-TRAIN_FILE=/home/ztu/pistachio/data_2020Q1/raw_train.csv
-VAL_FILE=/home/ztu/pistachio/data_2020Q1/raw_val.csv
-TEST_FILE=/home/ztu/pistachio/data_2020Q1/raw_test.csv
+TRAIN_FILE=/home/ztu/pistachio/data_2021Q1/raw_train.csv
+VAL_FILE=/home/ztu/pistachio/data_2021Q1/raw_val.csv
+TEST_FILE=/home/ztu/pistachio/data_2021Q1/raw_test.csv
 #TEST_FILE=$PWD/data/schneider50k/raw/raw_test.csv
-NUM_CORES=20
+NUM_CORES=40
 
 # paths for gln
 PROCESSED_DATA_PATH_GLN=$PWD/data/schneider50k/processed_gln

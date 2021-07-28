@@ -197,8 +197,8 @@ class NeuralSymProcessor(Processor):
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing, adpated from prepare_data.py"""
-        # self.gen_prod_fps()
-        # self.variance_cutoff()
+        self.gen_prod_fps()
+        self.variance_cutoff()
         self.get_train_templates()
         self.match_templates()
 
