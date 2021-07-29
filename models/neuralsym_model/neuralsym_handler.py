@@ -130,9 +130,11 @@ class NeuralSymHandler:
 
                     if not precs:           # empty precursors?
                         continue
-                    result["templates"].append(template)
-                    result["reactants"].extend(precs)
-                    result["scores"].append(score)
+
+                    for prec in precs:
+                        result["templates"].append(template)
+                        result["reactants"].append(prec)
+                        result["scores"].append(score)
 
                 results.append(result)
 
