@@ -20,9 +20,6 @@ WORKDIR /app
 COPY . /app/openretro
 WORKDIR /app/openretro
 
-# merge split large files
-RUN cat ./checkpoints/retroxpert_uspto50k_untyped/retroxpert_uspto50k_untyped.mara* > ./checkpoints/retroxpert_uspto50k_untyped/retroxpert_uspto50k_untyped.mar
-
 # GLN installation
 RUN cd ./models/gln_model && pip install -e .
 

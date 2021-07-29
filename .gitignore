@@ -3,6 +3,9 @@
 submission/
 archives/
 results/
+checkpoints/
+checkpoints_tmp/
+!checkpoints/.gitignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,7 +1,4 @@
-checkpoints/*
-!checkpoints/retroxpert_uspto50k_untyped/*
-!checkpoints/transformer_50k_untyped/*
-!checkpoints/neuralsym_50k/*
+checkpoints_tmp/*
 
 data/*
 logs/*
