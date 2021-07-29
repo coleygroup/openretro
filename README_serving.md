@@ -23,12 +23,12 @@ then run
 docker build -f Dockerfile_cpu -t openretro:serving-cpu .
 ```
 
-# Run Docker for serving (CPU only)
+# Run Docker for Serving Trained Models (CPU only)
 ```
-sh scripts/serve_all_in_docker.sh
+sh scripts_serving/serve_all_in_docker.sh
 ```
 
-# Sample Usage with Trained Models
+# Sample Usage
 Here we demonstrate sample usage with baseline models (re-)trained on USPTO 50k dataset without reaction type.
 We have added in four models, GLN, RetroXpert (revised), Transformer and NeuralSym.
 
