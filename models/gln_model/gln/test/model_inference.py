@@ -161,11 +161,11 @@ class RetroGLN(object):
             scores = softmax([each_score for each_score in scores])
             list_reacts = [t[2] for t in final_joint]
             ret_tpls = [t[1] for t in final_joint]
-            result = {'template': ret_tpls,
+            result = {'templates': ret_tpls,
                     'reactants': list_reacts,
                     'scores': scores}
         else:
-            result = {'template': [],
+            result = {'templates': [],
                         'reactants': [],
                         'scores': []}
         return result

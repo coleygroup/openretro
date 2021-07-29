@@ -44,7 +44,7 @@ curl http://you.got.the.ips:8080/predictions/gln_50k_untyped \
 * Sample return
 ```
 List[{
-    "template": List[str], list of top k templates,
+    "templates": List[str], list of top k templates,
     "reactants": List[str], list of top k proposed reactants based on the templates,
     "scores": List[float], list of top k corresponding scores
 }]
