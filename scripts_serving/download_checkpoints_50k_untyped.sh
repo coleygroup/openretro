@@ -85,19 +85,19 @@ DATADIR="checkpoints"
 
 # Download context recommendation fingerprint models
 download "${SERVER}models/openretro-model-archives/neuralsym_50k.mar" \
-         "${DATADIR}/neuralsym_50k/" \
-         "${DATADIR}/neuralsym_50k/neuralsym_50k.mar"
+         "${DATADIR}/" \
+         "${DATADIR}/neuralsym_50k.mar"
 
 download "${SERVER}models/openretro-model-archives/gln_50k_untyped.mar" \
-         "${DATADIR}/gln_schneider50k/model-6.dump/" \
-         "${DATADIR}/gln_schneider50k/model-6.dump/gln_50k_untyped.mar"
+         "${DATADIR}/" \
+         "${DATADIR}/gln_50k_untyped.mar"
 
 download "${SERVER}models/openretro-model-archives/retroxpert_uspto50k_untyped.mar" \
-         "${DATADIR}/retroxpert_uspto50k_untyped/" \
-         "${DATADIR}/retroxpert_uspto50k_untyped/retroxpert_uspto50k_untyped.mar"
+         "${DATADIR}/" \
+         "${DATADIR}/retroxpert_uspto50k_untyped.mar"
 
 download "${SERVER}models/openretro-model-archives/transformer_50k_untyped.mar" \
-         "${DATADIR}/transformer_50k_untyped/" \
-         "${DATADIR}/transformer_50k_untyped/transformer_50k_untyped.mar"
+         "${DATADIR}/" \
+         "${DATADIR}/transformer_50k_untyped.mar"
 
 echo "Done downloading all extra models!"

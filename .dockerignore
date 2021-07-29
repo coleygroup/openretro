@@ -1,9 +1,9 @@
 checkpoints/*
 checkpoints_tmp/*
-!checkpoints/retroxpert_uspto50k_untyped/*
-!checkpoints/transformer_50k_untyped/*
-!checkpoints/neuralsym_50k/*
-!checkpoints/gln_schneider50k/*
+!checkpoints/retroxpert_uspto50k_untyped.mar
+!checkpoints/transformer_50k_untyped.mar
+!checkpoints/neuralsym_50k.mar
+!checkpoints/gln_50k_untyped.mar
 
 data/*
 logs/*

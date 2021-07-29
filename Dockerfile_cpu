@@ -30,3 +30,6 @@ EXPOSE 8080 8081 8082
 
 # Mask out GPUs temporarily, just in case
 ENV CUDA_VISIBLE_DEVICES 10
+
+# per Max, for cleaner command
+ENTRYPOINT ["torchserve", "--start", "--foreground", "--ncs", "--ts-config", "./config.properties", "--model-store", "./checkpoints"]

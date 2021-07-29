@@ -23,22 +23,19 @@ then run
 docker build -f Dockerfile_cpu -t openretro:serving-cpu .
 ```
 
+# Run Docker for serving (CPU only)
+```
+sh scripts/serve_all_in_docker.sh
+```
+
 # Sample Usage with Trained Models
 Here we demonstrate sample usage with baseline models (re-)trained on USPTO 50k dataset without reaction type.
 We have added in four models, GLN, RetroXpert (revised), Transformer and NeuralSym.
-Note that the scripts for running Dockers are for the <b> CPU-only </b> images;
-extending it to GPU images is as simple as adding the "--gpus all" flag,
-though there might be platform specific settings to be configured.  
 
 ## (1/4) GLN -- untyped USPTO 50k baseline model 
-* Run Docker for serving
-``` 
-sh scripts_serving/gln_serve_in_docker.sh
-```
-
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
 ```
-curl http://you.got.the.ips:9018/predictions/gln_50k_untyped \
+curl http://you.got.the.ips:8080/predictions/gln_50k_untyped \
     --header "Content-Type: application/json" \
     --request POST \
     --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'
@@ -56,14 +53,9 @@ List[{
 Note that the reactants may be duplicated since different templates can give the same reactants.
 
 ## (2/4) RetroXpert -- untyped USPTO 50k baseline model
-* Run Docker for serving
-```
-sh scripts_serving/retroxpert_serve_in_docker.sh
-```
-
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
 ```
-curl http://you.got.the.ips:9118/predictions/retroxpert_uspto50k_untyped \
+curl http://you.got.the.ips:8080/predictions/retroxpert_uspto50k_untyped \
     --header "Content-Type: application/json" \
     --request POST \
     --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'
@@ -78,14 +70,9 @@ List[{
 ```
 
 ## (3/4) Transformer -- untyped USPTO 50k baseline model
-* Run Docker for serving
-```
-sh scripts_serving/transformer_serve_in_docker.sh
-```
-
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
 ```
-curl http://you.got.the.ips:9218/predictions/transformer_50k_untyped \
+curl http://you.got.the.ips:8080/predictions/transformer_50k_untyped \
     --header "Content-Type: application/json" \
     --request POST \
     --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'
@@ -100,14 +87,9 @@ List[{
 ```
 
 ## (4/4) NeuralSym -- untyped USPTO 50k baseline model
-* Run Docker for serving
-```
-sh scripts_serving/neuralsym_serve_in_docker.sh
-```
-
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
 ```
-curl http://you.got.the.ips:9318/predictions/neuralsym_50k \
+curl http://you.got.the.ips:8080/predictions/neuralsym_50k \
     --header "Content-Type: application/json" \
     --request POST \
     --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'
