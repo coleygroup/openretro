@@ -13,7 +13,8 @@ docker tag registry.gitlab.com/mlpds_mit/askcos/askcos-data/openretro:serving-cp
 or
 * build from local
 
-first download the model checkpoints (USPTO_50k w/o reaction types)
+first download the model checkpoints (USPTO_50k w/o reaction types).
+Note that ASKCOS deployment authentication is needed (https://mlpds.mit.edu/member-resources-releases-versions/)
 ```
 bash scripts_serving/download_checkpoints_50k_untyped.sh
 ```
@@ -32,7 +33,7 @@ though there might be platform specific settings to be configured.
 ## (1/4) GLN -- untyped USPTO 50k baseline model 
 * Run Docker for serving
 ``` 
-sh scripts/gln_serve_in_docker.sh
+sh scripts_serving/gln_serve_in_docker.sh
 ```
 
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
@@ -57,7 +58,7 @@ Note that the reactants may be duplicated since different templates can give the
 ## (2/4) RetroXpert -- untyped USPTO 50k baseline model
 * Run Docker for serving
 ```
-sh scripts/retroxpert_serve_in_docker.sh
+sh scripts_serving/retroxpert_serve_in_docker.sh
 ```
 
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
@@ -79,7 +80,7 @@ List[{
 ## (3/4) Transformer -- untyped USPTO 50k baseline model
 * Run Docker for serving
 ```
-sh scripts/transformer_serve_in_docker.sh
+sh scripts_serving/transformer_serve_in_docker.sh
 ```
 
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
@@ -101,7 +102,7 @@ List[{
 ## (4/4) NeuralSym -- untyped USPTO 50k baseline model
 * Run Docker for serving
 ```
-sh scripts/neuralsym_serve_in_docker.sh
+sh scripts_serving/neuralsym_serve_in_docker.sh
 ```
 
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
