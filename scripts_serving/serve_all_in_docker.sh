@@ -1,4 +1,4 @@
-docker run -p 9018:8080 -p 9019:8081 -p 9020:8082 \
+docker run -p 8080:8080 -p 8081:8081 -p 8082:8082 \
   -t openretro:serving-cpu \
   --models \
   gln_50k_untyped=gln_50k_untyped.mar \
