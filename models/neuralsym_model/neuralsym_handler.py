@@ -113,6 +113,7 @@ class NeuralSymHandler:
                 preds = torch.topk(outputs, k=self.n_best, dim=1)[1].squeeze(dim=0).cpu().numpy()
 
                 result = {
+                    "templates": [],
                     "reactants": [],
                     "scores": []
                 }
@@ -125,9 +126,11 @@ class NeuralSymHandler:
                         precs = rdchiralRun(rxn, prod)
                     except:
                         precs = 'N/A'
+                        continue
 
                     if not precs:           # empty precursors?
                         continue
+                    result["templates"].append(template)
                     result["reactants"].extend(precs)
                     result["scores"].append(score)
 

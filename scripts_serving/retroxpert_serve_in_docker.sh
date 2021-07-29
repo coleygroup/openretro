@@ -1,4 +1,4 @@
-docker run -p 9118:8080 -p 9119:8081 -p 9120:8082 -t openretro:cpu \
+docker run -p 9118:8080 -p 9119:8081 -p 9120:8082 -t openretro:serving-cpu \
   torchserve \
   --start \
   --foreground \

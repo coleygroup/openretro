@@ -4,6 +4,7 @@ import networkx as nx
 import numpy as np
 import os
 import torch
+from chem_utils import canonicalize_smiles
 from onmt.translate.translation_server import ServerModel as ONMTServerModel
 from retroxpert_model.model.gat import GATNet
 from retroxpert_model.preprocessing import get_atom_features, get_bond_features, get_smarts_pieces_s2, \
@@ -30,9 +31,9 @@ class RetroXpertHandler:
         self.heads = 4
         self.hidden_dim = 128
         self.use_cpu = True
-        self.n_best = 5
+        self.n_best = 20
         # self.beam_size = 50
-        self.beam_size = 5
+        self.beam_size = 10
 
     def initialize(self, context):
         self._context = context
@@ -75,7 +76,7 @@ class RetroXpertHandler:
 
         onmt_config = {
             "models": os.path.join(model_dir, "model_step_300000.pt"),
-            "n_best": self.n_best,
+            "n_best": self.n_best * 2,
             "beam_size": self.beam_size
         }
 
@@ -277,11 +278,23 @@ class RetroXpertHandler:
 
         results = []
         for i, prod in enumerate(input_smiles):  # essentially reshaping (b*n_best,) into (b, n_best)
-            start = self.n_best * i
-            end = self.n_best * (i + 1)
+            valid_reactants = []
+            valid_scores = []
+
+            for j in range(self.n_best * 2 * i, self.n_best * 2 * (i + 1)):
+                if len(valid_reactants) == self.n_best:
+                    break
+
+                reactant = "".join(reactants[j].split())
+                if not canonicalize_smiles(reactant):
+                    continue
+                else:
+                    valid_reactants.append(reactant)
+                    valid_scores.append(scores[j])
+
             result = {
-                "reactants": ["".join(r.split()) for r in reactants[start:end]],
-                "scores": scores[start:end]
+                "reactants": valid_reactants,
+                "scores": valid_scores
             }
             results.append(result)
 
@@ -290,7 +303,7 @@ class RetroXpertHandler:
     def postprocess(self, data: List):
         return [data]
 
-    def handle(self, data, context) -> List[Dict[str, Any]]:
+    def handle(self, data, context) -> List[List[Dict[str, Any]]]:
         self._context = context
 
         output = self.preprocess(data)

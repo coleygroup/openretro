@@ -4,9 +4,22 @@ Serving modules for models in OpenRetro
 # Environment Setup
 ## Using Docker (CPU only)
 First follow the instruction on https://docs.docker.com/engine/install
-to install the Docker engine. Then run
+to install the Docker engine. Then either
+* pull pre-built image from ASKCOS docker registry and tag
 ```
-docker build -f Dockerfile_cpu -t openretro:cpu .
+docker pull registry.gitlab.com/mlpds_mit/askcos/askcos-data/openretro:serving-cpu
+docker tag registry.gitlab.com/mlpds_mit/askcos/askcos-data/openretro:serving-cpu openretro:serving-cpu
+```
+or
+* build from local
+
+first download the model checkpoints (USPTO_50k w/o reaction types)
+```
+bash scripts_serving/download_checkpoints_50k_untyped.sh
+```
+then run
+```
+docker build -f Dockerfile_cpu -t openretro:serving-cpu .
 ```
 
 # Sample Usage with Trained Models
@@ -102,7 +115,8 @@ curl http://you.got.the.ips:9318/predictions/neuralsym_50k \
 * Sample return
 ```
 List[{
-    "reactants": List[str], list of top k proposed reactants,
+    "template": List[str], list of top k templates,
+    "reactants": List[str], list of top k proposed reactants based on the templates,
     "scores": List[float], list of top k corresponding scores
 }]
 ```
