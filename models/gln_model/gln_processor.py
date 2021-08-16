@@ -74,7 +74,6 @@ class GLNProcessor(Processor):
                          data_name=data_name,
                          raw_data_files=raw_data_files,
                          processed_data_path=processed_data_path)
-        self.check_count = 100
         self.train_file, self.val_file, self.test_file = raw_data_files
         self.num_cores = num_cores
 
@@ -89,33 +88,6 @@ class GLNProcessor(Processor):
         self.model_args.data_name = data_name
         self.model_args.tpl_name = "default"
         self.model_args.fp_degree = 2
-
-    def check_data_format(self) -> None:
-        """Check that all files exists and the data format is correct for all"""
-        super().check_data_format()
-
-        logging.info(f"Checking the first {self.check_count} entries for each file")
-        for fn in self.raw_data_files:
-            if not fn:
-                continue
-
-            with open(fn, "r") as csv_file:
-                csv_reader = csv.DictReader(csv_file)
-                for i, row in enumerate(csv_reader):
-                    if i > self.check_count:            # check the first few rows
-                        break
-
-                    assert (c in row for c in ["class", "reactants>reagents>production"]), \
-                        f"Error processing file {fn} line {i}, ensure columns 'class' and " \
-                        f"'reactants>reagents>production' is included!"
-                    assert row["class"] == "UNK" or row["class"].isnumeric(), \
-                        f"Error processing file {fn} line {i}, ensure 'class' is UNK or numeric!"
-
-                    reactants, reagents, products = row["reactants>reagents>production"].split(">")
-                    Chem.MolFromSmiles(reactants)       # simply ensures that SMILES can be parsed
-                    Chem.MolFromSmiles(products)        # simply ensures that SMILES can be parsed
-
-        logging.info("Data format check passed")
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing"""
