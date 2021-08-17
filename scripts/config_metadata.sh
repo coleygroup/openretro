@@ -24,7 +24,7 @@ MODEL_PATH_TRANSFORMER=$PWD/checkpoints/pistachio_transformer
 TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/pistachio_transformer
 
 # paths for neuralsym
-PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym_2020Q1
+PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym_2021Q1
 MODEL_PATH_NEURALSYM=$PWD/checkpoints/pistachio_retrained_neuralsym
 TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/pistachio_neuralsym
 

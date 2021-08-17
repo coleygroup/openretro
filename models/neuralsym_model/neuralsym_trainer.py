@@ -53,7 +53,7 @@ class NeuralSymTrainer(Trainer):
             pa, cnt = p.strip().split(': ')
             if int(cnt) >= self.model_args.min_freq:
                 self.templates_filtered.append(pa)
-        logging.info(f'Total number of template patterns: {len(self.templates_filtered)}')
+        logging.info(f'Total number of template patterns: {len(self.templates_filtered) - 1}')
 
     def build_train_model(self):
         if self.model_args.model_arch == 'Highway':
@@ -79,7 +79,7 @@ class NeuralSymTrainer(Trainer):
         logging.info(f"\nModel #Params: {sum([x.nelement() for x in self.model.parameters()]) / 1000} k")
 
     def train(self):
-        criterion = nn.CrossEntropyLoss(reduction='sum')
+        criterion = nn.CrossEntropyLoss(reduction='sum', ignore_index=0)
         optimizer = optim.Adam(self.model.parameters(), lr=self.model_args.learning_rate)
 
         train_dataset = FingerprintDataset(
@@ -299,7 +299,3 @@ class NeuralSymTrainer(Trainer):
             logging.info(message)
 
         logging.info(f'Finished training, total time (minutes): {(time.time() - start) / 60}')
-
-    def test(self):
-        """TBD"""
-        raise NotImplementedError
