@@ -312,10 +312,12 @@ class NeuralSymProcessor(Processor):
                 future = pool.map(get_tpl, rxns, timeout=10)
 
                 iterator = future.result()
+                rxn_idx = 0
                 while True:
                     try:
                         result = next(iterator)
                         idx, template = result
+                        assert idx == rxn_idx
 
                         if idx % 10000 == 0:
                             logging.info(f"Processing {idx}th reaction, elapsed time: {time.time() - start}")
@@ -347,6 +349,10 @@ class NeuralSymProcessor(Processor):
                         break
                     except TimeoutError as error:
                         logging.info(f"get_tpl call took more than {error.args} seconds")
+                        invalid_temp += 1
+                        of.write(f"{rxn_idx}\tfailed_extract\n")
+
+                    rxn_idx += 1
 
             pool.close()
             pool.join()

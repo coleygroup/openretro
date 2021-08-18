@@ -131,6 +131,8 @@ class NeuralSymTrainer(Trainer):
                 # mask out rxn_smi w/ no valid template, giving loss = 0
                 # logging.info(f'{outputs.shape}, {idxs.shape}, {(idxs < len(templates_filtered)).shape}')
                 # [300, 10198], [300], [300]
+                # Zhengkai: not really needed; just set ignore_index
+                """
                 outputs = torch.where(
                     (labels.view(-1, 1).expand_as(outputs) < len(self.templates_filtered)), outputs,
                     torch.tensor([0.], device=outputs.device)
@@ -138,6 +140,8 @@ class NeuralSymTrainer(Trainer):
                 labels = torch.where(
                     (labels < len(self.templates_filtered)), labels, torch.tensor([0.], device=labels.device).long()
                 )
+                """
+
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
@@ -146,13 +150,16 @@ class NeuralSymTrainer(Trainer):
                 train_seen += labels.shape[0]
                 outputs = nn.Softmax(dim=1)(outputs)
 
+                labels = torch.where(labels == 0, labels, torch.tensor([-1], device=labels.device))
+
                 for k in k_to_calc:
                     batch_preds = torch.topk(outputs, k=k, dim=1)[1]
                     train_correct[k] += \
                         torch.where(batch_preds == labels.view(-1, 1).expand_as(batch_preds))[0].shape[0]
 
                 train_loader.set_description(
-                    f"training: loss={train_loss / train_seen:.4f}, top-1 acc={train_correct[1] / train_seen:.4f}")
+                    f"training: loss={train_loss / train_seen:.4f}, "
+                    f"top-1 acc={train_correct[1] / train_seen:.4f}")
                 train_loader.refresh()
             train_losses.append(train_loss / train_seen)
             for k in k_to_calc:
@@ -167,29 +174,21 @@ class NeuralSymTrainer(Trainer):
                     inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                     outputs = self.model(inputs)
-                    # we cannot mask both output & label to 0 (artificially inflate acc & deflate loss)
-                    # maybe we can mask output to 0 & label to 1
-                    # for now I will just not calculate loss since it's not that important
-                    # outputs = torch.where(
-                    #     (labels.view(-1, 1).expand_as(outputs) < len(templates_filtered)), outputs, torch.tensor([0.], device=outputs.device)
-                    # )
-                    # labels = torch.where(
-                    #     (labels < len(templates_filtered)), labels, torch.tensor([0.], device=labels.device).long()
-                    # )
-                    # loss = criterion(outputs, labels)
+                    loss = criterion(outputs, labels)
 
-                    # valid_loss += loss.item()
+                    valid_loss += loss.item()
                     valid_seen += labels.shape[0]
                     outputs = nn.Softmax(dim=-1)(outputs)
 
+                    labels = torch.where(labels == 0, labels, torch.tensor([-1], device=labels.device))
                     for k in k_to_calc:
                         batch_preds = torch.topk(outputs, k=k, dim=1)[1]
-                        # logging.info(f'batch_preds: {batch_preds.shape}, labels: {labels.shape}')
                         valid_correct[k] += \
                             torch.where(batch_preds == labels.view(-1, 1).expand_as(batch_preds))[0].shape[0]
 
                     valid_loader.set_description(
-                        f"validating: top-1 acc={valid_correct[1] / valid_seen:.4f}")  # loss={valid_loss/valid_seen:.4f},
+                        f"validating: loss={valid_loss/valid_seen:.4f}, "
+                        f"top-1 acc={valid_correct[1] / valid_seen:.4f}")
                     valid_loader.refresh()
 
                     # display some examples + model predictions/labels for monitoring model generalization
@@ -216,7 +215,8 @@ class NeuralSymTrainer(Trainer):
                                 rxn_true_prod = proposals_data_valid.iloc[idxs[rxn_idx].item(), 1]
                                 rxn_true_prec = proposals_data_valid.iloc[idxs[rxn_idx].item(), 2]
 
-                                # apply template to get predicted precursor, no need to reverse bcos alr: p_temp >> r_temp
+                                # apply template to get predicted precursor,
+                                # no need to reverse bcos alr: p_temp >> r_temp
                                 rxn = rdchiralReaction(rxn_pred_temp)
                                 prod = rdchiralReactants(rxn_true_prod)
                                 rxn_pred_prec = rdchiralRun(rxn, prod)
