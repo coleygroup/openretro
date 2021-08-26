@@ -17,9 +17,9 @@ docker run --gpus 1 \
   --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
   --model_path=/app/openretro/checkpoints/tmp_for_docker \
   --test_output_path=/app/openretro/results/tmp_for_docker \
-  --num_cores=20 \
+  --num_cores="$NUM_CORES" \
   --model_arch 'Highway' \
   --bs 500 \
   --depth 0 \
   --hidden_size 300 \
-  --topk=200
+  --topk=100

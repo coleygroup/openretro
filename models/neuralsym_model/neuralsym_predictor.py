@@ -8,7 +8,6 @@ import random
 import torch
 import torch.nn as nn
 from collections import Counter
-from functools import partial
 from models.neuralsym_model.dataset import FingerprintDataset
 from models.neuralsym_model.model import TemplateNN_Highway, TemplateNN_FC
 from rdchiral.main import rdchiralReaction, rdchiralReactants, rdchiralRun
@@ -17,9 +16,17 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Dict, List
 
+global G_templates_filtered, G_preds
 
-def gen_precs(templates_filtered, preds, phase_topk, task):
-    i, prod_smi_nomap = task
+
+def gen_precs(task):
+    global G_templates_filtered, G_preds
+
+    i, prod_smi_nomap, phase_topk = task
+
+    templates_filtered = G_templates_filtered
+    preds = G_preds
+
     # generate predictions from templates
     precursors, dup_count = [], 0
     pred_temp_idxs = preds[i]
@@ -190,6 +197,8 @@ class NeuralSymPredictor:
         logging.info(f'Saved preds of test as npy!')
 
     def compile_into_csv(self):
+        global G_templates_filtered, G_preds
+
         logging.info("Compiling into predictions.csv")
 
         preds = np.load(os.path.join(self.test_output_path, "raw_outputs_on_test.npy"))
@@ -197,7 +206,7 @@ class NeuralSymPredictor:
         # load mapped_rxn_smi
         with open(self.test_file, "r") as csv_file:
             csv_reader = csv.DictReader(csv_file)
-            clean_rxnsmi_phase = [row["reactants>reagents>production"].strip()
+            clean_rxnsmi_phase = [row["rxn_smiles"].strip()
                                   for row in csv_reader]
 
         proposals_data = pd.read_csv(
@@ -205,23 +214,25 @@ class NeuralSymPredictor:
             index_col=None, dtype='str'
         )
 
+        phase_topk = self.model_args.topk
         tasks = []
         for i in range(len(clean_rxnsmi_phase)):        # build tasks
-            tasks.append((i, proposals_data.iloc[i, 1]))
+            tasks.append((i, proposals_data.iloc[i, 1], phase_topk))
 
         proposals_phase = {}
         proposed_precs_phase, prod_smiles_phase, rcts_smiles_phase = [], [], []
         proposed_precs_phase_withdups = []              # true representation of model predictions, for calc_accs()
         prod_smiles_mapped_phase = []                   # helper for analyse_proposed()
-        phase_topk = self.model_args.topk
         dup_count = 0
+
+        G_templates_filtered = self.templates_filtered
+        G_preds = preds
 
         num_cores = self.model_args.num_cores
         logging.info(f'Parallelizing over {num_cores} cores')
         pool = multiprocessing.Pool(num_cores)
 
-        gen_precs_partial = partial(gen_precs, self.templates_filtered, preds, phase_topk)
-        for i, result in enumerate(tqdm(pool.imap(gen_precs_partial, tasks),
+        for i, result in enumerate(tqdm(pool.imap(gen_precs, tasks),
                                         total=len(clean_rxnsmi_phase),
                                         desc='Generating predicted reactants')):
             precursors, seen, this_dup = result

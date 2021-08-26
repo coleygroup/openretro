@@ -7,6 +7,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import traceback
 from base.trainer_base import Trainer
 from collections import defaultdict
 from models.neuralsym_model.dataset import FingerprintDataset
@@ -150,7 +151,7 @@ class NeuralSymTrainer(Trainer):
                 train_seen += labels.shape[0]
                 outputs = nn.Softmax(dim=1)(outputs)
 
-                labels = torch.where(labels == 0, labels, torch.tensor([-1], device=labels.device))
+                labels = torch.where(labels > 0, labels, torch.tensor([-1], device=labels.device))
 
                 for k in k_to_calc:
                     batch_preds = torch.topk(outputs, k=k, dim=1)[1]
@@ -171,7 +172,8 @@ class NeuralSymTrainer(Trainer):
                 valid_loader = tqdm(valid_loader, desc='validating')
                 for i, data in enumerate(valid_loader):
                     inputs, labels, idxs = data
-                    inputs, labels = inputs.to(self.device), labels.to(self.device)
+                    inputs = inputs.to(self.device)
+                    labels = labels.to(self.device)
 
                     outputs = self.model(inputs)
                     loss = criterion(outputs, labels)
@@ -180,7 +182,7 @@ class NeuralSymTrainer(Trainer):
                     valid_seen += labels.shape[0]
                     outputs = nn.Softmax(dim=-1)(outputs)
 
-                    labels = torch.where(labels == 0, labels, torch.tensor([-1], device=labels.device))
+                    labels = torch.where(labels > 0, labels, torch.tensor([-1], device=labels.device))
                     for k in k_to_calc:
                         batch_preds = torch.topk(outputs, k=k, dim=1)[1]
                         valid_correct[k] += \
@@ -195,8 +197,8 @@ class NeuralSymTrainer(Trainer):
                     try:
                         for j in range(i * self.model_args.bs_eval, (i + 1) * self.model_args.bs_eval):
                             # peek at a random sample of current batch to monitor training progress
-                            if j % (valid_size // 5) == random.randint(0, 3) or j % (valid_size // 8) == random.randint(
-                                    0, 4):
+                            if j % (valid_size // 5) == random.randint(0, 3) \
+                                    or j % (valid_size // 8) == random.randint(0, 4):
                                 batch_preds = torch.topk(outputs, k=1)[1].squeeze(dim=-1)
 
                                 rxn_idx = random.sample(list(range(self.model_args.bs_eval)), k=1)[0]
@@ -228,7 +230,8 @@ class NeuralSymTrainer(Trainer):
                                     logging.info(f'pred precursor (score = {rxn_pred_score:+.4f}):\t\tNULL template')
                                 elif len(rxn_pred_prec) == 0:
                                     logging.info(
-                                        f'pred precursor (score = {rxn_pred_score:+.4f}):\t\tTemplate could not be applied')
+                                        f'pred precursor (score = {rxn_pred_score:+.4f}):\t\t'
+                                        f'Template could not be applied')
                                 else:
                                     logging.info(f'pred precursor (score = {rxn_pred_score:+.4f}):\t\t{rxn_pred_prec}')
                                 logging.info(f'true precursor (score = {rxn_true_score:+.4f}):\t\t{rxn_true_prec}')

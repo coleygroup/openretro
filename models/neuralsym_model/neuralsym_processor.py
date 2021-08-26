@@ -3,7 +3,6 @@ import logging
 import multiprocessing
 import numpy as np
 import os
-import pickle
 import scipy
 import sys
 import time
@@ -420,7 +419,7 @@ class NeuralSymProcessor(Processor):
             np.save(os.path.join(self.processed_data_path, f"labels_{phase}.npy"), labels)
 
             # make CSV file to save labels (template_idx) & rxn data for monitoring training
-            col_names = ['rxn_idx', 'prod_smi', 'rcts_smi' 'template', 'temp_idx', ]
+            col_names = ['rxn_idx', 'prod_smi', 'rcts_smi', 'template', 'temp_idx']
             ofn = os.path.join(self.processed_data_path, f"processed_{phase}.csv")
             with open(ofn, "w") as out_csv:
                 writer = csv.writer(out_csv)
