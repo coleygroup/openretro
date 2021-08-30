@@ -9,4 +9,5 @@ docker run \
   --model_name="neuralsym" \
   --log_file="neuralsym_score_$DATA_NAME" \
   --test_file=/app/openretro/data/tmp_for_docker/raw_test.csv \
-  --prediction_file=/app/openretro/results/tmp_for_docker/predictions.csv
+  --prediction_file=/app/openretro/results/tmp_for_docker/predictions.csv \
+  --num_cores="$NUM_CORES"
