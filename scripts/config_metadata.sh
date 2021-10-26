@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # global
-DATA_NAME="pistachio"
-TRAIN_FILE=/home/ztu/pistachio/data_2021Q1/raw_train.csv
-VAL_FILE=/home/ztu/pistachio/data_2021Q1/raw_val.csv
-TEST_FILE=/home/ztu/pistachio/data_2021Q1/raw_test.csv
+DATA_NAME="uspto_full"
+#TRAIN_FILE=/home/ztu/pistachio/data_2021Q1/raw_train.csv
+#VAL_FILE=/home/ztu/pistachio/data_2021Q1/raw_val.csv
+#TEST_FILE=/home/ztu/pistachio/data_2021Q1/raw_test.csv
+TRAIN_FILE=$PWD/data/uspto_full/raw/raw_train.csv
+VAL_FILE=$PWD/data/uspto_full/raw/raw_val.csv
+TEST_FILE=$PWD/data/uspto_full/raw/raw_test.csv
 #TEST_FILE=$PWD/data/schneider50k/raw/raw_test.csv
-NUM_CORES=40
+NUM_CORES=32
 
 # paths for gln
 PROCESSED_DATA_PATH_GLN=$PWD/data/schneider50k/processed_gln
@@ -14,9 +17,12 @@ MODEL_PATH_GLN=$PWD/checkpoints/schneider50k_retrained_gln
 TEST_OUTPUT_PATH_GLN=$PWD/results/schneider50k_gln
 
 # paths for retroxpert
-PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/schneider50k/processed_retroxpert
-MODEL_PATH_RETROXPERT=$PWD/checkpoints/schneider50k_retrained_retroxpert
-TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/schneider50k_retroxpert
+#PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/pistachio/processed_retroxpert_2021Q1
+#MODEL_PATH_RETROXPERT=$PWD/checkpoints/pistachio_retrained_retroxpert
+#TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/pistachio_retroxpert
+PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/uspto_full/processed_retroxpert_uspto_full
+MODEL_PATH_RETROXPERT=$PWD/checkpoints/uspto_full_retrained_retroxpert
+TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/uspto_full_retroxpert
 
 # paths for transformer
 PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/pistachio/processed_transformer

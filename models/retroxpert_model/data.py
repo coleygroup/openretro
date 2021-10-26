@@ -1,3 +1,5 @@
+import glob
+
 import dgl
 import logging
 import networkx as nx
@@ -20,37 +22,45 @@ def len2idx(lens) -> np.ndarray:
 
 class RetroCenterDatasets(Dataset):
     """Modified dataset, now there is a single .pkl file per phase"""
-    def __init__(self, processed_data_path: str, fns: List[str]):
-        fn = os.path.join(processed_data_path, fns[0])
-        logging.info(f"Creating dataset from {fn}")
-        with open(fn, "rb") as f:
-            self.rxn_data_dict = pickle.load(f)
+    def __init__(self, processed_data_path: str, data_split: str):
+        fp = os.path.join(processed_data_path, data_split)
+        logging.info(f"Creating dataset from folder {fp}")
+        self.fl = sorted(glob.glob(os.path.join(fp, "*.pkl")))
 
-        fn_pattern = os.path.join(processed_data_path, fns[1])
-        logging.info(f"Loading pattern features from {fn_pattern}")
-        feat = np.load(fn_pattern)
-        self.pattern_features = feat["pattern_features"]
-        self.pattern_features_lens = feat["pattern_features_lens"]
-        self.pattern_features_indices = len2idx(self.pattern_features_lens)
+        # fn_pattern = os.path.join(processed_data_path, f"pattern_feat_{data_split}.npz")
+        # logging.info(f"Loading pattern features from {fn_pattern}")
+        # feat = np.load(fn_pattern)
+        # self.pattern_features = feat["pattern_features"]
+        # self.pattern_features_lens = feat["pattern_features_lens"]
+        # self.pattern_features_indices = len2idx(self.pattern_features_lens)
 
         self.disconnection_num = []
         cnt = Counter()
-        for i, rxn_data in self.rxn_data_dict.items():
-            xa = rxn_data["product_adj"]
-            ya = rxn_data["target_adj"]
-            res = xa & (ya == False)
-            res = np.sum(np.sum(res)) // 2
-            cnt[res] += 1
-            if res >= 2:
-                res = 2
+        for i, fn in enumerate(self.fl):
+            with open(fn, "rb") as f:
+                rxn_data = pickle.load(f)
+
+            if "target_adj" in rxn_data:
+                xa = rxn_data["product_adj"]
+                ya = rxn_data["target_adj"]
+                res = xa & (ya == False)
+                res = np.sum(np.sum(res)) // 2
+                cnt[res] += 1
+                if res >= 2:
+                    res = 2
+            else:
+                res = -1
             self.disconnection_num.append(res)
         logging.info(cnt)
 
     def __getitem__(self, index):
-        rxn_data = self.rxn_data_dict[index]
+        with open(self.fl[index], "rb") as f:
+            rxn_data = pickle.load(f)
+        if "target_adj" not in rxn_data:
+            return self.__getitem__(0)
 
         x_atom = rxn_data["product_atom_features"].astype(np.float32)
-        # x_pattern_feat = rxn_data["pattern_feat"].astype(np.float32)
+        x_pattern_feat = rxn_data["pattern_feat"].astype(np.float32)
         x_bond = rxn_data["product_bond_features"].astype(np.float32)
         x_adj = rxn_data["product_adj"]
         y_adj = rxn_data["target_adj"]
@@ -66,13 +76,13 @@ class RetroCenterDatasets(Dataset):
         x_graph = dgl.DGLGraph(nx.from_numpy_matrix(x_adj))
         x_graph.edata["w"] = x_bond[x_adj]
 
-        start, end = self.pattern_features_indices[index]
-        x_pattern_feat = self.pattern_features[start:end]
+        # start, end = self.pattern_features_indices[index]
+        # x_pattern_feat = self.pattern_features[start:end]
 
         return rxn_class, x_pattern_feat, x_atom, x_adj, x_graph, y_adj, disconnection_num
 
     def __len__(self):
-        return len(self.rxn_data_dict)
+        return len(self.fl)
 
 
 class RetroCenterDatasetsOriginal(Dataset):

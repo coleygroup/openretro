@@ -1,4 +1,5 @@
 import csv
+import glob
 import json
 import logging
 import multiprocessing
@@ -34,8 +35,8 @@ def find_all_patterns(task):
     product_mol = Chem.MolFromSmiles(product)
     [a.SetAtomMapNum(0) for a in product_mol.GetAtoms()]
     matches_all = {}
-    for idx, pattern in enumerate(G_patterns_filtered):
-        pattern_mol = Chem.MolFromSmarts(pattern)
+    for idx, pattern_mol in enumerate(G_patterns_filtered):
+        # pattern_mol = Chem.MolFromSmarts(pattern)
         if pattern_mol is None:
             logging.info(f"error: pattern_mol is None, idx: {idx}")
         try:
@@ -48,7 +49,7 @@ def find_all_patterns(task):
             if len(matches) > 0 and len(matches[0]) > 0:
                 matches_all[idx] = matches
     if len(matches_all) == 0:
-        print(product)
+        logging.info(f"No match found for product: {product}")
     num_atoms = product_mol.GetNumAtoms()
     pattern_feature = np.zeros((len(G_patterns_filtered), num_atoms))
     for idx, matches in matches_all.items():
@@ -59,6 +60,90 @@ def find_all_patterns(task):
             np.put(pattern_feature[idx], matches, 1)
     pattern_feature = pattern_feature.transpose().astype('bool_')
     return k, pattern_feature
+
+
+def canonicalize_helper(reaction: str):
+    reactant, product = reaction.split(">>")
+    mol = Chem.MolFromSmiles(product)
+    index2mapnums = {}
+    for atom in mol.GetAtoms():
+        index2mapnums[atom.GetIdx()] = atom.GetAtomMapNum()
+
+    # canonicalize the product smiles
+    mol_cano = Chem.RWMol(mol)
+    [atom.SetAtomMapNum(0) for atom in mol_cano.GetAtoms()]
+    smi_cano = Chem.MolToSmiles(mol_cano)
+    mol_cano = Chem.MolFromSmiles(smi_cano)
+
+    matches = mol.GetSubstructMatches(mol_cano)
+    if matches:
+        mapnums_old2new = {}
+        for atom, mat in zip(mol_cano.GetAtoms(), matches[0]):
+            mapnums_old2new[index2mapnums[mat]] = 1 + atom.GetIdx()
+            # update product mapping numbers according to canonical atom order
+            # to completely remove potential information leak
+            atom.SetAtomMapNum(1 + atom.GetIdx())
+        product = Chem.MolToSmiles(mol_cano)
+        # update reactant mapping numbers accordingly
+        mol_react = Chem.MolFromSmiles(reactant)
+        for atom in mol_react.GetAtoms():
+            if atom.GetAtomMapNum() > 0:
+                atom.SetAtomMapNum(mapnums_old2new[atom.GetAtomMapNum()])
+        reactant = Chem.MolToSmiles(mol_react)
+
+    reaction_new = f"{reactant}>>{product}"
+
+    return reaction_new
+
+
+def preprocess_core_helper(_args):
+    # adapted from __main__()
+
+    i, row, output_path, typed = _args
+    reactant, product = row["rxn_smiles"].split(">>")
+    reaction_class = int(row["class"] - 1) if typed else "UNK"
+
+    product_mol = Chem.MolFromSmiles(product)
+    reactant_mol = Chem.MolFromSmiles(reactant)
+
+    product_adj = Chem.rdmolops.GetAdjacencyMatrix(product_mol)
+    product_adj = product_adj + np.eye(product_adj.shape[0])
+    product_adj = product_adj.astype(np.bool)
+    reactant_adj = Chem.rdmolops.GetAdjacencyMatrix(reactant_mol)
+    reactant_adj = reactant_adj + np.eye(reactant_adj.shape[0])
+    reactant_adj = reactant_adj.astype(np.bool)
+
+    patomidx2pmapidx = get_atomidx2mapidx(product_mol)
+    rmapidx2ratomidx = get_mapidx2atomidx(reactant_mol)
+
+    product_bond_features = get_bond_features(product_mol)
+    product_atom_features = get_atom_features(product_mol)
+
+    rxn_data = {
+        'rxn_type': reaction_class,
+        'product_adj': product_adj,
+        'product_mol': product_mol,
+        'product_bond_features': product_bond_features,
+        'product_atom_features': product_atom_features,
+        'reactant_mol': reactant_mol
+    }
+
+    ofn = os.path.join(output_path, f"rxn_data_{i}.pkl")
+    try:
+        order = get_order(product_mol, patomidx2pmapidx, rmapidx2ratomidx)
+        target_adj = reactant_adj[order][:, order]
+        rxn_data['target_adj'] = target_adj
+        with open(ofn, "wb") as of:
+            pickle.dump(rxn_data, of)
+    except:         # probably due to some atom mapping problem
+        with open(ofn, "wb") as of:
+            pickle.dump(rxn_data, of)
+        return "fail", None
+
+    reactants = reactant.split(".")
+    src_item, tgt_item = get_smarts_pieces_s1(product_mol, product_adj, target_adj, reactants)
+
+    return "success", (i, reactant, product, reaction_class, src_item, tgt_item)
 
 
 class RetroXpertProcessorS1(Processor):
@@ -95,6 +180,8 @@ class RetroXpertProcessorS1(Processor):
         for phase, csv_file in [("train", self.train_file),
                                 ("val", self.val_file),
                                 ("test", self.test_file)]:
+            start = time.time()
+
             df = pd.read_csv(csv_file)
             output_csv_file = os.path.join(self.processed_data_path, f"canonicalized_{phase}.csv")
 
@@ -102,40 +189,37 @@ class RetroXpertProcessorS1(Processor):
                 logging.info(f"Output file found at {output_csv_file}, skipping preprocessing core for phase {phase}")
                 continue
 
-            reaction_list = df["reactants>reagents>production"]
+            reaction_list = df["rxn_smiles"]
             reaction_list_new = []
 
-            for reaction in tqdm(reaction_list):
-                reactant, product = reaction.split(">>")
-                mol = Chem.MolFromSmiles(product)
-                index2mapnums = {}
-                for atom in mol.GetAtoms():
-                    index2mapnums[atom.GetIdx()] = atom.GetAtomMapNum()
+            with ProcessPool(max_workers=self.num_cores) as pool:
+                # had to resort to pebble to add timeout. rdchiral could hang
+                future = pool.map(canonicalize_helper, reaction_list, timeout=10)
 
-                # canonicalize the product smiles
-                mol_cano = Chem.RWMol(mol)
-                [atom.SetAtomMapNum(0) for atom in mol_cano.GetAtoms()]
-                smi_cano = Chem.MolToSmiles(mol_cano)
-                mol_cano = Chem.MolFromSmiles(smi_cano)
+                iterator = future.result()
+                rxn_smiles = iter(reaction_list)
+                i = 0
 
-                matches = mol.GetSubstructMatches(mol_cano)
-                if matches:
-                    mapnums_old2new = {}
-                    for atom, mat in zip(mol_cano.GetAtoms(), matches[0]):
-                        mapnums_old2new[index2mapnums[mat]] = 1 + atom.GetIdx()
-                        # update product mapping numbers according to canonical atom order
-                        # to completely remove potential information leak
-                        atom.SetAtomMapNum(1 + atom.GetIdx())
-                    product = Chem.MolToSmiles(mol_cano)
-                    # update reactant mapping numbers accordingly
-                    mol_react = Chem.MolFromSmiles(reactant)
-                    for atom in mol_react.GetAtoms():
-                        if atom.GetAtomMapNum() > 0:
-                            atom.SetAtomMapNum(mapnums_old2new[atom.GetAtomMapNum()])
-                    reactant = Chem.MolToSmiles(mol_react)
-                reaction_list_new.append(f"{reactant}>>{product}")
+                while True:
+                    try:
+                        rxn_smi = next(rxn_smiles)
+                        reaction_new = next(iterator)
+                        reaction_list_new.append(reaction_new)
+                        i += 1
 
-            df["reactants>reagents>production"] = reaction_list_new
+                        if i % 10000 == 0:
+                            logging.info(f"Processing {i}th reaction, elapsed time: {time.time() - start}")
+
+                    except StopIteration:
+                        break
+                    except TimeoutError as error:
+                        logging.info(f"canonicalize_helper call took more than {error.args} seconds "
+                                     f"for rxn_smi {rxn_smi}")
+                        assert rxn_smi == reaction_list[i]          # sanity check
+                        reaction_list_new.append(rxn_smi)
+                        i += 1
+
+            df["rxn_smiles"] = reaction_list_new
             df.to_csv(output_csv_file, index=False)
 
     def preprocess_core(self):
@@ -145,17 +229,21 @@ class RetroXpertProcessorS1(Processor):
         opennmt_data_path = os.path.join(self.processed_data_path, "opennmt_data_s1")
         os.makedirs(opennmt_data_path, exist_ok=True)
 
+        pool = multiprocessing.Pool(self.num_cores)
         for phase in ["train", "val", "test"]:
             csv_file = os.path.join(self.processed_data_path, f"canonicalized_{phase}.csv")
-            ofn = os.path.join(self.processed_data_path, f"rxn_data_{phase}.pkl")
-
-            if os.path.exists(ofn):
-                logging.info(f"Output file found at {ofn}, skipping preprocessing core for phase {phase}")
-                continue
+            output_path = os.path.join(self.processed_data_path, phase)
+            os.makedirs(output_path, exist_ok=True)
 
             df = pd.read_csv(csv_file)
 
-            rxn_data_dict = {}
+            ofn_src = os.path.join(opennmt_data_path, f"src-{phase}.txt")
+            ofn_tgt = os.path.join(opennmt_data_path, f"tgt-{phase}.txt")
+            if os.path.exists(ofn_src) and os.path.exists(ofn_tgt):
+                logging.info(f"Output file found at {ofn_src} and {ofn_tgt}, "
+                             f"skipping preprocessing core for phase {phase}")
+                continue
+
             of_src = open(os.path.join(opennmt_data_path, f"src-{phase}.txt"), "w")
             of_tgt = open(os.path.join(opennmt_data_path, f"tgt-{phase}.txt"), "w")
 
@@ -163,63 +251,36 @@ class RetroXpertProcessorS1(Processor):
                 of_src_aug = open(os.path.join(opennmt_data_path, f"src-train-aug.txt"), "w")
                 of_tgt_aug = open(os.path.join(opennmt_data_path, f"tgt-train-aug.txt"), "w")
 
-            for i, row in tqdm(df.iterrows()):
-                # adapted from __main__()
-                reactant, product = row["reactants>reagents>production"].split(">>")
-                reaction_class = int(row["class"] - 1) if self.model_args.typed else "UNK"
+            failed = 0
+            _args = [(i, row, output_path, self.model_args.typed) for i, row in df.iterrows()]
 
-                product_mol = Chem.MolFromSmiles(product)
-                reactant_mol = Chem.MolFromSmiles(reactant)
+            for status, rxn_data in tqdm(pool.imap(preprocess_core_helper, _args)):
+                if status == "fail":
+                    continue
+                elif status == "success":
+                    i, reactant, product, reaction_class, src_item, tgt_item = rxn_data
 
-                product_adj = Chem.rdmolops.GetAdjacencyMatrix(product_mol)
-                product_adj = product_adj + np.eye(product_adj.shape[0])
-                product_adj = product_adj.astype(np.bool)
-                reactant_adj = Chem.rdmolops.GetAdjacencyMatrix(reactant_mol)
-                reactant_adj = reactant_adj + np.eye(reactant_adj.shape[0])
-                reactant_adj = reactant_adj.astype(np.bool)
+                    # adapted from generate_opennmt_data()
+                    # Note: valid src_item seems to require target_adj, so skip if target_adj is erroneous
+                    of_src.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
+                    of_tgt.write(f"{tgt_item}\n")
 
-                patomidx2pmapidx = get_atomidx2mapidx(product_mol)
-                rmapidx2ratomidx = get_mapidx2atomidx(reactant_mol)
+                    # data augmentation fro training data
+                    if phase == "train":
+                        of_src_aug.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
+                        of_tgt_aug.write(f"{tgt_item}\n")
 
-                order = get_order(product_mol, patomidx2pmapidx, rmapidx2ratomidx)
-                target_adj = reactant_adj[order][:, order]
+                        reactants = tgt_item.split(".")
+                        if len(reactants) == 1:
+                            continue
+                        synthons = src_item.strip().split(".")
+                        src_item = " . ".join(synthons[::-1]).strip()           # .reverse() is an in-place op
+                        tgt_item = " . ".join(reactants[::-1]).strip()
 
-                product_bond_features = get_bond_features(product_mol)
-                product_atom_features = get_atom_features(product_mol)
+                        of_src_aug.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
+                        of_tgt_aug.write(f"{tgt_item}\n")
 
-                rxn_data = {
-                    'rxn_type': reaction_class,
-                    'product_adj': product_adj,
-                    'product_mol': product_mol,
-                    'product_bond_features': product_bond_features,
-                    'product_atom_features': product_atom_features,
-                    'target_adj': target_adj,
-                    'reactant_mol': reactant_mol
-                }
-                rxn_data_dict[i] = rxn_data
-
-                # adapted from generate_opennmt_data()
-                reactants = reactant.split(".")
-                src_item, tgt_item = get_smarts_pieces_s1(product_mol, product_adj, target_adj, reactants)
-                of_src.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
-                of_tgt.write(f"{tgt_item}\n")
-
-                # data augmentation fro training data
-                if phase == "train":
-                    of_src_aug.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
-                    of_tgt_aug.write(f"{tgt_item}\n")
-
-                    reactants = tgt_item.split(".")
-                    if len(reactants) == 1:
-                        continue
-                    synthons = src_item.strip().split(".")
-                    src_item = " . ".join(synthons[::-1]).strip()           # .reverse() is an in-place op
-                    tgt_item = " . ".join(reactants[::-1]).strip()
-
-                    of_src_aug.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
-                    of_tgt_aug.write(f"{tgt_item}\n")
-
-            logging.info(f"Data size: {i + 1}")
+            logging.info(f"Data size: {i + 1}, failed (and dropped): {failed}")
             of_src.close()
             of_tgt.close()
 
@@ -227,31 +288,34 @@ class RetroXpertProcessorS1(Processor):
                 of_src_aug.close()
                 of_tgt_aug.close()
 
-            with open(ofn, "wb") as of:
-                pickle.dump(rxn_data_dict, of)
+        pool.close()
+        pool.join()
 
     def extract_semi_templates(self):
         """Adapted from extract_semi_template_pattern.py"""
         logging.info("Extracting semi-templates")
 
         pattern_file = os.path.join(self.processed_data_path, "product_patterns.txt")
-        rxn_data_file = os.path.join(self.processed_data_path, "rxn_data_train.pkl")
+        rxn_data_path = os.path.join(self.processed_data_path, "train")
+        fl = glob.glob(os.path.join(rxn_data_path, "*.pkl"))
 
         if os.path.exists(pattern_file):
             logging.info(f"Output file found at {pattern_file}, skipping extract_semi_templates()")
             return
 
-        with open(rxn_data_file, "rb") as f:
-            rxn_data_dict = pickle.load(f)
-
         patterns = {}
         rxns = []
-        for i, rxn_data in tqdm(rxn_data_dict.items()):
+        for i, fn in enumerate(tqdm(fl)):
+            with open(fn, "rb") as f:
+                rxn_data = pickle.load(f)
+                if not rxn_data:            # skip reactions with incomplete atom mapping
+                    continue
             reactant = Chem.MolToSmiles(rxn_data["reactant_mol"], canonical=False)
             product = Chem.MolToSmiles(rxn_data["product_mol"], canonical=False)
             rxns.append((i, reactant, product))
+            del rxn_data
+
         logging.info(f"Total training reactions: {len(rxns)}")
-        del rxn_data_dict
 
         with ProcessPool(max_workers=self.num_cores) as pool:
             # had to resort to pebble to add timeout. rdchiral could hang
@@ -295,7 +359,9 @@ class RetroXpertProcessorS1(Processor):
             for line in f:
                 pattern, count = line.strip().split(": ")
                 if int(count.strip()) >= self.model_args.min_freq:
-                    patterns_filtered.append(pattern)
+                    # patterns_filtered.append(pattern)
+                    pattern_mol = Chem.MolFromSmarts(pattern)
+                    patterns_filtered.append(pattern_mol)
         logging.info(f"Filtered patterns by min frequency {self.model_args.min_freq}, "
                      f"remaining pattern count: {len(patterns_filtered)}")
 
@@ -308,47 +374,58 @@ class RetroXpertProcessorS1(Processor):
         G_patterns_filtered = patterns_filtered
 
         for phase in ["train", "val", "test"]:
-            rxn_data_file = os.path.join(self.processed_data_path, f"rxn_data_{phase}.pkl")
-            pattern_feat_file = os.path.join(self.processed_data_path, f"pattern_feat_{phase}.npz")
+            # pattern_feat_file = os.path.join(self.processed_data_path, f"pattern_feat_{phase}.npz")
+            rxn_data_path = os.path.join(self.processed_data_path, phase)
+            n_files = len(glob.glob(os.path.join(rxn_data_path, "*.pkl")))
 
-            logging.info(f"Loading from {rxn_data_file}")
-            with open(rxn_data_file, "rb") as f:
-                rxn_data_dict = pickle.load(f)
-
-            tasks = [(idx, Chem.MolToSmiles(rxn_data["product_mol"], canonical=False))
-                     for idx, rxn_data in rxn_data_dict.items()]
+            tasks = []
+            for i in tqdm(range(n_files)):
+                fn = os.path.join(rxn_data_path, f"rxn_data_{i}.pkl")
+                with open(fn, "rb") as f:
+                    rxn_data = pickle.load(f)
+                product = Chem.MolToSmiles(rxn_data["product_mol"], canonical=False)
+                tasks.append((i, product))
+                del rxn_data
 
             counter = []
-            pattern_features = []
-            pattern_features_lens = []
+            # pattern_features = []
+            # pattern_features_lens = []
 
             pool = multiprocessing.Pool(self.num_cores)
             for i, result in enumerate(tqdm(pool.imap(find_all_patterns, tasks), total=len(tasks))):
                 k, pattern_feature = result
                 assert i == k
 
-                pattern_features.append(pattern_feature)
-                pattern_features_lens.append(pattern_feature.shape[0])
+                fn = os.path.join(rxn_data_path, f"rxn_data_{i}.pkl")
+                with open(fn, "rb") as f:
+                    reaction_data = pickle.load(f)
+                reaction_data['pattern_feat'] = pattern_feature.astype(np.bool)
+                with open(fn, "wb") as of:
+                    pickle.dump(reaction_data, of)
+
+                # pattern_features.append(pattern_feature)
+                # pattern_features_lens.append(pattern_feature.shape[0])
 
                 pa = np.sum(pattern_feature, axis=0)            # what's this?
                 counter.append(np.sum(pa > 0))
 
-            pattern_features = np.concatenate(pattern_features, axis=0)
-            pattern_features_lens = np.asarray(pattern_features_lens)
+            # pattern_features = np.concatenate(pattern_features, axis=0)
+            # pattern_features_lens = np.asarray(pattern_features_lens)
 
-            logging.info(f"# ave center per mol: {np.mean(counter)}, "
-                         f"shape of pattern_features: {pattern_features.shape}, "
-                         f"shape of pattern_features_lens: {pattern_features_lens.shape}, "
-                         f"dumping into {pattern_feat_file}")
-            np.savez(pattern_feat_file,
-                     pattern_features=pattern_features,
-                     pattern_features_lens=pattern_features_lens)
-            logging.info("Dumped. Cleaning up")
+            logging.info(f"# ave center per mol: {np.mean(counter)}")
+            # logging.info(f"# ave center per mol: {np.mean(counter)}, "
+            #              f"shape of pattern_features: {pattern_features.shape}, "
+            #              f"shape of pattern_features_lens: {pattern_features_lens.shape}, "
+            #              f"dumping into {pattern_feat_file}")
+            # np.savez(pattern_feat_file,
+            #          pattern_features=pattern_features,
+            #          pattern_features_lens=pattern_features_lens)
+            # logging.info("Dumped. Cleaning up")
 
             pool.close()
             pool.join()
 
-            del pattern_features, pattern_features_lens
+            # del pattern_features, pattern_features_lens
 
 
 class RetroXpertProcessorS2(Processor):

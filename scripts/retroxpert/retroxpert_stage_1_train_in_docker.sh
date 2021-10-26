@@ -15,5 +15,5 @@ docker run --gpus 1 \
   --log_file="retroxpert_train_s1_$DATA_NAME" \
   --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
   --model_path=/app/openretro/checkpoints/tmp_for_docker \
-  --batch_size=32 \
-  --epochs=80
+  --batch_size=128 \
+  --epochs=20

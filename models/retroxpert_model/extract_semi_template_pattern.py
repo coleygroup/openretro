@@ -54,7 +54,7 @@ def get_tpl(task):
     template = extract_from_reaction(reaction, super_general=True)
 
     product_pattern = None
-    if "reaction_smarts" in template:
+    if template is not None and "reaction_smarts" in template:
         product_pattern = cano_smarts(template["products"])
 
     del reaction, template
