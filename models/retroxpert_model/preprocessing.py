@@ -143,7 +143,11 @@ def bond_features(bond):
 def smarts2smiles(smarts, canonical=True):
     t = re.sub(':\d*', '', smarts)
     mol = Chem.MolFromSmiles(t, sanitize=False)
-    return Chem.MolToSmiles(mol, canonical=canonical)
+    if mol is None:
+        smi = ""
+    else:
+        smi = Chem.MolToSmiles(mol, canonical=canonical)
+    return smi
 
 
 def del_index(smarts):

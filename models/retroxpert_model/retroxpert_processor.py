@@ -127,6 +127,7 @@ def preprocess_core_helper(_args):
         'product_atom_features': product_atom_features,
         'reactant_mol': reactant_mol
     }
+    reactants = reactant.split(".")
 
     ofn = os.path.join(output_path, f"rxn_data_{i}.pkl")
     try:
@@ -138,9 +139,8 @@ def preprocess_core_helper(_args):
     except:         # probably due to some atom mapping problem
         with open(ofn, "wb") as of:
             pickle.dump(rxn_data, of)
-        return "fail", None
+        return "fail", (i, reactant, product, reaction_class, "", " . ".join(reactants))
 
-    reactants = reactant.split(".")
     src_item, tgt_item = get_smarts_pieces_s1(product_mol, product_adj, target_adj, reactants)
 
     return "success", (i, reactant, product, reaction_class, src_item, tgt_item)
@@ -255,11 +255,11 @@ class RetroXpertProcessorS1(Processor):
             _args = [(i, row, output_path, self.model_args.typed) for i, row in df.iterrows()]
 
             for status, rxn_data in tqdm(pool.imap(preprocess_core_helper, _args)):
+                i, reactant, product, reaction_class, src_item, tgt_item = rxn_data
                 if status == "fail":
-                    continue
+                    of_src.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
+                    of_tgt.write(f"{tgt_item}\n")
                 elif status == "success":
-                    i, reactant, product, reaction_class, src_item, tgt_item = rxn_data
-
                     # adapted from generate_opennmt_data()
                     # Note: valid src_item seems to require target_adj, so skip if target_adj is erroneous
                     of_src.write(f"{i} [RXN_{reaction_class}] {product} [PREDICT] {src_item}\n")
@@ -466,16 +466,16 @@ class RetroXpertProcessorS2(Processor):
         """Actual file-based preprocessing"""
         self.test_and_save(data_split="test")
         self.test_and_save(data_split="train")
-        self.generate_formatted_dataset()
+        # self.generate_formatted_dataset()
         self.prepare_test_prediction()
         self.prepare_train_error_aug()
         self.onmt_preprocess()
 
     def test_and_save(self, data_split: str):
-        fn = f"rxn_data_{data_split}.pkl"
-        fn_pattern = f"pattern_feat_{data_split}.npz"
+        # fn = f"rxn_data_{data_split}.pkl"
+        # fn_pattern = f"pattern_feat_{data_split}.npz"
 
-        logging.info(f"Testing on {fn} to generate stage 1 results on {data_split}")
+        logging.info(f"Testing to generate stage 1 results on {data_split}")
 
         disconnection_fn = os.path.join(
             self.processed_data_path, f"{data_split}_disconnection_{self.trainer_s1.exp_name}.txt")
@@ -489,7 +489,7 @@ class RetroXpertProcessorS2(Processor):
             return
 
         data = RetroCenterDatasets(processed_data_path=self.processed_data_path,
-                                   fns=[fn, fn_pattern])
+                                   data_split=data_split)
         dataloader = DataLoader(data,
                                 batch_size=4 * self.model_args.batch_size,
                                 shuffle=False,
@@ -562,21 +562,27 @@ class RetroXpertProcessorS2(Processor):
 
     @staticmethod
     def get_bond_disconnection_prediction(
-            pred_results_file: str, bond_pred_results_file: str, reaction_data_file: str):
+            pred_results_file: str, bond_pred_results_file: str, rxn_data_path: str):
         with open(pred_results_file) as f:
             pred_results = f.readlines()
         with open(bond_pred_results_file) as f:
             bond_pred_results = f.readlines()
-        with open(reaction_data_file, "rb") as f:
-            rxn_data_dict = pickle.load(f)
+        n_files = len(glob.glob(os.path.join(rxn_data_path, "*.pkl")))
+        # with open(reaction_data_file, "rb") as f:
+        #     rxn_data_dict = pickle.load(f)
 
         product_adjs = []
         product_mols = []
         product_smiles = []
-        for i, rxn_data in rxn_data_dict.items():
+        # for i, rxn_data in rxn_data_dict.items():
+        for i in tqdm(range(n_files)):
+            fn = os.path.join(rxn_data_path, f"rxn_data_{i}.pkl")
+            with open(fn, "rb") as f:
+                rxn_data = pickle.load(f)
             product_adjs.append(rxn_data["product_adj"])
             product_mols.append(rxn_data["product_mol"])
             product_smiles.append(Chem.MolToSmiles(rxn_data["product_mol"], canonical=False))
+            del rxn_data
 
         assert len(product_smiles) == len(bond_pred_results)
 
@@ -601,14 +607,14 @@ class RetroXpertProcessorS2(Processor):
 
             bond_disconnection.append(pred_adj_index)
             bond_disconnection_gt.append(gt_adj_index)
-            res = set(gt_adj_index) == set(pred_adj_index)
+            res = (set(gt_adj_index) == set(pred_adj_index))
             guided_pred_results.append(int(res))
             cnt += res
 
         logging.info(f"guided bond_disconnection prediction cnt and acc: {cnt} {cnt / len(bond_pred_results)}")
         logging.info(f"bond_disconnection len: {len(bond_disconnection)}")
 
-        return product_adjs, product_mols, bond_disconnection, guided_pred_results
+        return product_smiles, product_adjs, product_mols, bond_disconnection, guided_pred_results
 
     def prepare_test_prediction(self):
         """Adapted from prepare_test_prediction.py"""
@@ -618,28 +624,37 @@ class RetroXpertProcessorS2(Processor):
             self.processed_data_path, f"test_result_mol_{self.trainer_s1.exp_name}.txt")
         bond_pred_results_file = os.path.join(
             self.processed_data_path, f"test_disconnection_{self.trainer_s1.exp_name}.txt")
-        reaction_data_file = os.path.join(
-            self.processed_data_path, f"rxn_data_test.pkl")
+        # reaction_data_file = os.path.join(
+        #     self.processed_data_path, f"rxn_data_test.pkl")
+        rxn_data_path = os.path.join(
+            self.processed_data_path, "test")
 
-        product_adjs, product_mols, bond_disconnection, guided_pred_results = self.get_bond_disconnection_prediction(
-            pred_results_file=pred_results_file,
-            bond_pred_results_file=bond_pred_results_file,
-            reaction_data_file=reaction_data_file
-        )
+        product_smiles, product_adjs, product_mols, bond_disconnection, guided_pred_results = \
+            self.get_bond_disconnection_prediction(
+                pred_results_file=pred_results_file,
+                bond_pred_results_file=bond_pred_results_file,
+                rxn_data_path=rxn_data_path
+            )
 
         logging.info("Generate synthons from bond disconnection prediction")
         synthons = []
-        for i, prod_adj in enumerate(product_adjs):
+        for prod_smi, prod_adj, prod_mol, disconnection in tqdm(
+                zip(product_smiles, product_adjs, product_mols, bond_disconnection)):
             x_adj = np.array(prod_adj)
             # find 1 index
             idxes = np.argwhere(x_adj > 0)
             pred_adj = prod_adj.copy()
-            for k in bond_disconnection[i]:
+            # logging.info(f"product: {prod_smi}")
+            # logging.info(f"idxes: {idxes.T}, length: {len(idxes)}")
+            # logging.info(f"x_adj: {x_adj}")
+            # logging.info(f"disconnection: {disconnection}")
+
+            for k in disconnection:
                 idx = idxes[k]
                 assert pred_adj[idx[0], idx[1]] == 1
                 pred_adj[idx[0], idx[1]] = 0
 
-            pred_synthon = get_smarts_pieces_s2(product_mols[i], prod_adj, pred_adj)
+            pred_synthon = get_smarts_pieces_s2(prod_mol, prod_adj, pred_adj)
             synthons.append(pred_synthon)
 
         with open(os.path.join(self.processed_data_path, "opennmt_data_s1", "src-test.txt")) as f:
@@ -679,13 +694,15 @@ class RetroXpertProcessorS2(Processor):
             self.processed_data_path, f"train_result_mol_{self.trainer_s1.exp_name}.txt")
         bond_pred_results_file = os.path.join(
             self.processed_data_path, f"train_disconnection_{self.trainer_s1.exp_name}.txt")
-        reaction_data_file = os.path.join(
-            self.processed_data_path, f"rxn_data_train.pkl")
+        # reaction_data_file = os.path.join(
+        #     self.processed_data_path, f"rxn_data_train.pkl")
+        rxn_data_path = os.path.join(
+            self.processed_data_path, "train")
 
-        product_adjs, product_mols, bond_disconnection, guided_pred_results = self.get_bond_disconnection_prediction(
+        _, product_adjs, product_mols, bond_disconnection, guided_pred_results = self.get_bond_disconnection_prediction(
             pred_results_file=pred_results_file,
             bond_pred_results_file=bond_pred_results_file,
-            reaction_data_file=reaction_data_file
+            rxn_data_path=rxn_data_path
         )
 
         with open(os.path.join(self.processed_data_path, "opennmt_data_s1", "src-train.txt")) as f:
@@ -696,7 +713,7 @@ class RetroXpertProcessorS2(Processor):
         # Generate synthons from bond disconnection prediction
         sources = []
         targets = []
-        for i, prod_adj in enumerate(product_adjs):
+        for i, prod_adj in enumerate(tqdm(product_adjs)):
             if guided_pred_results[i] == 1:
                 continue
             x_adj = np.array(prod_adj)

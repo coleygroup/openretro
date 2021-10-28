@@ -21,11 +21,10 @@ def len2idx(lens) -> np.ndarray:
 
 
 class RetroCenterDatasets(Dataset):
-    """Modified dataset, now there is a single .pkl file per phase"""
     def __init__(self, processed_data_path: str, data_split: str):
-        fp = os.path.join(processed_data_path, data_split)
-        logging.info(f"Creating dataset from folder {fp}")
-        self.fl = sorted(glob.glob(os.path.join(fp, "*.pkl")))
+        self.fp = os.path.join(processed_data_path, data_split)
+        logging.info(f"Creating dataset from folder {self.fp}")
+        self.n_files = len(glob.glob(os.path.join(self.fp, "*.pkl")))
 
         # fn_pattern = os.path.join(processed_data_path, f"pattern_feat_{data_split}.npz")
         # logging.info(f"Loading pattern features from {fn_pattern}")
@@ -36,7 +35,8 @@ class RetroCenterDatasets(Dataset):
 
         self.disconnection_num = []
         cnt = Counter()
-        for i, fn in enumerate(self.fl):
+        for i in range(self.n_files):
+            fn = os.path.join(self.fp, f"rxn_data_{i}.pkl")
             with open(fn, "rb") as f:
                 rxn_data = pickle.load(f)
 
@@ -54,7 +54,9 @@ class RetroCenterDatasets(Dataset):
         logging.info(cnt)
 
     def __getitem__(self, index):
-        with open(self.fl[index], "rb") as f:
+        fn = os.path.join(self.fp, f"rxn_data_{index}.pkl")
+        # with open(self.fl[index], "rb") as f:
+        with open(fn, "rb") as f:
             rxn_data = pickle.load(f)
         if "target_adj" not in rxn_data:
             return self.__getitem__(0)
@@ -82,7 +84,7 @@ class RetroCenterDatasets(Dataset):
         return rxn_class, x_pattern_feat, x_atom, x_adj, x_graph, y_adj, disconnection_num
 
     def __len__(self):
-        return len(self.fl)
+        return self.n_files
 
 
 class RetroCenterDatasetsOriginal(Dataset):

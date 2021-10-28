@@ -15,8 +15,9 @@ docker run --gpus 1 \
   --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
   --model_path=/app/openretro/checkpoints/tmp_for_docker \
   --test_output_path=/app/openretro/results/tmp_for_docker \
-  --beam_size 50 \
-  --n_best 50 \
+  --shard_size 1000 \
+  --beam_size 20 \
+  --n_best 20 \
   --batch_size 8 \
   --replace_unk \
   --max_length 300 \
