@@ -52,7 +52,10 @@ class RetroXpertPredictor:
 
     def predict(self):
         """Actual file-based testing, a wrapper to onmt.bin.translate()"""
-        onmt_translate(self.model_args)
+        if os.path.exists(self.model_args.output):
+            logging.info(f"Results found at {self.model_args.output}, skip prediction.")
+        else:
+            onmt_translate(self.model_args)
         self.compile_into_csv()
 
     def compile_into_csv(self):

@@ -464,12 +464,12 @@ class RetroXpertProcessorS2(Processor):
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing"""
-        self.test_and_save(data_split="test")
-        self.test_and_save(data_split="train")
-        # self.generate_formatted_dataset()
-        self.prepare_test_prediction()
-        self.prepare_train_error_aug()
-        self.onmt_preprocess()
+        # self.test_and_save(data_split="test")
+        # self.test_and_save(data_split="train")
+        self.generate_formatted_dataset()
+        # self.prepare_test_prediction()
+        # self.prepare_train_error_aug()
+        # self.onmt_preprocess()
 
     def test_and_save(self, data_split: str):
         # fn = f"rxn_data_{data_split}.pkl"
