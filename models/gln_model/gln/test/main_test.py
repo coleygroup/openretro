@@ -29,7 +29,7 @@ local_args, _ = cmd_opt.parse_known_args()
 
 
 def load_raw_reacts(name, fname: str = ""):
-    logging.info("loading raw {name}")
+    logging.info(f"loading raw {name}")
     if fname:
         csv_file = fname
     else:
@@ -108,17 +108,17 @@ def eval_model(phase, fname: str, model, fname_pred):
             predictions = []
         fpred.write('%s %s %d\n' % (rxn_type, rxn, len(predictions)))
         for i in range(len(predictions)):
-            fpred.write('%s %s\n' % (pred_struct['template'][i], predictions[i]))
+            fpred.write('%s %s\n' % (pred_struct['templates'][i], predictions[i]))
         msg = 'average score'
         for k in range(0, min(cmd_args.topk, 10), 3):
             msg += ', t%d: %.4f' % (k + 1, topk_scores[k] / cnt)
         pbar.set_description(msg)
     fpred.close()
     h = '========%s results========' % phase
-    print(h)
+    logging.info(h)
     for k in range(cmd_args.topk):
-        print('top %d: %.4f' % (k + 1, topk_scores[k] / cnt))
-    print('=' * len(h))
+        logging.info('top %d: %.4f' % (k + 1, topk_scores[k] / cnt))
+    logging.info('=' * len(h))
 
     f_summary = '.'.join(fname_pred.split('.')[:-1]) + '.summary'
     with open(f_summary, 'w') as f:
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     np.random.seed(cmd_args.seed)
     torch.manual_seed(cmd_args.seed)
 
-    if local_args.model_for_test is None: # test all
+    if local_args.model_for_test is None:               # test all
         i = 0
         while True:
             model_dump = os.path.join(cmd_args.save_dir, 'model-%d.dump' % i)
@@ -140,13 +140,13 @@ if __name__ == '__main__':
                 break
             local_args.model_for_test = model_dump
             model = RetroGLN(cmd_args.dropbox, local_args.model_for_test)
-            print('testing', local_args.model_for_test)
+            logging.info('testing', local_args.model_for_test)
             for phase in ['val', 'test']:
                 fname_pred = os.path.join(cmd_args.save_dir, '%s-%d.pred' % (phase, i))
                 eval_model(phase, "", model, fname_pred)
             i += 1
     else:
         model = RetroGLN(cmd_args.dropbox, local_args.model_for_test)
-        print('testing', local_args.model_for_test)
+        logging.info('testing', local_args.model_for_test)
         fname_pred = os.path.join(cmd_args.save_dir, 'test.pred')
         eval_model('test', "", model, fname_pred)

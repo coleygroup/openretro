@@ -33,7 +33,9 @@ class RetroGLN(object):
             self.args = cp.load(f)
             self.args.dropbox = dropbox
 
-        logging.info(f"Loaded actual args used for training: {self.args}")
+        logging.info(f"Loaded args used for training")
+        for k, v in vars(self.args).items():
+            logging.info(f"**** {k} = *{v}*")
 
         DataInfo.init(dropbox, self.args)
         load_bin_feats(dropbox, self.args)
@@ -54,7 +56,7 @@ class RetroGLN(object):
                 return None
             if self.cached_smarts is None:
                 self.cached_smarts = []
-                print('caching smarts centers')
+                logging.info('caching smarts centers')
                 for sm in DataInfo.prod_cano_smarts:
                     self.cached_smarts.append(Chem.MolFromSmarts(sm))
 
@@ -161,11 +163,15 @@ class RetroGLN(object):
             scores = softmax([each_score for each_score in scores])
             list_reacts = [t[2] for t in final_joint]
             ret_tpls = [t[1] for t in final_joint]
-            result = {'templates': ret_tpls,
-                    'reactants': list_reacts,
-                    'scores': scores}
+            result = {
+                'templates': ret_tpls,
+                'reactants': list_reacts,
+                'scores': scores
+            }
         else:
-            result = {'templates': [],
-                        'reactants': [],
-                        'scores': []}
+            result = {
+                'templates': [],
+                'reactants': [],
+                'scores': []
+            }
         return result

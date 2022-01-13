@@ -3,8 +3,18 @@ An open source library for benchmarking one-step retrosynthesis.
 This README is mainly for one-click benchmarking on existing/new reaction datasets.
 For serving retrosynthesis models, please refer to README_serving.md.
 
+# Selected Results
+### USPTO_50k without reaction type
+| Accuracy (%) | Top-1  | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
+|--------------|--------|-------|-------|-------|--------|--------|--------|
+| GLN          | 51.8   | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
+
+### USPTO_full without reaction type
+| Accuracy (%) | Top-1  | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
+|--------------|--------|-------|-------|-------|--------|--------|--------|
+| GLN          | 51.8   | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
+
 # Environment Setup
-## Option 1. Using Docker (recommended)
 Building the Docker for benchmarking requires GPU support,
 which will speed up training with any models in general.
 First follow the instruction on https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
@@ -13,18 +23,13 @@ to install the NVIDIA Container Toolkit (a.k.a. nvidia-docker2). Then run
 docker build -f Dockerfile_gpu -t openretro:gpu .
 ```
 
-## Option 2. Using Conda (not recommended; WIP)
-Please contact Zhengkai (ztu@mit.edu) if you have an urgent need for non-Docker environments.
-We recommend using Docker in general because some models have platform-specific dependencies
-(e.g. requiring reasonably new G++ for compilation) which we can help you handle inside Docker.
-
 # Benchmarking in Docker
 Note: please rebuild the Docker before running if there is any change in code.
 
 ## Step 1/3
 Prepare the raw atom-mapped .csv files for train, validation and test.
 The required columns are "class", "id" and "rxn_smiles".
-See https://raw.githubusercontent.com/uta-smile/RetroXpert/canonical_product/data/USPTO50K/canonicalized_csv/test.csv for sample data format.
+See data/USPTO_50k/{train,val,test}.csv for sample data format.
 Atom mapping is *required* for GLN, RetroXpert and NeuralSym;
 behaviour of these models without atom mapping is undefined.
 
@@ -90,5 +95,3 @@ The estimated running time for benchmarking the USPTO_50k dataset on a 20-core m
   ~1 min preprocessing, ~2 hrs training, ~10 mins testing
 * NeuralSym:
   ~15 mins preprocessing, ~5 mins training, ~2 mins testing
-
-# Development (W.I.P)

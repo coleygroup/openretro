@@ -33,7 +33,9 @@ def get_predict_parser():
 
 def predict_main(args, predict_parser):
     """Simplified interface for predicting only"""
-    logging.info(args)
+    logging.info(f"Logging arguments")
+    for k, v in vars(args).items():
+        logging.info(f"**** {k} = *{v}*")
 
     os.makedirs(args.test_output_path, exist_ok=True)
 
