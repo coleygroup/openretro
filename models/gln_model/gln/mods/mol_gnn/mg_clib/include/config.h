@@ -26,11 +26,11 @@ struct cfg
             if (strcmp(argv[i], "-edgefeat_dim") == 0)
                 edgefeat_dim = atoi(argv[i + 1]);                
         }
-        std::cerr << "====== begin of gnn_clib configuration ======" << std::endl;
-        std::cerr << "| num_atom_types = " << num_atom_types << std::endl;
-        std::cerr << "| nodefeat_dim = " << nodefeat_dim << std::endl;
-        std::cerr << "| edgefeat_dim = " << edgefeat_dim << std::endl;
-        std::cerr << "======   end of gnn_clib configuration ======" << std::endl;
+//        std::cerr << "====== begin of gnn_clib configuration ======" << std::endl;
+//        std::cerr << "| num_atom_types = " << num_atom_types << std::endl;
+//        std::cerr << "| nodefeat_dim = " << nodefeat_dim << std::endl;
+//        std::cerr << "| edgefeat_dim = " << edgefeat_dim << std::endl;
+//        std::cerr << "======   end of gnn_clib configuration ======" << std::endl;
     }
 };
 
