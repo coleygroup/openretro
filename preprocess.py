@@ -1,3 +1,6 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import argparse
 import logging
 import os
@@ -33,7 +36,9 @@ def get_preprocess_parser():
 
 
 def preprocess_main(args, preprocess_parser):
-    logging.info(args)
+    logging.info(f"Logging arguments")
+    for k, v in vars(args).items():
+        logging.info(f"**** {k} = *{v}*")
 
     start = time.time()
 

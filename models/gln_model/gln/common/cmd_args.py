@@ -88,4 +88,4 @@ if cmd_args.save_dir is not None:
 
 from gln.mods.rdchiral.main import rdchiralReaction, rdchiralReactants, rdchiralRun
 
-print(cmd_args)
+# print(cmd_args)

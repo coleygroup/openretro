@@ -111,7 +111,7 @@ class GLNProcessor(Processor):
             with open(fn, "r") as f:
                 reader = csv.reader(f)
                 header = next(reader)
-                rxn_idx = header.index("reactants>reagents>production")
+                rxn_idx = header.index("rxn_smiles")
                 for row in tqdm(reader):
                     rxn_smiles.append(row[rxn_idx])
 
@@ -327,7 +327,7 @@ class GLNProcessor(Processor):
             with open(csv_file, "r") as f:
                 reader = csv.reader(f)
                 header = next(reader)
-                rxn_idx = header.index("reactants>reagents>production")
+                rxn_idx = header.index("rxn_smiles")
                 type_idx = header.index("class")
                 for row in tqdm(reader):
                     rxn_smiles.append((row[type_idx], row[rxn_idx]))

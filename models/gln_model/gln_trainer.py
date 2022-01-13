@@ -45,7 +45,9 @@ class GLNTrainer(Trainer):
 
         logging.info("Overwriting model args, based on original gln training script")
         self.overwrite_model_args()
-        logging.info(f"Updated model args: {self.model_args}")
+        logging.info(f"Updated model args:")
+        for k, v in vars(self.model_args).items():
+            logging.info(f"**** {k} = *{v}*")
 
         DataInfo.init(self.dropbox, self.model_args)
         load_bin_feats(self.dropbox, self.model_args)

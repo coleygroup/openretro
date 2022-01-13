@@ -32,7 +32,9 @@ def get_train_parser():
 
 
 def train_main(args, train_parser):
-    logging.info(args)
+    logging.info(f"Logging arguments")
+    for k, v in vars(args).items():
+        logging.info(f"**** {k} = *{v}*")
 
     model_name = ""
     model_args = None
