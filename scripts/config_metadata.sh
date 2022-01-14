@@ -29,14 +29,20 @@ MODEL_PATH_RETROXPERT=$PWD/checkpoints/uspto_full_retrained_retroxpert
 TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/uspto_full_retroxpert
 
 # paths for transformer
-PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/pistachio/processed_transformer
-MODEL_PATH_TRANSFORMER=$PWD/checkpoints/pistachio_transformer
-TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/pistachio_transformer
+#PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/pistachio/processed_transformer
+#MODEL_PATH_TRANSFORMER=$PWD/checkpoints/pistachio_transformer
+#TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/pistachio_transformer
+PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/USPTO_50k/processed_transformer
+MODEL_PATH_TRANSFORMER=$PWD/checkpoints/USPTO_50k_transformer
+TEST_OUTPUT_PATH_TRANSFORMER=$PWD/results/USPTO_50k_transformer
 
 # paths for neuralsym
-PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym_2021Q1
-MODEL_PATH_NEURALSYM=$PWD/checkpoints/pistachio_retrained_neuralsym
-TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/pistachio_neuralsym
+#PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/pistachio/processed_neuralsym_2021Q1
+#MODEL_PATH_NEURALSYM=$PWD/checkpoints/pistachio_retrained_neuralsym
+#TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/pistachio_neuralsym
+PROCESSED_DATA_PATH_NEURALSYM=$PWD/data/USPTO_50k/processed_neuralsym
+MODEL_PATH_NEURALSYM=$PWD/checkpoints/USPTO_50k_neuralsym
+TEST_OUTPUT_PATH_NEURALSYM=$PWD/results/USPTO_50k_neuralsym
 
 export DATA_NAME TRAIN_FILE VAL_FILE TEST_FILE NUM_CORES
 export PROCESSED_DATA_PATH_GLN MODEL_PATH_GLN TEST_OUTPUT_PATH_GLN

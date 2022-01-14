@@ -41,7 +41,9 @@ class TransformerProcessor(Processor):
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args: {self.model_args}")
+        logging.info(f"Updated model args")
+        for k, v in vars(self.model_args).items():
+            logging.info(f"**** {k} = *{v}*")
 
     def overwrite_model_args(self):
         """Overwrite model args"""
