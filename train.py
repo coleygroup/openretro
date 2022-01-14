@@ -9,7 +9,7 @@ from models.gln_model.gln_trainer import GLNTrainer
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_trainer import NeuralSymTrainer
 from models.retroxpert_model import retroxpert_parser
-from models.retroxpert_model.retroxpert_trainer import RetroXpertTrainerS1, RetroXpertTrainerS2
+from models.retroxpert_model.retroxpert_trainer import RetroXpertTrainerS1
 from models.transformer_model.transformer_trainer import TransformerTrainer
 from onmt import opts as onmt_opts
 from onmt.bin.train import _get_parser as transformer_parser
@@ -73,11 +73,14 @@ def train_main(args, train_parser):
             onmt_opts.config_opts(train_parser)
             onmt_opts.model_opts(train_parser)
             onmt_opts.train_opts(train_parser)
-            TrainerClass = RetroXpertTrainerS2
+            TrainerClass = TransformerTrainer
         else:
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
 
         model_args, _unknown = train_parser.parse_known_args()
+        # update runtime args
+        model_args.config = args.config_file
+        model_args.log_file = args.log_file
     elif args.model_name == "neuralsym":
         neuralsym_parser.add_model_opts(train_parser)
         neuralsym_parser.add_train_opts(train_parser)

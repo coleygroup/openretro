@@ -9,7 +9,6 @@ import torch.nn as nn
 from base.trainer_base import Trainer
 from models.retroxpert_model.data import RetroCenterDatasets
 from models.retroxpert_model.model.gat import GATNet
-from onmt.bin.train import train as onmt_train
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -317,50 +316,3 @@ class RetroXpertTrainerS1(Trainer):
                     f.write(" ".join([str(i) for i in line[2]]) + "\n")
 
         return acc
-
-
-class RetroXpertTrainerS2(Trainer):
-    """Class for RetroXpert Training, Stage 2"""
-
-    def __init__(self,
-                 model_name: str,
-                 model_args,
-                 model_config: Dict[str, any],
-                 data_name: str,
-                 raw_data_files: List[str],
-                 processed_data_path: str,
-                 model_path: str):
-        super().__init__(model_name=model_name,
-                         model_args=model_args,
-                         model_config=model_config,
-                         data_name=data_name,
-                         processed_data_path=processed_data_path,
-                         model_path=model_path)
-
-        random.seed(self.model_args.seed)
-        np.random.seed(self.model_args.seed)
-        torch.manual_seed(self.model_args.seed)
-        self.model = None
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        logging.info("Overwriting model args, (hardcoding essentially)")
-        self.overwrite_model_args()
-        logging.info(f"Updated model args: {self.model_args}")
-
-    def overwrite_model_args(self):
-        """Overwrite model args"""
-        # Paths
-        self.model_args.data = os.path.join(self.processed_data_path, "bin")
-        self.model_args.save_model = os.path.join(self.model_path, "model")
-
-    def build_train_model(self):
-        logging.info("For onmt training, models are built implicitly.")
-
-    def train(self):
-        """A wrapper to onmt.bin.train()"""
-        onmt_train(self.model_args)
-
-    def test(self):
-        """TBD"""
-        raise NotImplementedError
-

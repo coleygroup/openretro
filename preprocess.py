@@ -85,6 +85,10 @@ def preprocess_main(args, preprocess_parser):
             raise ValueError(f"--stage {args.stage} not supported! RetroXpert only has stages 1 and 2.")
 
         model_args, _unknown = preprocess_parser.parse_known_args()
+        # update runtime args
+        model_args.config = args.config_file
+        model_args.num_threads = args.num_cores
+        model_args.log_file = args.log_file
     elif args.model_name == "neuralsym":
         neuralsym_parser.add_model_opts(preprocess_parser)
 

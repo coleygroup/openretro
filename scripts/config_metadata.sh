@@ -24,9 +24,12 @@ TEST_OUTPUT_PATH_GLN=$PWD/results/USPTO_50k_gln
 #PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/pistachio/processed_retroxpert_2021Q1
 #MODEL_PATH_RETROXPERT=$PWD/checkpoints/pistachio_retrained_retroxpert
 #TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/pistachio_retroxpert
-PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/uspto_full/processed_retroxpert_uspto_full
-MODEL_PATH_RETROXPERT=$PWD/checkpoints/uspto_full_retrained_retroxpert
-TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/uspto_full_retroxpert
+#PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/uspto_full/processed_retroxpert_uspto_full
+#MODEL_PATH_RETROXPERT=$PWD/checkpoints/uspto_full_retrained_retroxpert
+#TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/uspto_full_retroxpert
+PROCESSED_DATA_PATH_RETROXPERT=$PWD/data/USPTO_50k/processed_retroxpert
+MODEL_PATH_RETROXPERT=$PWD/checkpoints/USPTO_50k_retroxpert
+TEST_OUTPUT_PATH_RETROXPERT=$PWD/results/USPTO_50k_retroxpert
 
 # paths for transformer
 #PROCESSED_DATA_PATH_TRANSFORMER=$PWD/data/pistachio/processed_transformer

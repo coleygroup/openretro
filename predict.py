@@ -71,6 +71,9 @@ def predict_main(args, predict_parser):
     elif args.model_name == "retroxpert":
         onmt_opts.translate_opts(predict_parser)
         model_args, _unknown = predict_parser.parse_known_args()
+        # update runtime args
+        model_args.config = args.config_file
+        model_args.log_file = args.log_file
 
         model_name = "retroxpert"
         PredictorClass = RetroXpertPredictor

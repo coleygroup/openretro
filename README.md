@@ -9,6 +9,7 @@ For serving retrosynthesis models, please refer to README_serving.md.
 |--------------|-------|-------|-------|-------|--------|--------|--------|
 | NeuralSym    | 45.5  | 59.7  | 67.1  | 74.6  | 81.6   | 84.9   | 85.7   |
 | GLN          | 51.8  | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
+| Transformer  | 43.4  | 53.9  | 58.5  | 63.0  | 67.1   | 69.4   | -      |
 
 ### USPTO_full without reaction type
 | Accuracy (%) | Top-1  | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
@@ -93,6 +94,6 @@ The estimated running time for benchmarking the USPTO_50k dataset on a 20-core m
   ~5 mins stage 1 preprocessing, ~2 hrs stage 1 training,
   ~10 mins stage 2 preprocessing, ~12 hrs stage 2 training, ~20 mins testing
 * Transformer:
-  ~1 min preprocessing, ~2 hrs training, ~10 mins testing
+  ~1 min preprocessing, ~16 hrs training, ~10 mins testing
 * NeuralSym:
   ~15 mins preprocessing, ~5 mins training, ~2 mins testing

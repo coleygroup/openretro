@@ -464,12 +464,12 @@ class RetroXpertProcessorS2(Processor):
 
     def preprocess(self) -> None:
         """Actual file-based preprocessing"""
-        # self.test_and_save(data_split="test")
-        # self.test_and_save(data_split="train")
+        self.test_and_save(data_split="test")
+        self.test_and_save(data_split="train")
         self.generate_formatted_dataset()
-        # self.prepare_test_prediction()
-        # self.prepare_train_error_aug()
-        # self.onmt_preprocess()
+        self.prepare_test_prediction()
+        self.prepare_train_error_aug()
+        self.onmt_preprocess()
 
     def test_and_save(self, data_split: str):
         # fn = f"rxn_data_{data_split}.pkl"
@@ -783,7 +783,9 @@ class RetroXpertProcessorS2(Processor):
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args: {self.model_args}")
+        logging.info(f"Updated model args")
+        for k, v in vars(self.model_args).items():
+            logging.info(f"**** {k} = *{v}*")
 
         onmt_preprocess(self.model_args)
 
