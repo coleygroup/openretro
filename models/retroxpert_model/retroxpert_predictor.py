@@ -6,6 +6,7 @@ import random
 import torch
 from onmt.bin.translate import translate as onmt_translate
 from typing import Dict, List
+from utils import misc
 
 
 class RetroXpertPredictor:
@@ -37,7 +38,7 @@ class RetroXpertPredictor:
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args: {self.model_args}")
+        misc.log_args(self.model_args, message="Updated model args")
 
     def overwrite_model_args(self):
         """Overwrite model args"""

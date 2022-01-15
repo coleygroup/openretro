@@ -6,6 +6,7 @@ import torch
 from base.trainer_base import Trainer
 from onmt.bin.train import train as onmt_train
 from typing import Dict, List
+from utils import misc
 
 
 class TransformerTrainer(Trainer):
@@ -34,9 +35,7 @@ class TransformerTrainer(Trainer):
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args")
-        for k, v in vars(self.model_args).items():
-            logging.info(f"**** {k} = *{v}*")
+        misc.log_args(self.model_args, message="Updated model args")
 
     def overwrite_model_args(self):
         """Overwrite model args"""

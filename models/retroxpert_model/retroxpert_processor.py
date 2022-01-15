@@ -23,6 +23,7 @@ from rdkit import Chem
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Dict, List
+from utils import misc
 
 
 G_patterns_filtered = []
@@ -783,9 +784,7 @@ class RetroXpertProcessorS2(Processor):
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args")
-        for k, v in vars(self.model_args).items():
-            logging.info(f"**** {k} = *{v}*")
+        misc.log_args(self.model_args, message="Updated model args")
 
         onmt_preprocess(self.model_args)
 

@@ -10,6 +10,7 @@ For serving retrosynthesis models, please refer to README_serving.md.
 | NeuralSym    | 45.5  | 59.7  | 67.1  | 74.6  | 81.6   | 84.9   | 85.7   |
 | GLN          | 51.8  | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
 | Transformer  | 43.4  | 53.9  | 58.5  | 63.0  | 67.1   | 69.4   | -      |
+| RetroXpert   | 45.4  | 55.5  | 59.8  | 64.1  | 68.8   | 72.0   | -      |
 
 ### USPTO_full without reaction type
 | Accuracy (%) | Top-1  | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |

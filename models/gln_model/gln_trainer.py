@@ -11,6 +11,7 @@ from gln.graph_logic.logic_net import GraphPath
 from gln.training.data_gen import data_gen, worker_softmax
 from tqdm import tqdm
 from typing import Dict, List
+from utils import misc
 
 
 class GLNTrainer(Trainer):
@@ -45,9 +46,7 @@ class GLNTrainer(Trainer):
 
         logging.info("Overwriting model args, based on original gln training script")
         self.overwrite_model_args()
-        logging.info(f"Updated model args:")
-        for k, v in vars(self.model_args).items():
-            logging.info(f"**** {k} = *{v}*")
+        misc.log_args(self.model_args, message="Updated model args")
 
         DataInfo.init(self.dropbox, self.model_args)
         load_bin_feats(self.dropbox, self.model_args)

@@ -17,6 +17,7 @@ from models.transformer_model.transformer_processor import TransformerProcessor
 from onmt import opts as onmt_opts
 from onmt.bin.preprocess import _get_parser as transformer_parser
 from rdkit import RDLogger
+from utils import misc
 
 
 def get_preprocess_parser():
@@ -36,9 +37,7 @@ def get_preprocess_parser():
 
 
 def preprocess_main(args, preprocess_parser):
-    logging.info(f"Logging arguments")
-    for k, v in vars(args).items():
-        logging.info(f"**** {k} = *{v}*")
+    misc.log_args(args, message="Logging arguments")
 
     start = time.time()
 
@@ -125,15 +124,7 @@ if __name__ == "__main__":
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
     args.log_file = f"./logs/preprocess/{args.log_file}.{dt}"
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    fh = logging.FileHandler(args.log_file)
-    fh.setLevel(logging.INFO)
-    sh = logging.StreamHandler(sys.stdout)
-    sh.setLevel(logging.INFO)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
+    logger = misc.setup_logger(args.log_file)
 
     # preprocess interface
     preprocess_main(args, preprocess_parser)

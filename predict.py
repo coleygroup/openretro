@@ -12,6 +12,7 @@ from models.transformer_model.transformer_predictor import TransformerPredictor
 from onmt import opts as onmt_opts
 from onmt.bin.translate import _get_parser as transformer_parser
 from rdkit import RDLogger
+from utils import misc
 
 
 def get_predict_parser():
@@ -32,10 +33,7 @@ def get_predict_parser():
 
 
 def predict_main(args, predict_parser):
-    """Simplified interface for predicting only"""
-    logging.info(f"Logging arguments")
-    for k, v in vars(args).items():
-        logging.info(f"**** {k} = *{v}*")
+    misc.log_args(args, message="Logging arguments")
 
     os.makedirs(args.test_output_path, exist_ok=True)
 
@@ -69,6 +67,7 @@ def predict_main(args, predict_parser):
         model_args = opt
         PredictorClass = TransformerPredictor
     elif args.model_name == "retroxpert":
+        onmt_opts.config_opts(predict_parser)
         onmt_opts.translate_opts(predict_parser)
         model_args, _unknown = predict_parser.parse_known_args()
         # update runtime args
@@ -115,15 +114,7 @@ if __name__ == "__main__":
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
     args.log_file = f"./logs/predict/{args.log_file}.{dt}"
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    fh = logging.FileHandler(args.log_file)
-    fh.setLevel(logging.INFO)
-    sh = logging.StreamHandler(sys.stdout)
-    sh.setLevel(logging.INFO)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
+    misc.setup_logger(args.log_file)
 
     # predict interface
     predict_main(args, predict_parser)

@@ -7,6 +7,7 @@ from onmt.bin.preprocess import preprocess as onmt_preprocess
 from rdkit import Chem
 from tqdm import tqdm
 from typing import Dict, List
+from utils import misc
 
 
 def smi_tokenizer(smi: str):
@@ -41,9 +42,7 @@ class TransformerProcessor(Processor):
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args")
-        for k, v in vars(self.model_args).items():
-            logging.info(f"**** {k} = *{v}*")
+        misc.log_args(self.model_args, message="Updated model args")
 
     def overwrite_model_args(self):
         """Overwrite model args"""

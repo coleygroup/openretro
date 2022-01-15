@@ -6,6 +6,7 @@ import random
 import torch
 from onmt.bin.translate import translate as onmt_translate
 from typing import Dict, List
+from utils import misc
 
 
 class TransformerPredictor:
@@ -37,13 +38,12 @@ class TransformerPredictor:
 
         logging.info("Overwriting model args, (hardcoding essentially)")
         self.overwrite_model_args()
-        logging.info(f"Updated model args")
-        for k, v in vars(self.model_args).items():
-            logging.info(f"**** {k} = *{v}*")
+        misc.log_args(self.model_args, message="Updated model args")
 
     def overwrite_model_args(self):
         """Overwrite model args"""
         # Paths
+        # Overwriting model path with the last checkpoint
         checkpoints = glob.glob(os.path.join(self.model_path, "model_step_*.pt"))
         last_checkpoint = sorted(checkpoints, reverse=True)[0]
         # self.model_args.models = [self.model_path]
@@ -53,7 +53,10 @@ class TransformerPredictor:
 
     def predict(self):
         """Actual file-based predicting, a wrapper to onmt.bin.translate()"""
-        onmt_translate(self.model_args)
+        if os.path.exists(self.model_args.output):
+            logging.info(f"Results found at {self.model_args.output}, skip prediction.")
+        else:
+            onmt_translate(self.model_args)
         self.compile_into_csv()
 
     def compile_into_csv(self):

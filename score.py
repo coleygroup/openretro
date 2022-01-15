@@ -9,6 +9,7 @@ from datetime import datetime
 from rdkit import RDLogger
 from tqdm import tqdm
 from utils.chem_utils import canonicalize_smiles
+from utils import misc
 
 global G_predictions
 
@@ -123,15 +124,7 @@ if __name__ == "__main__":
     dt = datetime.strftime(datetime.now(), "%y%m%d-%H%Mh")
     args.log_file = f"./logs/score/{args.log_file}.{dt}"
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    fh = logging.FileHandler(args.log_file)
-    fh.setLevel(logging.INFO)
-    sh = logging.StreamHandler(sys.stdout)
-    sh.setLevel(logging.INFO)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
+    misc.setup_logger(args.log_file)
 
     # score interface
     score_main(args)
