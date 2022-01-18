@@ -4,6 +4,12 @@ This README is mainly for one-click benchmarking on existing/new reaction datase
 For serving retrosynthesis models, please refer to README_serving.md.
 
 # Selected Results
+We used the RetroXpert version of USPTO datasets
+(https://github.com/uta-smile/RetroXpert/tree/main/data).
+We mostly followed the recommended or default hyperparameters without tuning,
+which we found to be sufficiently robust.
+These are probably not universally optimal for any dataset, and we leave the turning to the users.
+
 ### USPTO_50k without reaction type
 | Accuracy (%) | Top-1 | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
 |--------------|-------|-------|-------|-------|--------|--------|--------|
@@ -13,9 +19,11 @@ For serving retrosynthesis models, please refer to README_serving.md.
 | RetroXpert   | 45.4  | 55.5  | 59.8  | 64.1  | 68.8   | 72.0   | -      |
 
 ### USPTO_full without reaction type
-| Accuracy (%) | Top-1  | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
-|--------------|--------|-------|-------|-------|--------|--------|--------|
-| GLN          | 51.8   | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
+| Accuracy (%) | Top-1 | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
+|--------------|-------|-------|-------|-------|--------|--------|--------|
+| NeuralSym    | 43.6  | 54.8  | 59.8  | 64.6  | 68.9   | 71.4   | 72.2   |
+| Transformer  | 44.5  | 55.6  | 60.3  | 65.1  | 69.6   | 72.1   | -      |
+| RetroXpert   | 39.7  | 47.2  | 49.9  | 52.3  | 54.9   | 56.9   | -      |
 
 # Environment Setup
 Building the Docker for benchmarking requires GPU support,

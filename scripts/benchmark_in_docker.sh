@@ -9,12 +9,20 @@ if [[ "$*" == *"no_canonicalization"* ]]; then
   echo "no_canonicalization flag detected, skipping canonicalization"
   CANONICALIZATION_FLAG="no_canonicalization"
 else
-  echo "running canonicalization"
+  echo "running canonicalization = True"
 #  bash scripts/canonicalize_in_docker.sh
 #  TRAIN_FILE=$TRAIN_FILE.cano.csv
 #  VAL_FILE=$VAL_FILE.cano.csv
 #  TEST_FILE=$TEST_FILE.cano.csv
 #  export TRAIN_FILE VAL_FILE TEST_FILE
+fi
+
+# neuralsym
+if [[ "$*" == *"neuralsym"* ]]; then
+  bash scripts/neuralsym/neuralsym_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+  bash scripts/neuralsym/neuralsym_train_in_docker.sh
+  bash scripts/neuralsym/neuralsym_predict_in_docker.sh
+  bash scripts/neuralsym/neuralsym_score_in_docker.sh
 fi
 
 # gln
@@ -23,6 +31,14 @@ if [[ "$*" == *"gln"* ]]; then
   bash scripts/gln/gln_train_in_docker.sh
   bash scripts/gln/gln_predict_in_docker.sh
   bash scripts/gln/gln_score_in_docker.sh
+fi
+
+# transformer
+if [[ "$*" == *"transformer"* ]]; then
+  bash scripts/transformer/transformer_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+  bash scripts/transformer/transformer_train_in_docker.sh
+  bash scripts/transformer/transformer_predict_in_docker.sh
+  bash scripts/transformer/transformer_score_in_docker.sh
 fi
 
 # retroxpert
@@ -35,18 +51,10 @@ if [[ "$*" == *"retroxpert"* ]]; then
   bash scripts/retroxpert/retroxpert_score_in_docker.sh
 fi
 
-# neuralsym
-if [[ "$*" == *"neuralsym"* ]]; then
-  bash scripts/neuralsym/neuralsym_preprocess_in_docker.sh $CANONICALIZATION_FLAG
-  bash scripts/neuralsym/neuralsym_train_in_docker.sh
-  bash scripts/neuralsym/neuralsym_predict_in_docker.sh
-  bash scripts/neuralsym/neuralsym_score_in_docker.sh
-fi
-
-# transformer
-if [[ "$*" == *"transformer"* ]]; then
-  bash scripts/transformer/transformer_preprocess_in_docker.sh $CANONICALIZATION_FLAG
-  bash scripts/transformer/transformer_train_in_docker.sh
-  bash scripts/transformer/transformer_predict_in_docker.sh
-  bash scripts/transformer/transformer_score_in_docker.sh
+# gln
+if [[ "$*" == *"gln"* ]]; then
+  bash scripts/gln/gln_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+  bash scripts/gln/gln_train_in_docker.sh
+  bash scripts/gln/gln_predict_in_docker.sh
+  bash scripts/gln/gln_score_in_docker.sh
 fi
