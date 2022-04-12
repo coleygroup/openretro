@@ -1,8 +1,8 @@
 FROM pytorch/pytorch:1.8.0-cuda11.1-cudnn8-devel
 
 RUN apt-get update && apt-get -y install gcc g++ make curl git
-RUN conda install torchserve=0.3.1 -c pytorch
-RUN conda install openjdk=11 rdkit -c conda-forge
+RUN conda install -c pytorch torchserve=0.3.1
+RUN conda install -c conda-forge openjdk=11 rdkit
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble
 
 ENV CUDA_CODE cu111
@@ -15,6 +15,7 @@ RUN pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-${TORCH_
 RUN pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-geometric
+RUN pip install torch-model-archiver
 
 WORKDIR /app
 COPY . /app/openretro
@@ -25,6 +26,7 @@ ENV TORCH_CUDA_ARCH_LIST "5.2 6.0 6.1 7.0 7.5 8.0 8.6+PTX"
 RUN cd ./models/gln_model && pip install -e .
 
 # RDChiral installation
-RUN pip install -e "git://github.com/connorcoley/rdchiral.git#egg=rdchiral"
+# Deprecated: RUN pip install -e "git://github.com/connorcoley/rdchiral.git#egg=rdchiral"
+RUN pip install rdchiral
 
 EXPOSE 8080 8081 8082

@@ -20,12 +20,12 @@ bash scripts_serving/download_checkpoints_50k_untyped.sh
 ```
 then run
 ```
-docker build -f Dockerfile_cpu -t openretro:serving-cpu .
+docker build -f Dockerfile_serving -t openretro:serving-cpu .
 ```
 
 # Run Docker for Serving Trained Models (CPU only)
 ```
-sh scripts_serving/serve_all_in_docker.sh
+sh scripts_serving/gln_serve_in_docker.sh
 ```
 
 # Sample Usage
@@ -35,7 +35,7 @@ We have added in four models, GLN, RetroXpert (revised), Transformer and NeuralS
 ## (1/4) GLN -- untyped USPTO 50k baseline model 
 * Sample query (the "data" field is a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value)
 ```
-curl http://you.got.the.ips:8080/predictions/gln_50k_untyped \
+curl http://you.got.the.ips:9918/predictions/USPTO_50k_gln \
     --header "Content-Type: application/json" \
     --request POST \
     --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'

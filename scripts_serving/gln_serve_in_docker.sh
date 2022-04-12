@@ -1,8 +1,12 @@
-docker run -p 9018:8080 -p 9019:8081 -p 9020:8082 -t openretro:serving-cpu \
+#!/bin/bash
+
+docker run -p 9918:8080 -p 9919:8081 -p 9920:8082 \
+  -v "$PWD/mars":/app/openretro/mars \
+  -t openretro:serving-cpu \
   torchserve \
   --start \
   --foreground \
   --ncs \
-  --model-store=./checkpoints/gln_schneider50k/model-6.dump \
-  --models gln_50k_untyped=gln_50k_untyped.mar \
+  --model-store=/app/openretro/mars \
+  --models USPTO_50k_gln=USPTO_50k_gln.mar \
   --ts-config ./config.properties
