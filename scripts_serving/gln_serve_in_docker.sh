@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker run -p 9918:8080 -p 9919:8081 -p 9920:8082 \
+docker run -p 9917:8080 -p 9918:8081 -p 9919:8082 \
   -v "$PWD/mars":/app/openretro/mars \
   -t openretro:serving-cpu \
   torchserve \

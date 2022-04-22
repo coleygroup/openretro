@@ -72,7 +72,7 @@ class NeuralSymHandler:
                 self.templates_filtered.append(pa)
         print(f'Total number of template patterns: {len(self.templates_filtered)}')
 
-        checkpoint_file = os.path.join(model_dir, f"{self.infer_config['data_name']}.pth.tar")
+        checkpoint_file = os.path.join(model_dir, f"{context.model_name.replace('_neuralsym', '')}.pth.tar")
         print(f"Building model and loading from {checkpoint_file}")
         self.model = TemplateNN_Highway(
             output_size=len(self.templates_filtered),
