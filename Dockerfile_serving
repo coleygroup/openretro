@@ -15,6 +15,7 @@ RUN pip install torch-sparse==0.6.12 -f https://data.pyg.org/whl/torch-${TORCH_V
 RUN pip install torch-cluster==1.5.9 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-spline-conv==1.2.1 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-geometric
+RUN pip install torch-model-archiver
 
 WORKDIR /app
 COPY . /app/openretro
