@@ -89,13 +89,6 @@ and GraphRetro (https://arxiv.org/pdf/2006.07038.pdf) have suffered from.
 Without re-calibrating the atom mapping, the test accuracies would be higher than expected
 since the original numbering might hint at where the reaction center is.
 
-(W.I.P.) Nevertheless, in some cases it would be necessary to turn off canonicalization,
-e.g. when benchmarking Transformer with augmented non-canonical data.
-To benchmark without canonicalization (for Transformer only), run
-```
-bash scripts/benchmark_in_docker.sh no_canonicalization transformer
-```
-
 The estimated running time for benchmarking the USPTO_50k dataset on a 20-core machine with 1 RTX3090 GPU is
 * GLN:
   ~1 hr preprocessing, ~2 hrs training, ~3 hrs testing

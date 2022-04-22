@@ -4,6 +4,7 @@ if [[ $# -eq 0 ]]; then
   echo "No arguments supplied. Please specify models to be benchmarked [gln|retroxpert|neuralsym|transformer]"
 fi
 
+# WIP
 CANONICALIZATION_FLAG=""
 if [[ "$*" == *"no_canonicalization"* ]]; then
   echo "no_canonicalization flag detected, skipping canonicalization"
