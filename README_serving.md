@@ -4,7 +4,7 @@ Serving modules for models in OpenRetro
 # Environment Setup (CPU only)
 First follow the instruction on https://docs.docker.com/engine/install
 to install the Docker engine. Then either
-* pull pre-built image from ASKCOS docker registry and tag
+* pull pre-built image from ASKCOS docker registry and tag (MLPDS permission required)
 ```
 docker pull registry.gitlab.com/mlpds_mit/askcos/askcos-data/openretro:serving-cpu-public
 docker tag registry.gitlab.com/mlpds_mit/askcos/askcos-data/openretro:serving-cpu-public openretro:serving-cpu
