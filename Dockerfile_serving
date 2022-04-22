@@ -10,10 +10,10 @@ ENV GPU_FLAG 0
 ENV TORCH_VER 1.8.0
 ENV DGLBACKEND pytorch
 
-RUN pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
-RUN pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
-RUN pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
-RUN pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
+RUN pip install torch-scatter==2.0.8 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
+RUN pip install torch-sparse==0.6.12 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
+RUN pip install torch-cluster==1.5.9 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
+RUN pip install torch-spline-conv==1.2.1 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-geometric
 
 WORKDIR /app
