@@ -3,14 +3,15 @@ import os
 
 
 urls_fns_dict = {
-    "USPTO_50k_dgat.pt": "https://drive.google.com/uc?id=1HNxzI4Sn4TqjI70LtDVrdy1k1qPzX9UJ"
-    # "USPTO_50k_dgcn.pt": "https://drive.google.com/uc?id=11IJzTvyEvLclVSDN6gz2wy1Pg2hSOqa0",
-    # "USPTO_full_dgat.pt": "https://drive.google.com/uc?id=165_S9GWNssrP8VeAHYIHqgISqueigTua",
-    # "USPTO_full_dgcn.pt": "https://drive.google.com/uc?id=1L9HEmg-bbp6oPbWdeKCwSRjkHGWMk8DD",
-    # "USPTO_480k_dgat.pt": "https://drive.google.com/uc?id=1F37CGO2WpNUYHhPph0GiRA2eHIRiUK5o",
-    # "USPTO_480k_dgcn.pt": "https://drive.google.com/uc?id=1eFtTd5OTvVa9MMpUI4B3Y3izDjMV_k8z",
-    # "USPTO_STEREO_dgat.pt": "https://drive.google.com/uc?id=1lky5Sq6CYn-Mhezf-SW2yfs0yPYNx2Pm",
-    # "USPTO_STEREO_dgcn.pt": "https://drive.google.com/uc?id=1S8v-UAWlWJEL7KQkzPijj4RoDmB51kFe"
+    "USPTO_50k_gln.mar": "https://drive.google.com/uc?id=18bCEBinSNNgY4bReJW-a6xy7iCSZFQCr",
+    "USPTO_50k_neuralsym.mar": "https://drive.google.com/uc?id=1sYxoAjemCJlPVCcTHVbUCnd6wnLyfWZf",
+    "USPTO_full_neuralsym.mar": "https://drive.google.com/uc?id=1Xg7vNyHi8-okZYX4J8BcZ9oRYYRz7Q_A",
+    "pistachio_21Q1_neuralsym.mar": "https://drive.google.com/uc?id=1xUNMYuzVUr1EYliGUzcHqYe5_3ESSZ4f",
+    "USPTO_50k_transformer.mar": "https://drive.google.com/uc?id=1Sht80ADqb4OWv1Wt9rosHuGPni3jaTEl",
+    "USPTO_full_transformer.mar": "https://drive.google.com/uc?id=1QOekovkUUPcNCG1aXNBhBP2u0TcOGFGZ",
+    "pistachio_21Q1_transformer.mar": "https://drive.google.com/uc?id=1A8WMt56x9ATnxq_3nqI_6M9Z34zm5rIJ",
+    "USPTO_50k_retroxpert.mar": "https://drive.google.com/uc?id=1O4rT6DnopcfT_6fFTg87f8wW-UckEV8a",
+    "USPTO_full_retroxpert.mar": "https://drive.google.com/uc?id=1erq5PkmtWf7qvB5DB_AnxfTmNy3oDYwg"
 }
 
 

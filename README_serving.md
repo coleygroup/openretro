@@ -32,19 +32,21 @@ Change the arguments after the --models flag (in the script) before running to s
 
 # Sample query
 ```
-curl http://you.got.the.ips:port/predictions/MODEL_NAME \
+curl http://0.0.0.0:port/predictions/MODEL_NAME \
     --header "Content-Type: application/json" \
     --request POST \
     --data '{"smiles": ["[Br:1][CH2:2]/[CH:3]=[CH:4]/[C:5](=[O:6])[O:7][Si:8]([CH3:9])([CH3:10])[CH3:11]", "CC(C)(C)OC(=O)N1CCC(OCCO)CC1"]}'
 ```
 
 This query format should work for any served model. Specifically,  
-  **you.got.the.ips**: the server ip or server name  
+  **0.0.0.0**: the server ip or server name  
   **port**: the port of served model.
 By default, it is 9917, 9927, 9937, 9947 for GLN, NeuralSym, Transformer and RetroXpert respectively.  
   **MODEL_NAME**: any of USPTO_50k_gln, {USPTO_50k,USPTO_full,pistachio_21Q1}_neuralsym,
 {USPTO_50k,USPTO_full,pistachio_21Q1}_transformer, {USPTO_50k,USPTO_full}_retroxpert.  
-  **--data**： a single json dict with "smiles" as the key, and list of (optionally atom-mapped) SMILES as the value.
+  **--data**： a single json dict with "smiles" as the key, and list of SMILES as the value.
+It is okay to pass in SMILES with atom mapping numbers.
+All models would remove atom mapping numbers and canonicalize the target SMILES before inference.
 
 # Sample return
 * For template-based models (GLN and NeuralSym)
