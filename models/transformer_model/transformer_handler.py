@@ -18,7 +18,7 @@ class TransformerHandler:
 
         # TODO: temporary hardcode
         self.use_cpu = True
-        self.n_best = 20
+        self.n_best = 10
         self.beam_size = 5
 
     def initialize(self, context):
@@ -30,8 +30,15 @@ class TransformerHandler:
         print(glob.glob(f"{model_dir}/*"))
         self.device = torch.device("cuda:" + str(properties.get("gpu_id")) if torch.cuda.is_available() else "cpu")
 
+        checkpoint_file = os.path.join(model_dir, "model_step_125000.pt")
+        if not os.path.isfile(checkpoint_file):
+            checkpoint_list = sorted(glob.glob(os.path.join(model_dir, f"model_step_*.pt")))
+            print(f"Default checkpoint file {checkpoint_file} not found!")
+            print(f"Using found last checkpoint {checkpoint_list[-1]} instead.")
+            checkpoint_file = checkpoint_list[-1]
+
         onmt_config = {
-            "models": os.path.join(model_dir, "model_step_125000.pt"),
+            "models": checkpoint_file,
             "n_best": self.n_best * 2,
             "beam_size": self.beam_size,
             "gpu": -1 if self.use_cpu else 0
