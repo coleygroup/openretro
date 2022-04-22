@@ -34,6 +34,7 @@ class RetroXpertHandler:
         self.n_best = 20
         # self.beam_size = 50
         self.beam_size = 10
+        self.min_freq = 10
 
     def initialize(self, context):
         self._context = context
@@ -45,15 +46,13 @@ class RetroXpertHandler:
         self.device = torch.device("cuda:" + str(properties.get("gpu_id")) if torch.cuda.is_available() else "cpu")
 
         print("Loading pattern")
-        min_freq = 2
-
         pattern_file = os.path.join(model_dir, "product_patterns.txt")
         with open(pattern_file, "r") as f:
             for line in f:
                 pattern, count = line.strip().split(": ")
-                if int(count.strip()) >= min_freq:
+                if int(count.strip()) >= self.min_freq:
                     self.patterns_filtered.append(pattern)
-        print(f"Filtered patterns by min frequency {min_freq}, "
+        print(f"Filtered patterns by min frequency {self.min_freq}, "
               f"remaining pattern count: {len(self.patterns_filtered)}")
 
         self.model_stage_1 = GATNet(
@@ -70,7 +69,8 @@ class RetroXpertHandler:
         print(self.model_stage_1)
         print(f"\nModel #Params: {sum([x.nelement() for x in self.model_stage_1.parameters()]) / 1000} k")
 
-        checkpoint_path = os.path.join(model_dir, "retroxpert_uspto50k_untyped_checkpoint.pt")
+        data_name = context.model_name.replace('_retroxpert', '')
+        checkpoint_path = os.path.join(model_dir, f"{data_name}_untyped_checkpoint.pt")
         print(f"Loading from {checkpoint_path}")
         self.model_stage_1.load_state_dict(torch.load(checkpoint_path, map_location=self.device))
 
