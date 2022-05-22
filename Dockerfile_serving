@@ -1,5 +1,6 @@
 FROM continuumio/miniconda3:4.9.2
 
+RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
 RUN apt-get update --allow-releaseinfo-change && apt-get -y install gcc g++ make curl git
 RUN conda install -c pytorch pytorch=1.8.0 torchserve=0.3.1 cpuonly
 RUN conda install -c conda-forge openjdk=11 rdkit
