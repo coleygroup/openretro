@@ -46,7 +46,7 @@ def mol_smi_to_count_fp(
 
 
 def gen_prod_fps_helper(args, rxn_smi) -> Tuple[str, str, scipy.sparse.csr_matrix]:
-    r_smi_map, p_smi_map = rxn_smi.split('>>')
+    r_smi_map, _, p_smi_map = rxn_smi.split('>')
     r_smi_nomap = canonicalize_smiles(r_smi_map, remove_atom_number=True)
     p_smi_nomap = canonicalize_smiles(p_smi_map, remove_atom_number=True)
     if not r_smi_nomap:
@@ -70,6 +70,9 @@ def pass_bond_edits_test(r: str, p: str, max_rbonds=5, max_pbonds=3, max_atoms=1
     """Adapted from filter.py and rdkit.py in temprel"""
     rmol = Chem.MolFromSmiles(r)
     pmol = Chem.MolFromSmiles(p)
+
+    if not rmol or not pmol:
+        return False
 
     pbonds = []
     for bond in pmol.GetBonds():
@@ -297,8 +300,7 @@ class NeuralSymProcessor(Processor):
 
             rxns = []
             for idx, rxn_smi in enumerate(clean_rxnsmi_phase):
-                r = rxn_smi.split('>>')[0]
-                p = rxn_smi.split('>>')[-1]
+                r, _, p = rxn_smi.split('>')
                 rxns.append((idx, r, p))
             logging.info(f'Total rxns for phase {phase}: {len(rxns)}')
 
@@ -319,7 +321,7 @@ class NeuralSymProcessor(Processor):
                         assert idx == rxn_idx
 
                         if idx % 10000 == 0:
-                            logging.info(f"Processing {idx}th reaction, elapsed time: {time.time() - start}")
+                            logging.info(f"Processing {idx}th reaction, elapsed time: {time.time() - start: .2f} s")
 
                         # no template could be extracted
                         if template is None or 'reaction_smarts' not in template:
