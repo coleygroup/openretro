@@ -53,7 +53,12 @@ def gen_prod_fps_helper(args, rxn_smi) -> Tuple[str, str, scipy.sparse.csr_matri
         logging.info(f"empty cano reactants for rxn: {rxn_smi}")
     if not p_smi_nomap:
         logging.info(f"empty cano product for rxn: {rxn_smi}")
-    prod_fp = mol_smi_to_count_fp(p_smi_nomap, args.radius, args.fp_size)
+    try:
+        prod_fp = mol_smi_to_count_fp(p_smi_nomap, args.radius, args.fp_size)
+    except:
+        logging.info(f"Error when converting smi to count fingerprint. Setting it to zero vector.")
+        count_fp = np.zeros((1, args.fp_size), dtype=np.int32)
+        prod_fp = sparse.csr_matrix(count_fp, dtype="int32")
 
     return r_smi_nomap, p_smi_nomap, prod_fp
 
@@ -349,7 +354,11 @@ class NeuralSymProcessor(Processor):
                     except StopIteration:
                         break
                     except TimeoutError as error:
-                        logging.info(f"get_tpl call took more than {error.args} seconds")
+                        logging.info(f"get_tpl() call took more than {error.args} seconds.")
+                        invalid_temp += 1
+                        of.write(f"{rxn_idx}\tfailed_extract\n")
+                    except:
+                        logging.info(f"Unknown error for getting template.")
                         invalid_temp += 1
                         of.write(f"{rxn_idx}\tfailed_extract\n")
 
