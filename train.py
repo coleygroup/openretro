@@ -6,6 +6,8 @@ from datetime import datetime
 
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_trainer import GLNTrainer
+from models.localretro_model import localretro_parser
+from models.localretro_model.localretro_trainer import LocalRetroTrainer
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_trainer import NeuralSymTrainer
 from models.retroxpert_model import retroxpert_parser
@@ -48,6 +50,13 @@ def train_main(args, train_parser):
         model_args = gln_args
         raw_data_files = [args.train_file]
         TrainerClass = GLNTrainer
+    elif args.model_name == "localretro":
+        localretro_parser.add_model_opts(train_parser)
+        localretro_parser.add_train_opts(train_parser)
+
+        model_name = "localretro"
+        model_args, _unknown = train_parser.parse_known_args()
+        TrainerClass = LocalRetroTrainer
     elif args.model_name == "transformer":
         # adapted from onmt.bin.train.main()
         parser = transformer_parser()
