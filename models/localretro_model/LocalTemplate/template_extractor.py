@@ -11,7 +11,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import ChiralType
 
-from .template_extract_utils import *
+from models.localretro_model.LocalTemplate.template_extract_utils import *
     
 default_setting = {'verbose': False, 'use_stereo': False, 'use_symbol': False, 'max_unmap': 5, 'retro': True, 'remote': True, 'least_atom_num': 2}
 

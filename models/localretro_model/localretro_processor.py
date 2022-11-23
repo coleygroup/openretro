@@ -3,6 +3,7 @@ import logging
 import os
 import pandas as pd
 from base.processor_base import Processor
+from collections import defaultdict
 from models.localretro_model.Extract_from_train_data import get_full_template
 from models.localretro_model.LocalTemplate.template_extractor import extract_from_reaction
 from models.localretro_model.Run_preprocessing import get_edit_site_retro
@@ -30,7 +31,7 @@ class LocalRetroProcessor(Processor):
         self.num_cores = num_cores
         self.setting = {'verbose': False, 'use_stereo': True, 'use_symbol': True,
                         'max_unmap': 5, 'retro': True, 'remote': True, 'least_atom_num': 2,
-                        "max-edit-n": 8}
+                        "max_edit_n": 8, "min_template_n": 1}
         self.RXNHASCLASS = False
 
     def preprocess(self) -> None:
@@ -40,6 +41,11 @@ class LocalRetroProcessor(Processor):
 
     def extract_templates(self):
         """Adapted from Extract_from_train_data.py"""
+        if all(os.path.exists(os.path.join(self.processed_data_path, fn))
+               for fn in ["template_infos.csv", "atom_templates.csv", "bond_templates.csv"]):
+            logging.info(f"Extracted templates found at {self.processed_data_path}, skipping extraction.")
+            return
+
         logging.info(f"Extracting templates from {self.train_file}")
 
         with open(self.train_file, "r") as csv_file:
@@ -48,7 +54,7 @@ class LocalRetroProcessor(Processor):
 
         TemplateEdits = {}
         TemplateCs, TemplateHs, TemplateSs = {}, {}, {}
-        TemplateFreq, templates_A, templates_B = {}, {}, {}
+        TemplateFreq, templates_A, templates_B = defaultdict(int), defaultdict(int), defaultdict(int)
 
         for i, rxn in enumerate(rxns):
             try:
@@ -129,7 +135,7 @@ class LocalRetroProcessor(Processor):
         with open(fn, "r") as csv_file:
             csv_reader = csv.DictReader(csv_file)
             template_infos = {
-                row["template"]: {
+                row["Template"]: {
                     "edit_site": eval(row["edit_site"]),
                     "frequency": int(row["Frequency"])
                 } for row in csv_reader
@@ -245,7 +251,7 @@ class LocalRetroProcessor(Processor):
                 [f'Edit {i + 1}\tProba {i + 1}' for i in range(self.setting['max_edit_n'])]))
             for i in df.index:
                 labels = []
-                for y in eval(df['Labels'][i]):
+                for y in df['Labels'][i]:
                     if y != 0:
                         labels.append(y)
                 if not labels:
