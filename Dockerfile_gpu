@@ -4,7 +4,7 @@ RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/r
 RUN apt-get update --allow-releaseinfo-change && apt-get -y install gcc g++ make curl git
 RUN conda install -c pytorch torchserve=0.3.1
 RUN conda install -c conda-forge openjdk=11 rdkit
-RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble
+RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.5.2 dgllife==0.2.6 networkx==2.5 pebble
 
 ENV CUDA_CODE cu111
 ENV GPU_FLAG 1

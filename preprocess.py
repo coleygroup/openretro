@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_processor import GLNProcessor
+from models.localretro_model.localretro_processor import LocalRetroProcessor
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_processor import NeuralSymProcessor
 from models.retroxpert_model import retroxpert_parser
@@ -53,6 +54,10 @@ def preprocess_main(args, preprocess_parser):
         model_name = "gln"
         model_args = gln_args
         ProcessorClass = GLNProcessor
+    elif args.model_name == "localretro":
+        model_name = "localretro"
+        model_args, _unknown = preprocess_parser.parse_known_args()
+        ProcessorClass = LocalRetroProcessor
     elif args.model_name == "transformer":
         # adapted from onmt.bin.preprocess.main()
         parser = transformer_parser()
