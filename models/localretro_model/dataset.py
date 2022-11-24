@@ -15,7 +15,8 @@ def canonicalize_rxn(rxn):
 
 class USPTODataset:
     def __init__(self, args, smiles_to_graph, node_featurizer, edge_featurizer, load=True, log_every=1000):
-        df = pd.read_csv(os.path.join(args.processed_data_path, "labeled_data.csv"))
+        fn = os.path.join(args.processed_data_path, "labeled_data.csv")
+        df = pd.read_csv(fn)
         self.train_ids = df.index[df['Split'] == 'train'].values
         self.val_ids = df.index[df['Split'] == 'val'].values
         self.test_ids = df.index[df['Split'] == 'test'].values
@@ -47,29 +48,29 @@ class USPTODataset:
         
 class USPTOTestDataset:
     def __init__(self, args, smiles_to_graph, node_featurizer, edge_featurizer, load=True, log_every=1000):
-        df = pd.read_csv('../data/%s/raw_test.csv' % args['dataset'])
-        self.rxns = df['reactants>reagents>production'].tolist()
+        df = pd.read_csv(args.test_file)
+        self.rxns = df['rxn_smiles'].tolist()
         self.rxns = [canonicalize_rxn(rxn) for rxn in self.rxns]
         self.smiles = [rxn.split('>>')[-1] for rxn in self.rxns]
-        self.cache_file_path = '../data/saved_graphs/%s_test_dglgraph.bin' % args['dataset']
+        self.cache_file_path = os.path.join(args.processed_data_path, "test_dglgraph.bin")
         self._pre_process(smiles_to_graph, node_featurizer, edge_featurizer, load, log_every)
 
     def _pre_process(self, smiles_to_graph, node_featurizer, edge_featurizer, load, log_every):
         if os.path.exists(self.cache_file_path) and load:
-            print('Loading previously saved test dgl graphs...')
+            logging.info('Loading previously saved test dgl graphs...')
             self.graphs, label_dict = load_graphs(self.cache_file_path)
         else:
-            print('Processing test dgl graphs from scratch...')
+            logging.info('Processing test dgl graphs from scratch...')
             self.graphs = []
             for i, s in enumerate(self.smiles):
                 if (i + 1) % log_every == 0:
-                    print('Processing molecule %d/%d' % (i+1, len(self.smiles)))
+                    logging.info(f'Processing molecule {i + 1}/{len(self.smiles)}')
                 self.graphs.append(smiles_to_graph(s, node_featurizer=node_featurizer,
                                                    edge_featurizer=edge_featurizer, canonical_atom_order=False))
             save_graphs(self.cache_file_path, self.graphs)
 
     def __getitem__(self, item):
-            return self.smiles[item], self.graphs[item], self.rxns[item]
+        return self.smiles[item], self.graphs[item], self.rxns[item]
 
     def __len__(self):
-            return len(self.smiles)
+        return len(self.smiles)

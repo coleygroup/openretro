@@ -22,3 +22,10 @@ def add_train_opts(parser):
     group.add('--schedule_step', type=int, default=10, help='Step size of learning scheduler')
     group.add('--num_workers', type=int, default=0, help='Number of processes for data loading')
     group.add('--print_every', type=int, default=500, help='Print the training progress every X mini-batches')
+
+
+def add_predict_opts(parser):
+    """Predicting options"""
+    group = parser.add_argument_group("localretro_predict")
+    group.add("--top_num", type=int, default=100, help='Num. of predictions to write')
+    group.add('--top_k', type=int, default=50, help='Number of top predictions')

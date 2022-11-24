@@ -1,10 +1,11 @@
 import argparse
 import logging
 import os
-import sys
 from datetime import datetime
 from gln.common.cmd_args import cmd_args as gln_args
 from models.gln_model.gln_predictor import GLNPredictor
+from models.localretro_model import localretro_parser
+from models.localretro_model.localretro_predictor import LocalRetroPredictor
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_predictor import NeuralSymPredictor
 from models.retroxpert_model.retroxpert_predictor import RetroXpertPredictor
@@ -54,6 +55,14 @@ def predict_main(args, predict_parser):
         model_args = gln_args
         raw_data_files = [args.train_file, args.val_file, args.test_file]
         PredictorClass = GLNPredictor
+    elif args.model_name == "localretro":
+        localretro_parser.add_model_opts(predict_parser)
+        localretro_parser.add_train_opts(predict_parser)
+        localretro_parser.add_predict_opts(predict_parser)
+        model_args, _unknown = predict_parser.parse_known_args()
+
+        model_name = "localretro"
+        PredictorClass = LocalRetroPredictor
     elif args.model_name == "transformer":
         # adapted from onmt.bin.translate.main()
         parser = transformer_parser()
