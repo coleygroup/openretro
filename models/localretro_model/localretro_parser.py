@@ -12,6 +12,7 @@ def add_model_opts(parser):
 def add_train_opts(parser):
     """Training options"""
     group = parser.add_argument_group("localretro_train")
+    group.add("--seed", help="random seed", type=int, default=42)
     group.add('--batch_size', type=int, default=16, help='Batch size of dataloader')
     group.add('--num_epochs', type=int, default=50, help='Maximum number of epochs for training')
     group.add('--patience', type=int, default=5, help='Patience for early stopping')
@@ -20,4 +21,4 @@ def add_train_opts(parser):
     group.add('--weight_decay', type=float, default=1e-6, help='Weight decay of optimizer')
     group.add('--schedule_step', type=int, default=10, help='Step size of learning scheduler')
     group.add('--num_workers', type=int, default=0, help='Number of processes for data loading')
-    group.add('--print_every', type=int, default=20, help='Print the training progress every X mini-batches')
+    group.add('--print_every', type=int, default=500, help='Print the training progress every X mini-batches')

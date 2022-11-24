@@ -135,10 +135,11 @@ class LocalRetroTrainer(Trainer):
                                lr=args.learning_rate,
                                weight_decay=args.weight_decay)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.schedule_step)
-        stopper = EarlyStopping(mode='lower', patience=args.patience, filename=self.model_path)
+        filename = os.path.join(self.model_path, f"LocalRetro.pth")
+        stopper = EarlyStopping(mode='lower', patience=args.patience, filename=filename)
 
         train_loader, val_loader, test_loader = load_dataloader(args)
-        for epoch in range(args['num_epochs']):
+        for epoch in range(args.num_epochs):
             run_a_train_epoch(args, epoch, self.model, train_loader, loss_criterion, optimizer)
             val_loss = run_an_eval_epoch(args, self.model, val_loader, loss_criterion)
             early_stop = stopper.step(val_loss, self.model)

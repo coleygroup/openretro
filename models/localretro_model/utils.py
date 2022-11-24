@@ -14,7 +14,7 @@ from dgl.data.utils import Subset
 from dgllife.utils import WeaveAtomFeaturizer, CanonicalBondFeaturizer, smiles_to_bigraph, EarlyStopping
 
 from models.localretro_model.model import LocalRetro
-from dataset import USPTODataset, USPTOTestDataset
+from models.localretro_model.dataset import USPTODataset, USPTOTestDataset
 
 def init_featurizer(args):
     atom_types = ['C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg', 'Na', 'Ca', 'Fe',
