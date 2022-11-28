@@ -1,12 +1,12 @@
+import dgl
 import glob
 import os
 import pandas as pd
+import sys
 import torch
 import torch.nn as nn
 import zipfile
 from dgllife.utils import WeaveAtomFeaturizer, CanonicalBondFeaturizer, smiles_to_bigraph
-from utils.chem_utils import canonicalize_smiles
-from torch.utils.data.dataloader import default_collate
 from typing import Any, Dict, List
 
 
@@ -46,6 +46,8 @@ class NeuralSymHandler:
         self.device = torch.device("cuda:" + str(properties.get("gpu_id")) if torch.cuda.is_available() else "cpu")
 
         with zipfile.ZipFile(model_dir + '/models.zip', 'r') as zip_ref:
+            zip_ref.extractall(model_dir)
+        with zipfile.ZipFile(model_dir + '/utils.zip', 'r') as zip_ref:
             zip_ref.extractall(model_dir)
 
         from models.localretro_model.model import LocalRetro
@@ -91,16 +93,20 @@ class NeuralSymHandler:
         print(self.model)
         print(f"\nModel #Params: {sum([x.nelement() for x in self.model.parameters()]) / 1000} k")
 
-        checkpoint = "LocalRetro.pth"
-        state_dict = torch.load(checkpoint)
+        checkpoint = os.path.join(model_dir, "LocalRetro.pth")
+        state_dict = torch.load(checkpoint, map_location=self.device)
         self.model.load_state_dict(state_dict['model_state_dict'])
         print(f"Loaded state_dict from {checkpoint}")
+        sys.stdout.flush()
+
         self.model = self.model.to(self.device)
         self.model.eval()
 
         self.initialized = True
 
     def preprocess(self, data: List) -> List[str]:
+        from utils.chem_utils import canonicalize_smiles
+
         print(data)
         canonical_smiles = [canonicalize_smiles(smi)
                             for smi in data[0]["body"]["smiles"]]
@@ -117,10 +123,12 @@ class NeuralSymHandler:
                                     edge_featurizer=self.edge_featurizer,
                                     canonical_atom_order=False)
                   for smi in data]
-        graphs = default_collate(graphs)
+        graphs = dgl.batch(graphs)
+        graphs.set_n_initializer(dgl.init.zero_initializer)
+        graphs.set_e_initializer(dgl.init.zero_initializer)
         graphs = graphs.to(self.device)
         node_feats = graphs.ndata.pop("h").to(self.device)
-        edge_feats = graphs.ndata.pop("e").to(self.device)
+        edge_feats = graphs.edata.pop("e").to(self.device)
 
         results = []
         with torch.no_grad():
@@ -166,7 +174,7 @@ class NeuralSymHandler:
                     except Exception as e:
                         continue
                     reactants.append(decoded_smiles)
-                    scores.append(score)
+                    scores.append(score.item())
 
                     if len(reactants) >= self.infer_config["top_k"]:
                         break

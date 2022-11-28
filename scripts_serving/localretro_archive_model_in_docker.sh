@@ -9,8 +9,8 @@ utils.zip,\
 /app/openretro/data/USPTO_50k/processed_localretro/template_infos.csv\
 "
 
-zip models.zip models/*
-zip utils.zip utils/*
+zip -r models.zip models/
+zip -r utils.zip utils/
 
 docker run \
   -v "$PWD/checkpoints/USPTO_50k_localretro/LocalRetro.pth":/app/openretro/checkpoints/USPTO_50k_localretro/LocalRetro.pth \
@@ -21,7 +21,6 @@ docker run \
   -v "$PWD/models.zip":/app/openretro/models.zip \
   -v "$PWD/utils.zip":/app/openretro/utils.zip \
   -t openretro:gpu \
-  /bin/bash -c \
   torch-model-archiver \
   --model-name=USPTO_50k_localretro \
   --version=1.0 \
