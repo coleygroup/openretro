@@ -26,6 +26,7 @@ sh scripts_serving/gln_serve_in_docker.sh
 sh scripts_serving/neuralsym_serve_in_docker.sh
 sh scripts_serving/transformer_serve_in_docker.sh
 sh scripts_serving/retroxpert_serve_in_docker.sh
+sh scripts_serving/localretro_serve_in_docker.sh
 ```
 By default, any one of the serving scripts would serve all available model archives.
 Change the arguments after the --models flag (in the script) before running to specify only the desired archives otherwise.
@@ -41,15 +42,15 @@ curl http://0.0.0.0:port/predictions/MODEL_NAME \
 This query format should work for any served model. Specifically,  
   **0.0.0.0**: the server ip or server name  
   **port**: the port of served model.
-By default, it is 9917, 9927, 9937, 9947 for GLN, NeuralSym, Transformer and RetroXpert respectively.  
+By default, it is 9917, 9927, 9937, 9947, 9957 for GLN, NeuralSym, Transformer, RetroXpert and LocalRetro respectively.  
   **MODEL_NAME**: any of USPTO_50k_gln, {USPTO_50k,USPTO_full,pistachio_21Q1}_neuralsym,
-{USPTO_50k,USPTO_full,pistachio_21Q1}_transformer, {USPTO_50k,USPTO_full}_retroxpert.  
+{USPTO_50k,USPTO_full,pistachio_21Q1}_transformer, {USPTO_50k,USPTO_full}_retroxpert, USPTO_50k_localretro.  
   **--data**： a single json dict with "smiles" as the key, and list of SMILES as the value.
 It is okay to pass in SMILES with atom mapping numbers.
 All models would remove atom mapping numbers and canonicalize the target SMILES before inference.
 
 # Sample return
-* For template-based models (GLN and NeuralSym)
+* For GLN and NeuralSym
 ```
 List[{
     "templates": List[str], list of top k templates,
@@ -59,7 +60,7 @@ List[{
 ```
 Note that the reactants may be duplicated since different templates can give the same reactants.
 
-* For template-free models (Transformer and RetroXpert)
+* For Transformer, RetroXpert and LocalRetro
 ```
 List[{
     "reactants": List[str], list of top k proposed reactants,
@@ -69,7 +70,7 @@ List[{
 
 # [Optional] Create own model archives
 If you want to create servable model archives from own checkpoints (e.g. trained on different datasets),
-please refer to the archiving scripts (scripts_serving/{gln,neuralsym,transformer,retroxpert}_archive_model_in_docker.sh).
+please refer to the archiving scripts (scripts_serving/{gln,neuralsym,transformer,retroxpert,localretro}_archive_model_in_docker.sh).
 Change the arguments accordingly in the script before running.
 It's mostly bookkeeping by replacing the data name and/or checkpoint paths; the script should be self-explanatory.
 
