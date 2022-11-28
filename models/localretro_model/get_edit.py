@@ -1,9 +1,10 @@
 import dgl
 import logging
 import numpy as np
+import os
 import torch
 import torch.nn as nn
-from utils import predict
+from models.localretro_model.utils import predict
 
 
 def get_id_template(a, class_n):
@@ -49,7 +50,7 @@ def get_bg_partition(bg):
 
 def write_edits(args, model, test_loader):
     model.eval()
-    with open(args.test_output_path, 'w') as f:
+    with open(os.path.join(args.test_output_path, "raw_results.txt"), 'w') as f:
         f.write('Test_id\tProduct\t%s\n' % '\t'.join([f'Prediction {i + 1}' for i in range(args.top_num)]))
         with torch.no_grad():
             for batch_id, data in enumerate(test_loader):
@@ -62,7 +63,8 @@ def write_edits(args, model, test_loader):
                 graphs, nodes_sep, edges_sep = get_bg_partition(bg)
                 start_node = 0
                 start_edge = 0
-                logging.info(f'\rWriting test molecule batch {batch_id}/{len(test_loader)}')
+                if batch_id % 10 == 0:
+                    logging.info(f'\rWriting test molecule batch {batch_id}/{len(test_loader)}')
                 for single_id, (graph, end_node, end_edge) in enumerate(zip(graphs, nodes_sep, edges_sep)):
                     smiles = smiles_list[single_id]
                     test_id = (batch_id * args.batch_size) + single_id
@@ -76,5 +78,5 @@ def write_edits(args, model, test_loader):
                     start_edge = end_edge
                     f.write('%s\t%s\t%s\n' % (
                         test_id, smiles,
-                        '\t'.join([f'({pred_types[i]}, {pred_sites[i][0]}, {pred_sites[i][1]}, {pred_scores[i]: .3f}'
+                        '\t'.join([f'({pred_types[i]}, {pred_sites[i][0]}, {pred_sites[i][1]}, {pred_scores[i]: .3f})'
                                    for i in range(args.top_num)])))

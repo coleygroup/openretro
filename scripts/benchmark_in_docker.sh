@@ -59,3 +59,11 @@ if [[ "$*" == *"gln"* ]]; then
   bash scripts/gln/gln_predict_in_docker.sh
   bash scripts/gln/gln_score_in_docker.sh
 fi
+
+# localretro
+if [[ "$*" == *"localretro"* ]]; then
+  bash scripts/localretro/localretro_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+  bash scripts/localretro/localretro_train_in_docker.sh
+  bash scripts/localretro/localretro_predict_in_docker.sh
+  bash scripts/localretro/localretro_score_in_docker.sh
+fi

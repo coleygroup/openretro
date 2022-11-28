@@ -62,6 +62,7 @@ def predict_main(args, predict_parser):
         model_args, _unknown = predict_parser.parse_known_args()
 
         model_name = "localretro"
+        raw_data_files = [args.test_file]
         PredictorClass = LocalRetroPredictor
     elif args.model_name == "transformer":
         # adapted from onmt.bin.translate.main()

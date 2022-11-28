@@ -17,6 +17,7 @@ These are probably not universally optimal for any dataset, and we leave the tur
 | GLN          | 51.8  | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
 | Transformer  | 43.4  | 53.9  | 58.5  | 63.0  | 67.1   | 69.4   | -      |
 | RetroXpert   | 45.4  | 55.5  | 59.8  | 64.1  | 68.8   | 72.0   | -      |
+| LocalRetro   | 52.5  | 68.5  | 75.7  | 84.0  | 91.0   | 94.5   | 96.3   |
 
 ### USPTO_full without reaction type
 | Accuracy (%) | Top-1 | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
