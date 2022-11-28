@@ -1,11 +1,12 @@
 FROM continuumio/miniconda3:4.9.2
+SHELL ["/bin/bash", "-c"]
 
-RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
 RUN apt-get update --allow-releaseinfo-change && apt-get -y install gcc g++ make curl git
-RUN conda install -c pytorch pytorch=1.9.0 torchserve=0.3.1 cpuonly
-RUN conda install -c conda-forge openjdk=11 rdkit
+RUN conda install mamba -c conda-forge
+RUN mamba install -c pytorch pytorch=1.9.0 torchserve=0.3.1 cpuonly
+RUN mamba install -c conda-forge openjdk=11 rdkit=2022.09.1
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble gdown
-RUN pip install dgl==0.6.1
+RUN pip install dgl==0.9.1
 RUN pip install dgllife==0.2.6
 
 ENV CUDA_CODE cpu
