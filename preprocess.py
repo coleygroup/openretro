@@ -12,6 +12,8 @@ from models.gln_model.gln_processor import GLNProcessor
 from models.localretro_model.localretro_processor import LocalRetroProcessor
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_processor import NeuralSymProcessor
+from models.retrocomposer_model import retrocomposer_parser
+from models.retrocomposer_model.retrocomposer_processor import RetroComposerProcessorS1
 from models.retroxpert_model import retroxpert_parser
 from models.retroxpert_model.retroxpert_processor import RetroXpertProcessorS1, RetroXpertProcessorS2
 from models.transformer_model.transformer_processor import TransformerProcessor
@@ -93,6 +95,14 @@ def preprocess_main(args, preprocess_parser):
         model_args.config = args.config_file
         model_args.num_threads = args.num_cores
         model_args.log_file = args.log_file
+    elif args.model_name == "retrocomposer":
+        retrocomposer_parser.add_preprocess_opts(preprocess_parser)
+        if args.stage == 1:
+            model_name = "retrocomposer_s1"
+            ProcessorClass = RetroComposerProcessorS1
+        else:
+            raise ValueError(f"--stage {args.stage} not supported! RetroComposer currently only supports stages 1.")
+        model_args, _unknown = preprocess_parser.parse_known_args()
     elif args.model_name == "neuralsym":
         neuralsym_parser.add_model_opts(preprocess_parser)
 
