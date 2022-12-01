@@ -9,6 +9,7 @@ RUN mamba install -c conda-forge openjdk=11 rdkit=2022.09.1
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 networkx==2.5 pebble
 RUN pip install dgl-cu111 -f https://data.dgl.ai/wheels/repo.html
 RUN pip install dgllife==0.2.6
+RUN pip install epam.indigo
 
 ENV CUDA_CODE cu111
 ENV GPU_FLAG 1
