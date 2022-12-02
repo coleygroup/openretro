@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import sys
 from datetime import datetime
 
 from gln.common.cmd_args import cmd_args as gln_args
@@ -10,6 +9,8 @@ from models.localretro_model import localretro_parser
 from models.localretro_model.localretro_trainer import LocalRetroTrainer
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_trainer import NeuralSymTrainer
+from models.retrocomposer_model import retrocomposer_parser
+from models.retrocomposer_model.retrocomposer_trainer import RetroComposerTrainerS1
 from models.retroxpert_model import retroxpert_parser
 from models.retroxpert_model.retroxpert_trainer import RetroXpertTrainerS1
 from models.transformer_model.transformer_trainer import TransformerTrainer
@@ -89,6 +90,16 @@ def train_main(args, train_parser):
         # update runtime args
         model_args.config = args.config_file
         model_args.log_file = args.log_file
+    elif args.model_name == "retrocomposer":
+        retrocomposer_parser.add_model_opts(train_parser)
+        retrocomposer_parser.add_train_opts(train_parser)
+
+        if args.stage == 1:
+            model_name = "retrocomposer_s1"
+        else:
+            raise ValueError(f"--stage {args.stage} not supported! RetroComposer only support stage 1.")
+        model_args, _unknown = train_parser.parse_known_args()
+        TrainerClass = RetroComposerTrainerS1
     elif args.model_name == "neuralsym":
         neuralsym_parser.add_model_opts(train_parser)
         neuralsym_parser.add_train_opts(train_parser)

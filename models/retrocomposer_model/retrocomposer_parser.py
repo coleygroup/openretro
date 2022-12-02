@@ -1,7 +1,24 @@
 def add_model_opts(parser):
     """Model options"""
     group = parser.add_argument_group("retroxpert_model")
-    group.add("--typed", help="whether reaction class is given", action="store_true")
+    group.add('--num_layer', type=int, default=6,
+              help='number of GNN message passing layers (default: 6).')
+    group.add('--emb_dim', type=int, default=300,
+              help='embedding dimensions (default: 300)')
+    group.add('--graph_pooling', type=str, default="attention",
+              help='graph level pooling (sum, mean, max, set2set, attention)')
+    group.add('--JK', type=str, default="concat",
+              help='how the node features across layers are combined. last, sum, max or concat')
+    group.add('--atom_feat_dim', type=int, default=45,
+              help="atom feature dimension.")
+    group.add('--bond_feat_dim', type=int, default=12,
+              help="bond feature dimension.")
+    group.add('--onehot_center', action='store_true', default=False,
+              help='reaction center encoding: onehot or subgraph')
+    group.add('--center_loss_type', type=str, default='ce',
+              help='loss type (bce or ce) for reaction center prediction')
+    group.add('--dropout_ratio', type=float, default=0.2,
+              help='dropout ratio (default: 0.5)')
 
 
 def add_preprocess_opts(parser):
@@ -15,13 +32,8 @@ def add_train_opts(parser):
     """Training options"""
     group = parser.add_argument_group("retroxpert_train")
     group.add("--seed", help="random seed", type=int, default=123)
-    group.add("--use_cpu", help="whether to use CPU", action="store_true")
-    group.add("--load_checkpoint_s1", help="set to true to load trained S1 model", action="store_true")
     group.add("--batch_size", help="batch size", type=int, default=32)
     group.add("--epochs", help="no. of training epochs", type=int, default=80)
     group.add("--lr", help="learning rate", type=float, default=5e-4)
-    group.add("--in_dim", help="dim of atom feature", type=int, default=47)
-    # this was 47+657 originally, but semi-pattern count (657) is not deterministic
-    group.add("--hidden_dim", help="hidden size", type=int, default=128)
-    group.add("--heads", help="no. of attention heads", type=int, default=4)
-    group.add("--gat_layers", help="no. of GAT layers", type=int, default=3)
+    group.add('--decay', type=float, default=0,
+              help='weight decay (default: 0)')
