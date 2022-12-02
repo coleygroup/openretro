@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker run \
+docker run --gpus 1 \
   -v "$PWD/logs":/app/openretro/logs \
   -v "$PWD/checkpoints":/app/openretro/checkpoints \
   -v "$PWD/results":/app/openretro/results \

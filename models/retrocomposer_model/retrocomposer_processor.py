@@ -7,15 +7,100 @@ import time
 from base.processor_base import Processor
 from collections import Counter
 from concurrent.futures import TimeoutError
-from models.retrocomposer_model.chemutils import \
+from models.retrocomposer_model.chemutils import cano_smiles, \
     cano_smarts, cano_smarts_, get_pattern_fingerprint_bitstr
-from models.retrocomposer_model.extract_templates import get_tpl, match_template
+from models.retrocomposer_model.extract_templates import get_tpl, _Reactor
 from models.retrocomposer_model.prepare_mol_graph import MoleculeDataset
 from multiprocessing import Pool
 from pebble import ProcessPool
 from rdkit import Chem
 from tqdm import tqdm
 from typing import Dict, List
+
+Reactor = _Reactor()
+global G_cano_templates, G_smarts_mol_cache
+
+
+def match_template(task):
+    global G_cano_templates, G_smarts_mol_cache
+    templates_train = G_cano_templates['templates_train']
+    react_smarts_list = G_cano_templates['react_smarts_list']
+    prod_smarts_list = G_cano_templates['prod_smarts_list']
+    prod_smarts_fp_list = G_cano_templates['prod_smarts_fp_list']
+    prod_smarts_fp_to_templates = G_cano_templates['prod_smarts_fp_to_templates']
+    smarts_mol_cache = G_smarts_mol_cache
+
+    idx, val = task
+    reactant = cano_smiles(val['reactant'])
+    params = Chem.SmilesParserParams()
+    params.removeHs = False
+    mol_prod = Chem.MolFromSmiles(val['product'], params)
+    prod_fp_vec = int(get_pattern_fingerprint_bitstr(mol_prod), 2)
+
+    sequences = []
+    template_cands = []
+    templates_list = []
+    atom_indexes_fp_labels = {}
+    # multiple templates may be valid for a reaction, find all of them
+    for prod_smarts_fp_idx, prod_smarts_tmpls in prod_smarts_fp_to_templates.items():
+        prod_smarts_fp_idx = int(prod_smarts_fp_idx)
+        prod_smarts_fp = prod_smarts_fp_list[prod_smarts_fp_idx]
+        for prod_smarts_idx, tmpls in prod_smarts_tmpls.items():
+            # skip if fingerprint not match
+            if (prod_smarts_fp & prod_fp_vec) < prod_smarts_fp:
+                continue
+            prod_smarts_idx = int(prod_smarts_idx)
+            prod_smarts = prod_smarts_list[prod_smarts_idx]
+            if prod_smarts not in smarts_mol_cache:
+                smarts_mol_cache[prod_smarts] = Chem.MergeQueryHs(Chem.MolFromSmarts(prod_smarts))
+            # we need also find matched atom indexes
+            matches = mol_prod.GetSubstructMatches(smarts_mol_cache[prod_smarts])
+            if len(matches):
+                found_okay_tmpl = False
+                for tmpl in tmpls:
+                    pred_mols = Reactor.run_reaction(val['product'], tmpl)
+                    if reactant and pred_mols and (reactant in pred_mols):
+                        found_okay_tmpl = True
+                        template_cands.append(templates_train.index(tmpl))
+                        templates_list.append(tmpl)
+                        reacts = tmpl.split('>>')[1].split('.')
+                        if len(reacts) > 2:
+                            logging.info(f'too many reacts: {reacts}, {idx}')
+                        seq_reacts = [react_smarts_list.index(cano_smarts(r)) for r in reacts]
+                        seq = [prod_smarts_fp_idx] + sorted(seq_reacts)
+                        sequences.append(seq)
+                # for each prod center, there may be multiple matches
+                for match in matches:
+                    match = tuple(sorted(match))
+                    if match not in atom_indexes_fp_labels:
+                        atom_indexes_fp_labels[match] = {}
+                    if prod_smarts_fp_idx not in atom_indexes_fp_labels[match]:
+                        atom_indexes_fp_labels[match][prod_smarts_fp_idx] = [[], []]
+                    atom_indexes_fp_labels[match][prod_smarts_fp_idx][0].append(prod_smarts_idx)
+                    atom_indexes_fp_labels[match][prod_smarts_fp_idx][1].append(found_okay_tmpl)
+
+    reaction_center_cands = []
+    reaction_center_cands_labels = []
+    reaction_center_cands_smarts = []
+    reaction_center_atom_indexes = []
+    for atom_index in sorted(atom_indexes_fp_labels.keys()):
+        for fp_idx, val in atom_indexes_fp_labels[atom_index].items():
+            reaction_center_cands.append(fp_idx)
+            reaction_center_cands_smarts.append(val[0])
+            reaction_center_cands_labels.append(True in val[1])
+            reaction_center_atom_indexes.append(atom_index)
+
+    tmpl_res = {
+        'templates': templates_list,
+        'template_cands': template_cands,
+        'template_sequences': sequences,
+        'reaction_center_cands': reaction_center_cands,
+        'reaction_center_cands_labels': reaction_center_cands_labels,
+        'reaction_center_cands_smarts': reaction_center_cands_smarts,
+        'reaction_center_atom_indexes': reaction_center_atom_indexes,
+    }
+
+    return idx, tmpl_res
 
 
 class RetroComposerProcessorS1(Processor):
@@ -221,6 +306,12 @@ class RetroComposerProcessorS1(Processor):
     def match_templates(self):
         """Adapted from extract_templates.py"""
         logging.info(f"Matching templates for {self.data_name}")
+        global G_cano_templates, G_smarts_mol_cache
+
+        cano_templates_file = os.path.join(self.processed_data_path, f"templates_cano_train.json")
+        with open(cano_templates_file, "r") as f:
+            G_cano_templates = json.load(f)
+        G_smarts_mol_cache = {}
 
         # find all applicable templates for each reaction
         # since multiple templates may be valid for a reaction
@@ -240,7 +331,7 @@ class RetroComposerProcessorS1(Processor):
                 idx, tmpl_res = res
                 templates_data[idx].update(tmpl_res)
                 cnt += len(tmpl_res['templates']) > 0
-            logging.info(f'template coverage: {cnt / len(templates_data)} for {self.data_name}')
+            logging.info(f'template coverage: {cnt / len(templates_data)} for {self.data_name} {phase}')
             with open(output_file, 'w') as of:
                 json.dump(templates_data, of, indent=4)
 

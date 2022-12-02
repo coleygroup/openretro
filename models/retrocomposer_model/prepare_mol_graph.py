@@ -143,7 +143,10 @@ class MoleculeDataset(Dataset):
                 if self.split == 'train':
                     skipped = 0
                     self.seq_to_templates = {}
-                    templates = json.load(open(os.path.join(self.root, 'templates_train.json')))
+                    templates_file = os.path.join(self.root, 'templates_train_new.json')
+                    with open(templates_file, "r") as f:
+                        templates = json.load(f)
+
                     for idx, val in tqdm(templates.items()):
                         if len(val['templates']) == 0:
                             skipped += 1
@@ -184,7 +187,7 @@ class MoleculeDataset(Dataset):
 
     def process_data(self):
         os.makedirs(self.processed_dir, exist_ok=True)
-        templates_file = os.path.join(self.root, f'templates_{self.split}.json')
+        templates_file = os.path.join(self.root, f'templates_{self.split}_new.json')
         logging.info(f'process datafile: {templates_file}')
         with open(templates_file, "r") as f:
             templates = json.load(f)
