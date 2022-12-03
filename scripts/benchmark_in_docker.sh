@@ -51,6 +51,15 @@ if [[ "$*" == *"retroxpert"* ]]; then
   bash scripts/retroxpert/retroxpert_predict_in_docker.sh
   bash scripts/retroxpert/retroxpert_score_in_docker.sh
 fi
+fi
+
+# retrocomposer
+if [[ "$*" == *"retrocomposer"* ]]; then
+  bash scripts/retrocomposer/rretrocomposer_stage_1_preprocess_in_docker.sh $CANONICALIZATION_FLAG
+  bash scripts/retrocomposer/retrocomposer_stage_1_train_in_docker.sh
+  bash scripts/retrocomposer/retrocomposer_predict_in_docker.sh
+  bash scripts/retrocomposer/retrocomposer_score_in_docker.sh
+fi
 
 # gln
 if [[ "$*" == *"gln"* ]]; then

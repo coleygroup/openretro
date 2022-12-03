@@ -11,13 +11,14 @@ which we found to be sufficiently robust.
 These are probably not universally optimal for any dataset, and we leave the turning to the users.
 
 ### USPTO_50k without reaction type
-| Accuracy (%) | Top-1 | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
-|--------------|-------|-------|-------|-------|--------|--------|--------|
-| NeuralSym    | 45.5  | 59.7  | 67.1  | 74.6  | 81.6   | 84.9   | 85.7   |
-| GLN          | 51.8  | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
-| Transformer  | 43.4  | 53.9  | 58.5  | 63.0  | 67.1   | 69.4   | -      |
-| RetroXpert   | 45.4  | 55.5  | 59.8  | 64.1  | 68.8   | 72.0   | -      |
-| LocalRetro   | 52.5  | 68.5  | 75.7  | 84.0  | 91.0   | 94.5   | 96.3   |
+| Accuracy (%)  | Top-1 | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
+|---------------|-------|-------|-------|-------|--------|--------|--------|
+| NeuralSym     | 45.5  | 59.7  | 67.1  | 74.6  | 81.6   | 84.9   | 85.7   |
+| GLN           | 51.8  | 62.5  | 68.8  | 75.9  | 83.4   | 89.3   | 92.3   |
+| Transformer   | 43.4  | 53.9  | 58.5  | 63.0  | 67.1   | 69.4   | -      |
+| RetroXpert    | 45.4  | 55.5  | 59.8  | 64.1  | 68.8   | 72.0   | -      |
+| RetroComposer | 49.3  | 64.6  | 71.1  | 78.5  | 85.7   | 88.2   | 88.6   |
+| LocalRetro    | 52.5  | 68.5  | 75.7  | 84.0  | 91.0   | 94.5   | 96.3   |
 
 ### USPTO_full without reaction type
 | Accuracy (%) | Top-1 | Top-2 | Top-3 | Top-5 | Top-10 | Top-20 | Top-50 |
@@ -42,7 +43,7 @@ Note: please rebuild the Docker before running if there is any change in code.
 Prepare the raw atom-mapped .csv files for train, validation and test.
 The required columns are "class", "id" and "rxn_smiles".
 See data/USPTO_50k/{train,val,test}.csv for sample data format.
-Atom mapping is *required* for GLN, RetroXpert and NeuralSym;
+Atom mapping is *required* for GLN, LocalRetro, RetroComposer, RetroXpert and NeuralSym;
 behaviour of these models without atom mapping is undefined.
 
 It is possible to run benchmarking with non atom-mapped reactions, with *template-free models only*.
@@ -66,15 +67,17 @@ This will run the preprocessing, training, predicting and scoring with specified
 with Top-n accuracies up to n=50 as the final outputs.
 Progress and result logs will be saved under ./logs 
 
-Currently, we support 4 models as MODEL_NAME, namely,
+Currently, we support 6 models as MODEL_NAME, namely,
 * <b>gln</b>, adapted from original GLN (https://github.com/Hanjun-Dai/GLN)
+* <b>localretro</b>, adapted from original LocalRetro (https://github.com/kaist-amsg/LocalRetro)
 * <b>retroxpert</b>, adapted from original RetroXpert (https://github.com/uta-smile/RetroXpert)
+* <b>retrocomposer</b>, adapted from original RetroComposer (https://github.com/uta-smile/RetroComposer)
 * <b>neuralsym</b>, adapted from Min Htoo's re-implementation (https://github.com/linminhtoo/neuralsym)
 * <b>transformer</b>, adapted from Augmented Transformer (https://github.com/bigchem/synthesis)
   and Molecular Transformer (https://github.com/pschwllr/MolecularTransformer).
   We (trivially) re-implemented the Transformer using models from OpenNMT, which gave cleaner and more modularized codes. 
   
-For example, to benchmark with all 4 models, run
+For example, to benchmark with selected 4 models, run
 ```
 bash scripts/benchmark_in_docker.sh gln retroxpert neuralsym transformer
 ```
