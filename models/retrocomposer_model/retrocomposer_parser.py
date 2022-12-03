@@ -19,6 +19,8 @@ def add_model_opts(parser):
               help='loss type (bce or ce) for reaction center prediction')
     group.add('--dropout_ratio', type=float, default=0.2,
               help='dropout ratio (default: 0.5)')
+    group.add('--multiprocess', action='store_true', help='train a model with multi process')
+    group.add('--num_process', type=int, default=4, help='number of processes for multi-process training')
 
 
 def add_preprocess_opts(parser):
@@ -31,7 +33,7 @@ def add_preprocess_opts(parser):
 def add_train_opts(parser):
     """Training options"""
     group = parser.add_argument_group("retroxpert_train")
-    group.add("--seed", help="random seed", type=int, default=123)
+    group.add("--seed", help="random seed", type=int, default=0)
     group.add("--use_cpu", help="whether to use CPU", action="store_true")
     group.add("--batch_size", help="batch size", type=int, default=32)
     group.add("--epochs", help="no. of training epochs", type=int, default=80)

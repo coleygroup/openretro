@@ -1,3 +1,4 @@
+import copy
 import logging
 import numpy as np
 import os
@@ -48,6 +49,37 @@ def _train(args, model, device, loader, optimizer=None, train=True):
     return loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc
 
 
+def _train_multiprocess(rank, args, model, device, train_dataset, val_dataset):
+    logging.info("Building optimizer and scheduler")
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.decay)
+    epochs = args.epochs // args.num_process
+    output_model_file = os.path.join(args.model_path, 'model.pt')
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+
+    valid_dataset_ = copy.deepcopy(val_dataset)
+    valid_dataset_.processed_data_files = valid_dataset_.processed_data_files_valid
+    val_loader = DataLoader(valid_dataset_, batch_size=args.batch_size, shuffle=False)
+    for epoch in range(1, epochs + 1):
+        logging.info("====rank and epoch: ", rank, epoch)
+        train_res = _train(args, model, device, train_loader, optimizer)
+        loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc = train_res
+        logging.info(f"rank: {rank} epoch: {epoch} train loss: {loss} loss_prod: {loss_prod} loss_react: {loss_react} "
+                     f"prod_pred_acc_max: {prod_pred_acc_max} "
+                     f"react_pred_acc_each: {react_pred_acc_each} "
+                     f"react_pred_acc: {react_pred_acc}")
+        scheduler.step()
+        if rank == 0:
+            torch.save(model.state_dict(), output_model_file)
+        logging.info("====evaluation")
+        val_res = _train(args, model, device, val_loader, train=False)
+        loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc = val_res
+        logging.info(f"epoch: {epoch} validation loss: {loss} loss_prod: {loss_prod} loss_react: {loss_react} "
+                     f"prod_pred_acc_max: {prod_pred_acc_max} "
+                     f"react_pred_acc_each: {react_pred_acc_each} "
+                     f"react_pred_acc: {react_pred_acc}")
+
+
 class RetroComposerTrainerS1(Trainer):
     """Class for RetroComposer Training, Stage 1"""
 
@@ -72,6 +104,7 @@ class RetroComposerTrainerS1(Trainer):
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() and not model_args.use_cpu
                                    else "cpu")
+        self.model_args.model_path = self.model_path
         self.train_dataset = MoleculeDataset(
             root=processed_data_path, split='train', load_mol=True)
         self.val_dataset = MoleculeDataset(
@@ -105,33 +138,50 @@ class RetroComposerTrainerS1(Trainer):
     def train(self):
         """Core of run_retro.py"""
         args = self.model_args
-
-        logging.info("Building optimizer and scheduler")
-        optimizer = optim.Adam(self.model.parameters(), lr=args.lr, weight_decay=args.decay)
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
-        logging.info(optimizer)
-
-        train_loader = DataLoader(self.train_dataset, batch_size=args.batch_size, shuffle=True)
-        self.val_dataset.processed_data_files = self.val_dataset.processed_data_files_valid
-        val_loader = DataLoader(self.val_dataset, batch_size=args.batch_size, shuffle=False)
-
         output_model_file = os.path.join(self.model_path, "model.pt")
-        logging.info("Start training")
-        for epoch in range(1, args.epochs + 1):
-            logging.info("====epoch " + str(epoch))
-            res = _train(args, self.model, self.device, train_loader, optimizer)
-            loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc = res
-            logging.info(f"epoch: {epoch} train loss: {loss} loss_prod: {loss_prod} loss_react: {loss_react} "
-                         f"prod_pred_acc_max: {prod_pred_acc_max} "
-                         f"react_pred_acc_each: {react_pred_acc_each} "
-                         f"react_pred_acc: {react_pred_acc}")
-            scheduler.step()
-            torch.save(self.model.state_dict(), output_model_file)
 
-            logging.info("====evaluation")
-            val_res = _train(args, self.model, self.device, val_loader, train=False)
-            loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc = val_res
-            logging.info(f"epoch: {epoch} validation loss: {loss} loss_prod: {loss_prod} loss_react: {loss_react} "
-                         f"prod_pred_acc_max: {prod_pred_acc_max} "
-                         f"react_pred_acc_each: {react_pred_acc_each} "
-                         f"react_pred_acc: {react_pred_acc}")
+        if args.multiprocess:
+            logging.info(f"Start training in multi-process mode. num_process = {args.num_process}")
+            torch.multiprocessing.set_start_method('spawn', force=True)
+            self.model.share_memory()  # gradients are allocated lazily, so they are not shared here
+            processes = []
+            for rank in range(args.num_process):
+                p = torch.multiprocessing.Process(
+                    target=_train_multiprocess,
+                    args=(rank, args, self.model, self.device, self.train_dataset, self.val_dataset)
+                )
+                p.start()
+                processes.append(p)
+            for p in processes:
+                p.close()
+                p.join()
+        else:
+            logging.info("Start training in single-process mode")
+
+            logging.info("Building optimizer and scheduler")
+            optimizer = optim.Adam(self.model.parameters(), lr=args.lr, weight_decay=args.decay)
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
+            logging.info(optimizer)
+
+            train_loader = DataLoader(self.train_dataset, batch_size=args.batch_size, shuffle=True)
+            self.val_dataset.processed_data_files = self.val_dataset.processed_data_files_valid
+            val_loader = DataLoader(self.val_dataset, batch_size=args.batch_size, shuffle=False)
+
+            for epoch in range(1, args.epochs + 1):
+                logging.info("====epoch " + str(epoch))
+                res = _train(args, self.model, self.device, train_loader, optimizer)
+                loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc = res
+                logging.info(f"epoch: {epoch} train loss: {loss} loss_prod: {loss_prod} loss_react: {loss_react} "
+                             f"prod_pred_acc_max: {prod_pred_acc_max} "
+                             f"react_pred_acc_each: {react_pred_acc_each} "
+                             f"react_pred_acc: {react_pred_acc}")
+                scheduler.step()
+                torch.save(self.model.state_dict(), output_model_file)
+
+                logging.info("====evaluation")
+                val_res = _train(args, self.model, self.device, val_loader, train=False)
+                loss, loss_prod, loss_react, prod_pred_acc_max, react_pred_acc_each, react_pred_acc = val_res
+                logging.info(f"epoch: {epoch} validation loss: {loss} loss_prod: {loss_prod} loss_react: {loss_react} "
+                             f"prod_pred_acc_max: {prod_pred_acc_max} "
+                             f"react_pred_acc_each: {react_pred_acc_each} "
+                             f"react_pred_acc: {react_pred_acc}")

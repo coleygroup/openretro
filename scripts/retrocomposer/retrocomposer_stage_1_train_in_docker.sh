@@ -16,4 +16,6 @@ docker run --gpus 1 \
   --processed_data_path=/app/openretro/data/tmp_for_docker/processed \
   --model_path=/app/openretro/checkpoints/tmp_for_docker \
   --batch_size=32 \
-  --epochs=80
+  --epochs=80 \
+  --multiprocess \
+  --num_process

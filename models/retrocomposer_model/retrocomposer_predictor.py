@@ -10,6 +10,7 @@ from models.retrocomposer_model.prepare_mol_graph import MoleculeDataset
 from torch_geometric.data import DataLoader
 from tqdm import tqdm
 from typing import Dict, List
+from utils.chem_utils import canonicalize_smiles
 
 
 def _eval_decoding(args, model, device, dataset, result_file, save_res=True):
@@ -33,7 +34,7 @@ def _eval_decoding(args, model, device, dataset, result_file, save_res=True):
                         'product': batch.product[batch_idx],
                         'reactant': batch.reactant[batch_idx],
                         'cano_reactants': batch.cano_reactants[batch_idx],
-                        'type': batch.type[batch_idx].item(),
+                        # 'type': batch.type[batch_idx].item(),
                         'seq_gt': batch.sequences[batch_idx],
                         'templates': batch.templates[batch_idx],
                         'templates_pred': [],
@@ -134,52 +135,47 @@ class RetroComposerPredictor:
 
     def predict(self):
         self.eval_decoding()
-        # self.compile_into_csv()
+        self.compile_into_csv()
 
     def eval_decoding(self):
         """Adapted from run_retro.py"""
+        result_file = os.path.join(self.test_output_path, 'beam_result.json')
+        if os.path.exists(result_file):
+            logging.info(f"Results found at {result_file}, skip prediction.")
+            return
+
         self.build_test_model()
         model_file = os.path.join(self.model_path, "model.pt")
-        self.model.from_pretrained(model_file, self.device)
+        self.model.from_pretrained(model_file)
         logging.info(f"Loaded model from {model_file}")
         self.model.eval()
 
-        result_file = os.path.join(self.test_output_path, f'beam_result.json')
         _eval_decoding(self.model_args, self.model, self.device, self.test_dataset, result_file=result_file)
 
     def compile_into_csv(self):
         logging.info("Compiling into predictions.csv")
+        n_best = 50
 
-        src_file = os.path.join(self.processed_data_path, "opennmt_data_s2", "src-test.txt")
+        result_file = os.path.join(self.test_output_path, 'beam_result.json')
         output_file = os.path.join(self.test_output_path, "predictions.csv")
 
-        with open(src_file, "r") as f:
-            total_src = sum(1 for _ in f)
+        with open(result_file, 'r') as f:
+            results = json.load(f)
 
-        with open(self.model_args.output, "r") as f:
-            total_gen = sum(1 for _ in f)
-
-        n_best = self.model_args.n_best
-        assert total_src == total_gen / n_best, \
-            f"File length mismatch! Source total: {total_src}, " \
-            f"prediction total: {total_gen}, n_best: {n_best}"
-
-        proposed_col_names = [f'cand_precursor_{i}' for i in range(1, self.model_args.n_best + 1)]
+        proposed_col_names = [f'cand_precursor_{i}' for i in range(1, n_best + 1)]
         headers = ['prod_smi']
         headers.extend(proposed_col_names)
 
-        with open(src_file, "r") as src_f, open(self.model_args.output, "r") as pred_f, open(output_file, "w") as of:
+        with open(output_file, "w") as of:
             header_line = ",".join(headers)
             of.write(f"{header_line}\n")
 
-            for src_line in src_f:
-                prod = src_line.split("[PREDICT]")[0]
-                prods = prod.strip().split()[1:]        # drop the [RXN] token
-
-                of.write("".join(prods))
-
-                for j in range(n_best):
-                    cand = pred_f.readline()
+            for idx, result in tqdm(results.items()):
+                prod = canonicalize_smiles(result["product"], remove_atom_number=True)
+                of.write(prod)
+                for j, cand in enumerate(result["reactants_pred"]):
+                    if j > n_best:
+                        break
                     of.write(",")
-                    of.write("".join(cand.strip().split()))
+                    of.write(canonicalize_smiles(cand))
                 of.write("\n")
