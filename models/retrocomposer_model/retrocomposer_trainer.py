@@ -7,7 +7,7 @@ from base.trainer_base import Trainer
 from models.retrocomposer_model.gnn import GNN_graphpred
 from models.retrocomposer_model.prepare_mol_graph import MoleculeDataset
 from torch import optim
-from torch.utils.data import DataLoader
+from torch_geometric.data import DataLoader
 from tqdm import tqdm
 from typing import Dict, List
 
@@ -22,7 +22,7 @@ def _train(args, model, device, loader, optimizer=None, train=True):
     prod_pred_res_max, react_pred_res, react_pred_res_each = [], [], []
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
-        loss_prod, loss_react, prod_pred_max, react_pred = model(batch, typed=args.typed)
+        loss_prod, loss_react, prod_pred_max, react_pred = model(batch)
         loss = loss_prod + loss_react
         loss_list.append(loss.item())
         loss_prod_list.append(loss_prod.item())
@@ -112,6 +112,7 @@ class RetroComposerTrainerS1(Trainer):
         logging.info(optimizer)
 
         train_loader = DataLoader(self.train_dataset, batch_size=args.batch_size, shuffle=True)
+        self.val_dataset.processed_data_files = self.val_dataset.processed_data_files_valid
         val_loader = DataLoader(self.val_dataset, batch_size=args.batch_size, shuffle=False)
 
         output_model_file = os.path.join(self.model_path, "model.pt")
