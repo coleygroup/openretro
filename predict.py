@@ -8,6 +8,8 @@ from models.localretro_model import localretro_parser
 from models.localretro_model.localretro_predictor import LocalRetroPredictor
 from models.neuralsym_model import neuralsym_parser
 from models.neuralsym_model.neuralsym_predictor import NeuralSymPredictor
+from models.retrocomposer_model import retrocomposer_parser
+from models.retrocomposer_model.retrocomposer_predictor import RetroComposerPredictor
 from models.retroxpert_model.retroxpert_predictor import RetroXpertPredictor
 from models.transformer_model.transformer_predictor import TransformerPredictor
 from onmt import opts as onmt_opts
@@ -86,6 +88,14 @@ def predict_main(args, predict_parser):
 
         model_name = "retroxpert"
         PredictorClass = RetroXpertPredictor
+    elif args.model_name == "retrocomposer":
+        retrocomposer_parser.add_model_opts(predict_parser)
+        retrocomposer_parser.add_train_opts(predict_parser)
+        retrocomposer_parser.add_predict_opts(predict_parser)
+        model_args, _unknown = predict_parser.parse_known_args()
+
+        model_name = "retrocomposer"
+        PredictorClass = RetroComposerPredictor
     elif args.model_name == "neuralsym":
         neuralsym_parser.add_model_opts(predict_parser)
         neuralsym_parser.add_train_opts(predict_parser)

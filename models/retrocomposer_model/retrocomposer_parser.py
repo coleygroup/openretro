@@ -38,3 +38,9 @@ def add_train_opts(parser):
     group.add("--lr", help="learning rate", type=float, default=5e-4)
     group.add('--decay', type=float, default=0,
               help='weight decay (default: 0)')
+
+
+def add_predict_opts(parser):
+    """Predicting options"""
+    group = parser.add_argument_group("retrocomposer_predict")
+    group.add('--beam_size', type=int, default=50, help='beam search size for rnn decoding')
