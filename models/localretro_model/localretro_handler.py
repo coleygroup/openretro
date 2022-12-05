@@ -10,8 +10,8 @@ from dgllife.utils import WeaveAtomFeaturizer, CanonicalBondFeaturizer, smiles_t
 from typing import Any, Dict, List
 
 
-class NeuralSymHandler:
-    """NeuralSym Handler for torchserve"""
+class LocalRetroHandler:
+    """LocalRetro Handler for torchserve"""
 
     def __init__(self):
         self._context = None
