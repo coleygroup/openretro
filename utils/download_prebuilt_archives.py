@@ -11,7 +11,9 @@ urls_fns_dict = {
     "USPTO_full_transformer.mar": "https://drive.google.com/uc?id=1QOekovkUUPcNCG1aXNBhBP2u0TcOGFGZ",
     "pistachio_21Q1_transformer.mar": "https://drive.google.com/uc?id=1A8WMt56x9ATnxq_3nqI_6M9Z34zm5rIJ",
     "USPTO_50k_retroxpert.mar": "https://drive.google.com/uc?id=1O4rT6DnopcfT_6fFTg87f8wW-UckEV8a",
-    "USPTO_full_retroxpert.mar": "https://drive.google.com/uc?id=1erq5PkmtWf7qvB5DB_AnxfTmNy3oDYwg"
+    "USPTO_full_retroxpert.mar": "https://drive.google.com/uc?id=1erq5PkmtWf7qvB5DB_AnxfTmNy3oDYwg",
+    "USPTO_50k_localretro.mar": "https://drive.google.com/uc?id=1Izen7MYIGtXPqAzGG6qQrjOwTFE1txu0",
+    "USPTO_50k_retrocomposer.mar": "https://drive.google.com/uc?id=1Q22g28TMSpd1y4gIxTXSGC9uy56vG2dm"
 }
 
 

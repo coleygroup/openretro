@@ -102,7 +102,7 @@ class RetroComposerHandler:
         print(f"\nModel #Params: {sum([x.nelement() for x in self.model.parameters()]) / 1000} k")
 
         model_file = os.path.join(model_dir, "model.pt")
-        self.model.from_pretrained(model_file)
+        self.model.load_state_dict(torch.load(model_file, map_location=self.device))
         print(f"Loaded model from {model_file}")
         sys.stdout.flush()
         self.model.eval()
@@ -119,8 +119,6 @@ class RetroComposerHandler:
         return tmpl_res_list
 
     def match_template_for_prediction(self, product_smi: str) -> Dict[str, Any]:
-        print("Matching templates for prediction.")
-
         from models.retrocomposer_model.chemutils import get_pattern_fingerprint_bitstr
 
         params = Chem.SmilesParserParams()
@@ -168,15 +166,18 @@ class RetroComposerHandler:
                         atom_indexes_fp_labels[match][prod_smarts_fp_idx][1].append(False)
 
         reaction_center_cands = []
+        reaction_center_cands_smarts = []
         reaction_center_atom_indexes = []
         for atom_index in sorted(atom_indexes_fp_labels.keys()):
             for fp_idx, val in atom_indexes_fp_labels[atom_index].items():
                 reaction_center_cands.append(fp_idx)
+                reaction_center_cands_smarts.append(val[0])
                 reaction_center_atom_indexes.append(atom_index)
 
         tmpl_res = {
             "product": product_smi,
             'reaction_center_cands': reaction_center_cands,
+            'reaction_center_cands_smarts': reaction_center_cands_smarts,
             'reaction_center_atom_indexes': reaction_center_atom_indexes
         }
 
@@ -185,17 +186,22 @@ class RetroComposerHandler:
     def inference(self, data: List[Dict[str, Any]]):
         from models.retrocomposer_model.chemutils import cano_smiles
         from models.retrocomposer_model.prepare_mol_graph import mol_to_graph_data_obj
+        from utils.chem_utils import canonicalize_smiles
 
         gnn_data_batch = []
-        for tmpl_res in data:
+        for idx, tmpl_res in enumerate(data):
+            # print(tmpl_res)
             p_mol = Chem.MolFromSmiles(tmpl_res["product"])
             gnn_data = mol_to_graph_data_obj(p_mol)
+            gnn_data.index = idx
             gnn_data.product = tmpl_res['product']
             gnn_data.reaction_center_cands = tmpl_res['reaction_center_cands']
+            gnn_data.reaction_center_cands_smarts = tmpl_res['reaction_center_cands_smarts']
+            # print(gnn_data)
             reaction_center_atom_indexes = torch.zeros(
                 (len(tmpl_res['reaction_center_atom_indexes']), gnn_data.atom_len), dtype=torch.bool)
             for row, atom_indexes in enumerate(tmpl_res['reaction_center_atom_indexes']):
-                reaction_center_atom_indexes[row][atom_indexes] = 1
+                reaction_center_atom_indexes[row][list(atom_indexes)] = 1
             gnn_data.reaction_center_atom_indexes = reaction_center_atom_indexes.numpy()
             gnn_data_batch.append(gnn_data)
 
@@ -209,7 +215,7 @@ class RetroComposerHandler:
             cano_pred_mols = {}
             for node in beam_nodes:
                 batch_idx = node.index
-                data_idx = batch.index[batch_idx]
+                data_idx = batch.index[batch_idx].item()
                 if data_idx not in cano_pred_mols:
                     cano_pred_mols[data_idx] = set()
                 if data_idx not in pred_results:
@@ -244,9 +250,9 @@ class RetroComposerHandler:
                             pred_results[data_idx]['templates_pred'].append(pred_tmpl)
                             pred_results[data_idx]['reactants_pred'].append(pred_mol)
                             pred_results[data_idx]['seq_pred'].append(seq_pred)
-                            if pred_results[data_idx]['cano_reactants'] == cano_pred_mol:
-                                pred_results[data_idx]['rank'] = min(
-                                    pred_results[data_idx]['rank'], len(pred_results[data_idx]['seq_pred']))
+                            # if pred_results[data_idx]['cano_reactants'] == cano_pred_mol:
+                            #     pred_results[data_idx]['rank'] = min(
+                            #         pred_results[data_idx]['rank'], len(pred_results[data_idx]['seq_pred']))
 
             beam_nodes.clear()
 
@@ -254,7 +260,8 @@ class RetroComposerHandler:
         for data_idx, pred_result in pred_results.items():
             result = {
                 "templates": pred_result['templates_pred'],
-                "reactants": pred_result['reactants_pred'],
+                "reactants": [canonicalize_smiles(r, remove_atom_number=True)
+                              for r in pred_result['reactants_pred']],
                 "scores": pred_result['templates_pred_log_prob']
             }
             results.append(result)
