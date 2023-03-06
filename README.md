@@ -2,6 +2,8 @@
 An open source library for benchmarking one-step retrosynthesis.
 This README is mainly for one-click benchmarking on existing/new reaction datasets.
 For serving retrosynthesis models, please refer to README_serving.md.
+All included models are under the MIT license,
+except LocalRetro which is under Apache 2.0 (compatible with the MIT license).
 
 # Selected Results
 We used the RetroXpert version of USPTO datasets
