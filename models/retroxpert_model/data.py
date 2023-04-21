@@ -5,6 +5,7 @@ import logging
 import networkx as nx
 import numpy as np
 import os
+import torch
 import pickle
 from collections import Counter
 from torch.utils.data import Dataset
@@ -75,7 +76,7 @@ class RetroCenterDatasets(Dataset):
         rxn_class = np.expand_dims(rxn_class, 0).repeat(product_atom_num, axis=0)
         disconnection_num = self.disconnection_num[index]
         # Construct graph and add edge data
-        x_graph = dgl.DGLGraph(nx.from_numpy_matrix(x_adj))
+        x_graph = dgl.graph(nx.from_numpy_matrix(x_adj))
         x_graph.edata["w"] = x_bond[x_adj]
 
         # start, end = self.pattern_features_indices[index]
@@ -130,8 +131,8 @@ class RetroCenterDatasetsOriginal(Dataset):
                                                         axis=0)
         disconnection_num = self.disconnection_num[index]
         # Construct graph and add edge data
-        x_graph = dgl.DGLGraph(nx.from_numpy_matrix(x_adj))
-        x_graph.edata['w'] = x_bond[x_adj]
+        x_graph = dgl.graph(nx.from_numpy_matrix(x_adj))
+        x_graph.edata['w'] = torch.as_tensor(x_bond[x_adj])
         return rxn_class, x_pattern_feat, x_atom, x_adj, x_graph, y_adj, disconnection_num
 
     def __len__(self):

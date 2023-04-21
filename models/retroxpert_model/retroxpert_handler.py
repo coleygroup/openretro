@@ -31,9 +31,9 @@ class RetroXpertHandler:
         self.heads = 4
         self.hidden_dim = 128
         self.use_cpu = True
-        self.n_best = 20
+        self.n_best = 10
         # self.beam_size = 50
-        self.beam_size = 10
+        self.beam_size = 20
         self.min_freq = 10
 
     def initialize(self, context):
@@ -185,8 +185,8 @@ class RetroXpertHandler:
             x_adj = rxn_data["product_adj"]
 
             # Construct graph and add edge data
-            x_graph = dgl.DGLGraph(nx.from_numpy_matrix(x_adj))
-            x_graph.edata["w"] = x_bond[x_adj]
+            x_graph = dgl.from_networkx(nx.from_numpy_matrix(x_adj))
+            x_graph.edata["w"] = torch.as_tensor(x_bond[x_adj])
 
             x_pattern_feats.append(x_pattern_feat)
             x_atoms.append(x_atom)

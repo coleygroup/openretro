@@ -19,7 +19,7 @@ class TransformerHandler:
         # TODO: temporary hardcode
         self.use_cpu = True
         self.n_best = 10
-        self.beam_size = 5
+        self.beam_size = 20
 
     def initialize(self, context):
         self._context = context
