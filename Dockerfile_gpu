@@ -4,7 +4,7 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
 RUN apt-get update --allow-releaseinfo-change && apt-get -y install gcc g++ make curl git
 RUN conda install -c pytorch torchserve=0.3.1
-RUN conda install -c conda-forge openjdk=11 rdkit=2022.09.1
+RUN conda install -c conda-forge openjdk=11 rdkit=2021.03.1
 RUN pip install setuptools tqdm OpenNMT-py==1.2.0 networkx==2.5 pebble
 RUN pip install dgl-cu111 -f https://data.dgl.ai/wheels/repo.html
 RUN pip install dgllife==0.2.6
@@ -19,7 +19,7 @@ RUN pip install torch-scatter==2.0.9 -f https://data.pyg.org/whl/torch-${TORCH_V
 RUN pip install torch-sparse==0.6.12 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-cluster==1.5.9 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-spline-conv==1.2.1 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
-RUN pip install torch-geometric
+RUN pip install torch-geometric==2.2
 RUN pip install torch-model-archiver
 
 WORKDIR /app

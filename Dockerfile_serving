@@ -2,10 +2,10 @@ FROM continuumio/miniconda3:4.9.2
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update --allow-releaseinfo-change && apt-get -y install gcc g++ make curl git
-RUN conda install -c pytorch pytorch=1.9.0 torchserve=0.3.1 cpuonly
-RUN conda install -c conda-forge openjdk=11 rdkit=2022.09.1
-RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.4.3 networkx==2.5 pebble gdown
-RUN pip install dgl==0.9.1
+RUN conda install -y -c conda-forge mamba numpy=1.19 -n base
+RUN conda install -y -c pytorch pytorch=1.9.0 torchserve=0.3.1 cpuonly
+RUN mamba install -y -c conda-forge openjdk=11 rdkit=2021.03.1
+RUN pip install setuptools tqdm OpenNMT-py==1.2.0 dgl==0.9.1 networkx==2.5 pebble gdown
 RUN pip install dgllife==0.2.6
 RUN pip install epam.indigo
 
@@ -18,7 +18,7 @@ RUN pip install torch-scatter==2.0.9 -f https://data.pyg.org/whl/torch-${TORCH_V
 RUN pip install torch-sparse==0.6.12 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-cluster==1.5.9 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
 RUN pip install torch-spline-conv==1.2.1 -f https://data.pyg.org/whl/torch-${TORCH_VER}+${CUDA_CODE}.html
-RUN pip install torch-geometric
+RUN pip install torch-geometric==2.2
 RUN pip install torch-model-archiver
 
 WORKDIR /app
