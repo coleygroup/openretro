@@ -10,7 +10,7 @@ docker run \
   -v "$PWD/checkpoints/USPTO_50k_gln/model-6.dump":/app/openretro/checkpoints/USPTO_50k_gln/model-6.dump \
   -v "$PWD/data/USPTO_50k/processed_gln":/app/openretro/data/USPTO_50k/processed_gln \
   -v "$PWD/mars":/app/openretro/mars \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=USPTO_50k_gln \
   --version=1.0 \

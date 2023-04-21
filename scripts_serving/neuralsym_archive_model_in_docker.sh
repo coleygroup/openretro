@@ -13,7 +13,7 @@ docker run \
   -v "$PWD/data/USPTO_50k/processed_neuralsym/training_templates.txt":/app/openretro/data/USPTO_50k/processed_neuralsym/training_templates.txt \
   -v "$PWD/data/USPTO_50k/processed_neuralsym/variance_indices.txt":/app/openretro/data/USPTO_50k/processed_neuralsym/variance_indices.txt \
   -v "$PWD/mars":/app/openretro/mars \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=USPTO_50k_neuralsym \
   --version=1.0 \
@@ -35,7 +35,7 @@ docker run \
   -v "$PWD/data/USPTO_full/processed_neuralsym/training_templates.txt":/app/openretro/data/USPTO_full/processed_neuralsym/training_templates.txt \
   -v "$PWD/data/USPTO_full/processed_neuralsym/variance_indices.txt":/app/openretro/data/USPTO_full/processed_neuralsym/variance_indices.txt \
   -v "$PWD/mars":/app/openretro/mars \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=USPTO_full_neuralsym \
   --version=1.0 \
@@ -57,7 +57,7 @@ docker run \
   -v "$PWD/data/pistachio_21Q1/processed_neuralsym/training_templates.txt":/app/openretro/data/pistachio_21Q1/processed_neuralsym/training_templates.txt \
   -v "$PWD/data/pistachio_21Q1/processed_neuralsym/variance_indices.txt":/app/openretro/data/pistachio_21Q1/processed_neuralsym/variance_indices.txt \
   -v "$PWD/mars":/app/openretro/mars \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=pistachio_21Q1_neuralsym \
   --version=1.0 \

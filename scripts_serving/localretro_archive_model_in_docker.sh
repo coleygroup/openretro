@@ -20,7 +20,7 @@ docker run \
   -v "$PWD/mars":/app/openretro/mars \
   -v "$PWD/models.zip":/app/openretro/models.zip \
   -v "$PWD/utils.zip":/app/openretro/utils.zip \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=USPTO_50k_localretro \
   --version=1.0 \

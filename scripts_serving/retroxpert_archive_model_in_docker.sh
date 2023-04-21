@@ -13,7 +13,7 @@ docker run \
   -v "$PWD/data/USPTO_50k/processed_retroxpert/product_patterns.txt":/app/openretro/data/USPTO_50k/processed_retroxpert/product_patterns.txt \
   -v "$PWD/checkpoints/USPTO_50k_retroxpert/model_step_300000.pt":/app/openretro/checkpoints/USPTO_50k_retroxpert/model_step_300000.pt \
   -v "$PWD/mars":/app/openretro/mars \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=USPTO_50k_retroxpert \
   --version=1.0 \
@@ -35,7 +35,7 @@ docker run \
   -v "$PWD/data/USPTO_full/processed_retroxpert/product_patterns.txt":/app/openretro/data/USPTO_full/processed_retroxpert/product_patterns.txt \
   -v "$PWD/checkpoints/USPTO_full_retroxpert/model_step_300000.pt":/app/openretro/checkpoints/USPTO_full_retroxpert/model_step_300000.pt \
   -v "$PWD/mars":/app/openretro/mars \
-  -t openretro:gpu \
+  -t openretro:serving-cpu \
   torch-model-archiver \
   --model-name=USPTO_full_retroxpert \
   --version=1.0 \
