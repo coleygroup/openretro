@@ -3,17 +3,17 @@ import os
 
 
 urls_fns_dict = {
-    "USPTO_50k_gln.mar": "https://drive.google.com/uc?id=18bCEBinSNNgY4bReJW-a6xy7iCSZFQCr",
-    "USPTO_50k_neuralsym.mar": "https://drive.google.com/uc?id=1sYxoAjemCJlPVCcTHVbUCnd6wnLyfWZf",
-    "USPTO_full_neuralsym.mar": "https://drive.google.com/uc?id=1Xg7vNyHi8-okZYX4J8BcZ9oRYYRz7Q_A",
-    "pistachio_21Q1_neuralsym.mar": "https://drive.google.com/uc?id=1xUNMYuzVUr1EYliGUzcHqYe5_3ESSZ4f",
-    "USPTO_50k_transformer.mar": "https://drive.google.com/uc?id=1Sht80ADqb4OWv1Wt9rosHuGPni3jaTEl",
-    "USPTO_full_transformer.mar": "https://drive.google.com/uc?id=1QOekovkUUPcNCG1aXNBhBP2u0TcOGFGZ",
-    "pistachio_21Q1_transformer.mar": "https://drive.google.com/uc?id=1A8WMt56x9ATnxq_3nqI_6M9Z34zm5rIJ",
-    "USPTO_50k_retroxpert.mar": "https://drive.google.com/uc?id=1O4rT6DnopcfT_6fFTg87f8wW-UckEV8a",
-    "USPTO_full_retroxpert.mar": "https://drive.google.com/uc?id=1erq5PkmtWf7qvB5DB_AnxfTmNy3oDYwg",
-    "USPTO_50k_localretro.mar": "https://drive.google.com/uc?id=1Izen7MYIGtXPqAzGG6qQrjOwTFE1txu0",
-    "USPTO_50k_retrocomposer.mar": "https://drive.google.com/uc?id=1Q22g28TMSpd1y4gIxTXSGC9uy56vG2dm"
+    "USPTO_50k_gln.mar": "https://drive.google.com/uc?id=1T0egYNi1tLZ2eOQuielJfGNvjrkdN4yb",
+    "USPTO_50k_neuralsym.mar": "https://drive.google.com/uc?id=1NobcYvFc6KvH6EwbmXyYil6qpUjfr0Rx",
+    "USPTO_full_neuralsym.mar": "https://drive.google.com/uc?id=1KOGFnMHGhA4BukXgh-D1APjA_yvkqygF",
+    "pistachio_21Q1_neuralsym.mar": "https://drive.google.com/uc?id=15Gd6YgN9wkFjRG9M83GC8EL2e7LNlPkH",
+    "USPTO_50k_transformer.mar": "https://drive.google.com/uc?id=1X6mvqmzEYxdXMZ_1C4xlGtPiSUngbKdp",
+    "USPTO_full_transformer.mar": "https://drive.google.com/uc?id=1TTcd_woHZdyi4dtLQZzgZ3ZhkuuJ1XnC",
+    "pistachio_21Q1_transformer.mar": "https://drive.google.com/uc?id=1_EVAd8DTmyUI0SRMF5DMhaVHnFDImxCo",
+    "USPTO_50k_retroxpert.mar": "https://drive.google.com/uc?id=11biLTqrbKSJ4kDVwcFy35r6qHk0BncX2",
+    "USPTO_full_retroxpert.mar": "https://drive.google.com/uc?id=1WW1o-XGur3tULxUmNPMfsS9xF-kHBmTc",
+    "USPTO_50k_localretro.mar": "https://drive.google.com/uc?id=1zDpJ9GWsGZwerd8w74MbcwHfiRMqqiRR",
+    "USPTO_50k_retrocomposer.mar": "https://drive.google.com/uc?id=11MbI-Pin-qEqgJLsZByuHY63erDwDGjV"
 }
 
 
