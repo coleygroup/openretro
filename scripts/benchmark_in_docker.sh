@@ -51,7 +51,6 @@ if [[ "$*" == *"retroxpert"* ]]; then
   bash scripts/retroxpert/retroxpert_predict_in_docker.sh
   bash scripts/retroxpert/retroxpert_score_in_docker.sh
 fi
-fi
 
 # retrocomposer
 if [[ "$*" == *"retrocomposer"* ]]; then
